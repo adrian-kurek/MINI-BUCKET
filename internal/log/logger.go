@@ -131,11 +131,11 @@ func (l *Logger) validate() {
 
 		_, err := l.file.WriteString("]")
 		if err != nil {
-			fmt.Println("something went wrong during writing to data to the file")
+			fmt.Println("something went wrong during writing  data to the file")
 		}
 		err = l.file.Close()
 		if err != nil {
-			fmt.Println("something went wrong during writing to data to the file")
+			fmt.Println("something went wrong during writing  data to the file")
 		}
 
 		l.startTime = actualDate
@@ -149,7 +149,7 @@ func (l *Logger) validate() {
 		l.file = file
 		_, err = l.file.WriteString("[")
 		if err != nil {
-			fmt.Println("something went wrong during writing to data to the file")
+			fmt.Println("something went wrong during writing  data to the file")
 		}
 
 		fileContentToAdd := fmt.Sprintf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
@@ -157,7 +157,7 @@ func (l *Logger) validate() {
 
 		_, err = l.file.WriteString(fileContentToAdd)
 		if err != nil {
-			fmt.Println("something went wrong during writing to data to the file")
+			fmt.Println("something went wrong during writing  data to the file")
 		}
 	}
 }
@@ -184,7 +184,7 @@ func (l *Logger) Close() {
 	}
 	_, err := l.file.WriteString("]")
 	if err != nil {
-		fmt.Println("something went wrong during writing to data to the file")
+		fmt.Println("something went wrong during writing  data to the file")
 	}
 	err = l.file.Close()
 	if err != nil {
