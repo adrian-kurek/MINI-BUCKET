@@ -1,0 +1,21 @@
+[{
+		"date": "2025.12.29 17:41:27",
+		"type": "INFO",
+		"message": "successfully created a logger",
+		"data": {}
+	},{
+		"date": "2025.12.29 17:41:27",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	},{
+		"date": "2025.12.29 17:41:27",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	},{
+		"date": "2025.12.29 17:41:27",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	}]
