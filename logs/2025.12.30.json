@@ -1,0 +1,41 @@
+[{
+		"date": "2025.12.30 14:26:18",
+		"type": "INFO",
+		"message": "successfully created a logger",
+		"data": {}
+	},{
+		"date": "2025.12.30 14:26:18",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	},{
+		"date": "2025.12.30 14:26:18",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	},{
+		"date": "2025.12.30 14:26:18",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	}][{
+		"date": "2025.12.30 14:27:30",
+		"type": "INFO",
+		"message": "successfully created a logger",
+		"data": {}
+	},{
+		"date": "2025.12.30 14:27:30",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	},{
+		"date": "2025.12.30 14:27:30",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	},{
+		"date": "2025.12.30 14:27:30",
+		"type": "INFO",
+		"message": "Test string",
+		"data": ""
+	}]
