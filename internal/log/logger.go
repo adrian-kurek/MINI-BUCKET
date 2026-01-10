@@ -121,6 +121,7 @@ func (l *Logger) InitializeLogger() {
 	if err != nil {
 		fmt.Println("something went wrong during writing to data to the file")
 	}
+	l.Info("successfully initialized new logger", nil)
 }
 
 func (l *Logger) validate() {
@@ -177,17 +178,19 @@ func (l *Logger) Warning(message string, data any) {
 	l.emit(message, "WARNING", data)
 }
 
-func (l *Logger) Close() {
+func (l *Logger) Close() error {
 	if l.file == nil {
 		fmt.Println("failed to close the file")
-		return
+		return nil
 	}
 	_, err := l.file.WriteString("]")
 	if err != nil {
 		fmt.Println("something went wrong during writing  data to the file")
+		return err
 	}
 	err = l.file.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
