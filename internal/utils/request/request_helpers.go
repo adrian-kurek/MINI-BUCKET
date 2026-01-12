@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	// "github.com/slodkiadrianek/octopus/internal/DTO"
 )
 
 func SendHTTP(ctx context.Context, URL, authorizationHeader, method string, body []byte, readBody bool) (int,
@@ -43,6 +42,7 @@ func SendHTTP(ctx context.Context, URL, authorizationHeader, method string, body
 			return 0, map[string]any{}, err
 		}
 	}
+
 	return response.StatusCode, bodyFromResponse, nil
 }
 
@@ -52,6 +52,7 @@ func ReadUserIDFromToken(r *http.Request) (int, error) {
 		err := errors.New("failed to read user from context")
 		return 0, err
 	}
+
 	return userID, nil
 }
 
@@ -63,6 +64,7 @@ func ReadBody[T any](r *http.Request) (*T, error) {
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
+
 	err := decoder.Decode(&body)
 	if err != nil {
 		return nil, err
@@ -129,7 +131,7 @@ func ReadAllParams(r *http.Request) (map[string]string, error) {
 	splittedPath := strings.Split(strings.Trim(path, "/"), "/")
 	splittedRouteKeyPath := strings.Split(strings.Trim(s, "/"), "/")
 
-	params := make(map[string]string)
+	params := make(map[string]string, len(splittedPath))
 	for i := range len(splittedPath) {
 		if strings.Contains(splittedRouteKeyPath[i], ":") {
 			paramName := splittedRouteKeyPath[i][1:]

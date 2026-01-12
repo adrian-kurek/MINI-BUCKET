@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 
+	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
 )
@@ -19,14 +20,19 @@ func main() {
 			fmt.Printf("failed to properly close file with logs:%s", closeErr.Error())
 		}
 	}()
-	port := "3009"
-	// if !ok {
-	// 	err := errors.New("PORT variable has not been initialized")
-	// 	loggerService.Error(err.Error(), map[string]string{
-	// 		"variable": "PORT",
-	// 	})
-	// 	panic(err)
-	// }
+	err := config.SetupEnvVariables("./.env")
+	if err != nil {
+		panic(err)
+	}
+
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		err := errors.New("PORT variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "PORT",
+		})
+		panic(err)
+	}
 	dependenciesConfig := server.NewDependencyConfig(port)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)
