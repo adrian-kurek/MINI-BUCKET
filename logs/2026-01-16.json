@@ -1,0 +1,101 @@
+[{
+	"date": "2026-01-16 09:26:43",
+	"typeOfLog": "INFO",
+	"message": "successfully created logger",
+	"data": {}
+},{
+	"date": "2026-01-16 09:26:43",
+	"typeOfLog": "INFO",
+	"message": "successfully initialized new logger",
+	"data": null
+},{
+	"date": "2026-01-16 09:26:43",
+	"typeOfLog": "INFO",
+	"message": "server started at port:3009",
+	"data": null
+},{
+	"date": "2026-01-16 09:26:53",
+	"typeOfLog": "INFO",
+	"message": "server exited",
+	"data": null
+}][{
+	"date": "2026-01-16 09:27:06",
+	"typeOfLog": "INFO",
+	"message": "successfully created logger",
+	"data": {}
+},{
+	"date": "2026-01-16 09:27:06",
+	"typeOfLog": "INFO",
+	"message": "successfully initialized new logger",
+	"data": null
+},{
+	"date": "2026-01-16 09:27:06",
+	"typeOfLog": "INFO",
+	"message": "server started at port:3009",
+	"data": null
+},{
+	"date": "2026-01-16 09:27:12",
+	"typeOfLog": "INFO",
+	"message": "server exited",
+	"data": null
+}][{
+	"date": "2026-01-16 09:27:21",
+	"typeOfLog": "INFO",
+	"message": "successfully created logger",
+	"data": {}
+},{
+	"date": "2026-01-16 09:27:21",
+	"typeOfLog": "INFO",
+	"message": "successfully initialized new logger",
+	"data": null
+},{
+	"date": "2026-01-16 09:27:21",
+	"typeOfLog": "INFO",
+	"message": "server started at port:3009",
+	"data": null
+},{
+	"date": "2026-01-16 09:27:35",
+	"typeOfLog": "INFO",
+	"message": "server exited",
+	"data": null
+}][{
+	"date": "2026-01-16 09:30:18",
+	"typeOfLog": "INFO",
+	"message": "successfully created logger",
+	"data": {}
+},{
+	"date": "2026-01-16 09:30:18",
+	"typeOfLog": "INFO",
+	"message": "successfully initialized new logger",
+	"data": null
+},{
+	"date": "2026-01-16 09:30:18",
+	"typeOfLog": "INFO",
+	"message": "server started at port:3009",
+	"data": null
+},{
+	"date": "2026-01-16 09:31:10",
+	"typeOfLog": "INFO",
+	"message": "server exited",
+	"data": null
+}][{
+	"date": "2026-01-16 09:31:11",
+	"typeOfLog": "INFO",
+	"message": "successfully created logger",
+	"data": {}
+},{
+	"date": "2026-01-16 09:31:11",
+	"typeOfLog": "INFO",
+	"message": "successfully initialized new logger",
+	"data": null
+},{
+	"date": "2026-01-16 09:31:11",
+	"typeOfLog": "INFO",
+	"message": "server started at port:3009",
+	"data": null
+},{
+	"date": "2026-01-16 09:32:48",
+	"typeOfLog": "INFO",
+	"message": "server exited",
+	"data": null
+}]

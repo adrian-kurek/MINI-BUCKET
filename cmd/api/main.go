@@ -9,12 +9,13 @@ import (
 	"os/signal"
 
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/controller"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
 )
 
 func main() {
-	loggerService := log.NewLogger("../../logs", "2025.08.12", "21:02:03")
+	loggerService := log.NewLogger("./logs", "2006-01-02", "15:04:05")
 	defer func() {
 		if closeErr := loggerService.Close(); closeErr != nil {
 			fmt.Printf("failed to properly close file with logs:%s", closeErr.Error())
@@ -33,7 +34,9 @@ func main() {
 		})
 		panic(err)
 	}
-	dependenciesConfig := server.NewDependencyConfig(port)
+	authController := controller.NewAuthController(loggerService)
+
+	dependenciesConfig := server.NewDependencyConfig(port, *authController)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)
 	go func() {

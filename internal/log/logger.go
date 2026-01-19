@@ -29,7 +29,7 @@ func NewLogger(logDir string, dateFormat string, timeFormat string) *Logger {
 		dateFormat: dateFormat,
 		timeFormat: timeFormat,
 	}
-	logger.InitializeLogger()
+	logger.initializeLogger()
 	return logger
 }
 
@@ -92,7 +92,7 @@ func (l *Logger) emit(message, typeOfLog string, data any) {
 	}
 }
 
-func (l *Logger) InitializeLogger() {
+func (l *Logger) initializeLogger() {
 	if _, err := os.Stat(l.logDir); os.IsNotExist(err) {
 		if err := os.Mkdir(l.logDir, os.ModePerm); err != nil {
 			panic(err)
@@ -126,6 +126,7 @@ func (l *Logger) InitializeLogger() {
 
 func (l *Logger) validate() {
 	actualDate := time.Now().Format(l.dateFormat)
+
 	if actualDate != l.startTime {
 
 		fmt.Println("closing old file and creating the new one for new date")

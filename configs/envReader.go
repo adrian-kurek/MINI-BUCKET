@@ -15,7 +15,6 @@ func SetupEnvVariables(pathToEnvFile string) error {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
-
 	for scanner.Scan() {
 		lineNum++
 
