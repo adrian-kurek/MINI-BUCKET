@@ -7,7 +7,7 @@ import (
 )
 
 type authController interface {
-	Login(w http.ResponseWriter, r *http.Request)
+	Register(w http.ResponseWriter, r *http.Request)
 }
 
 type AuthHandler struct {
@@ -23,5 +23,5 @@ func NewAuthHandler(authController authController) *AuthHandler {
 func (ah *AuthHandler) SetupAuthHandlers(router *routes.Router) {
 	groupRouter := router.Group("/api/v1/auth")
 
-	groupRouter.GET("/login", ah.authController.Login)
+	groupRouter.POST("/register", ah.authController.Register)
 }

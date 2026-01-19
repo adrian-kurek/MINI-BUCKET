@@ -9,7 +9,7 @@ import (
 	"os/signal"
 
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/controller"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
 )

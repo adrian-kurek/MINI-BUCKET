@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/controller"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server/routes"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server/routes/handlers"
 )
