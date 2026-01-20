@@ -1,13 +1,28 @@
 package service
 
-import "github.com/slodkiadrianek/MINI-BUCKET/internal/interfaces"
+import (
+	"context"
+
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
+)
 
 type AuthService struct {
-	loggerService interfaces.Logger
+	loggerService  interfaces.Logger
+	userRepository interfaces.UserRepository
 }
 
-func NewAuthService(loggerService interfaces.Logger) *AuthService {
+func NewAuthService(loggerService interfaces.Logger, userRepository interfaces.UserRepository) *AuthService {
 	return &AuthService{
-		loggerService: loggerService,
+		loggerService:  loggerService,
+		userRepository: userRepository,
 	}
+}
+
+func (as *AuthService) Register(ctx context.Context, user model.User) error {
+	// _, err := as.userRepository.FindUserByEmail(ctx, user.Email)
+	// if err != nil {
+	// 	return err
+	// }
+	return nil
 }

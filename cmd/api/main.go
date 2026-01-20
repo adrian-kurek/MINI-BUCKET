@@ -10,8 +10,10 @@ import (
 
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
 )
 
 func main() {
@@ -34,7 +36,22 @@ func main() {
 		})
 		panic(err)
 	}
-	authController := controller.NewAuthController(loggerService)
+	dbLink, ok := os.LookupEnv("DbLink")
+	if !ok {
+		err := errors.New("DbLink variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "DbLink",
+		})
+		panic(err)
+	}
+	db, err := config.NewDB(dbLink, "postgres")
+	if err != nil {
+		loggerService.Error("Failed to connect to database", err)
+		panic(err)
+	}
+	userRepository := repository.NewUserRepository(loggerService, db.DBConnection)
+	authService := service.NewAuthService(loggerService, userRepository)
+	authController := controller.NewAuthController(loggerService, authService)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authController)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
