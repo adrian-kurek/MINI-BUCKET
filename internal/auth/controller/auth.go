@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"time"
 
+	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/utils/request"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/utils/response"
 )
 
 type authService interface {
-	Register(ctx context.Context, user model.User) error
+	Register(ctx context.Context, user dto.CreateUser) error
 }
 
 type AuthController struct {
@@ -31,7 +32,11 @@ func NewAuthController(loggerService interfaces.Logger, authService authService)
 func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 800*time.Millisecond)
 	defer cancel()
-	err := ac.authService.Register(ctx, model.User{})
+	dataFromBody, err := request.ReadBody[dto.CreateUser](r)
+	if err != nil {
+		response.Send(w, 400, err.Error())
+	}
+	err = ac.authService.Register(ctx, *dataFromBody)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			response.Send(w, http.StatusGatewayTimeout, "register timed out")

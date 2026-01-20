@@ -10,5 +10,6 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/redis/go-redis/v9 v9.17.2 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
