@@ -5,17 +5,17 @@ import (
 	"database/sql"
 	"errors"
 
-	basicErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 )
 
 type UserRepository struct {
-	loggerService interfaces.Logger
+	loggerService commonInterfaces.Logger
 	db            *sql.DB
 }
 
-func NewUserRepository(loggerService interfaces.Logger, db *sql.DB) *UserRepository {
+func NewUserRepository(loggerService commonInterfaces.Logger, db *sql.DB) *UserRepository {
 	return &UserRepository{
 		loggerService: loggerService,
 		db:            db,
@@ -26,7 +26,7 @@ func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (mo
 	query := "SELECT * FROM USERS WHERE email = $1"
 	stmt, err := ur.db.PrepareContext(ctx, query)
 	if err != nil {
-		ur.loggerService.Error(basicErrors.FailedToPrepareQuery, map[string]string{
+		ur.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
 			"query": query,
 			"error": err.Error(),
 		})
@@ -34,7 +34,7 @@ func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (mo
 	}
 	defer func() {
 		if closeErr := stmt.Close(); closeErr != nil {
-			ur.loggerService.Error(basicErrors.FailedToCloseStatement, closeErr)
+			ur.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
 		}
 	}()
 
@@ -49,7 +49,7 @@ func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (mo
 				ID: 0,
 			}, nil
 		}
-		ur.loggerService.Error(basicErrors.FailedToExecuteSelectQuery, map[string]any{
+		ur.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
 			"args":  []any{email},
 			"error": err,

@@ -4,23 +4,24 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
+	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type authRepository interface {
-	RegisterUser(ctx context.Context, user dto.CreateUser, hashedPassword []byte) error
+	RegisterUser(ctx context.Context, user authDto.CreateUser, hashedPassword []byte) error
 }
 
 type AuthService struct {
-	loggerService  interfaces.Logger
-	userRepository interfaces.UserRepository
+	loggerService  commonInterfaces.Logger
+	userRepository commonInterfaces.UserRepository
 	authRepository authRepository
 }
 
-func NewAuthService(loggerService interfaces.Logger, userRepository interfaces.UserRepository, authRepository authRepository) *AuthService {
+func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,
@@ -28,9 +29,10 @@ func NewAuthService(loggerService interfaces.Logger, userRepository interfaces.U
 	}
 }
 
-func (as *AuthService) Register(ctx context.Context, user dto.CreateUser) error {
+func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) error {
 	userFromDB, err := as.userRepository.FindUserByEmail(ctx, user.Email)
 	if err != nil {
+		fmt.Println(err.Error())
 		return err
 	}
 
@@ -39,11 +41,12 @@ func (as *AuthService) Register(ctx context.Context, user dto.CreateUser) error 
 		return errors.New("test")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MaxCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		as.loggerService.Error("failed to hash password", err)
 		return err
 	}
+	fmt.Println("tes")
 
 	err = as.authRepository.RegisterUser(ctx, user, hashedPassword)
 	if err != nil {

@@ -10,10 +10,11 @@ import (
 
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
+	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
+	userRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
 )
 
 func main() {
@@ -49,8 +50,9 @@ func main() {
 		loggerService.Error("Failed to connect to database", err)
 		panic(err)
 	}
-	userRepository := repository.NewUserRepository(loggerService, db.DBConnection)
-	authService := service.NewAuthService(loggerService, userRepository)
+	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
+	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
+	authService := service.NewAuthService(loggerService, userRepository, authRepository)
 	authController := controller.NewAuthController(loggerService, authService)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authController)
