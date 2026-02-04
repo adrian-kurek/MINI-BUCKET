@@ -3,14 +3,11 @@ package controller
 
 import (
 	"context"
-	"errors"
 	"net/http"
-	"time"
 
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/utils/request"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/utils/response"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 )
 
 type authService interface {
@@ -29,23 +26,25 @@ func NewAuthController(loggerService commonInterfaces.Logger, authService authSe
 	}
 }
 
-func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-	defer cancel()
-	dataFromBody, err := request.ReadBody[authDto.CreateUser](r)
-	if err != nil {
-		response.Send(w, 400, err.Error())
-		return
-	}
-	err = ac.authService.Register(ctx, *dataFromBody)
-	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			response.Send(w, http.StatusGatewayTimeout, "register timed out")
-			return
-		}
-		response.Send(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	response.Send(w, http.StatusOK, map[string]string{})
+func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) error {
+	// ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	// defer cancel()
+	return middleware.NewAPIError(400, "TEST ISSUE")
+	// dataFromBody, err := request.ReadBody[authDto.CreateUser](r)
+	// if err != nil {
+	// 	response.Send(w, 400, err.Error())
+	// 	return
+	// }
+	// err = ac.authService.Register(ctx, *dataFromBody)
+	// if err != nil {
+	// 	if errors.Is(err, context.DeadlineExceeded) {
+	// 		response.Send(w, http.StatusGatewayTimeout, "register timed out")
+	// 		return
+	// 	}
+	// 	response.Send(w, http.StatusInternalServerError, err.Error())
+	// 	return
+	// }
+	//
+	// response.Send(w, http.StatusOK, map[string]string{})
+	// return
 }

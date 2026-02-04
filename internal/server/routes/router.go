@@ -5,9 +5,9 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/request"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/response"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/utils/request"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/utils/response"
 )
 
 type (
@@ -35,7 +35,7 @@ func NewRouter() *Router {
 func (r *Router) Request(route string, method string, fns ...any) {
 	middlewares := make([]Middleware, 0, len(r.middlewarePreChain)+len(fns))
 	middlewares = append(middlewares, middleware.MethodCheckMiddleware(method))
-	var finalHandler http.Handler
+	var finalHandler middleware.HTTPFunc
 	if len(r.middlewarePreChain) > 0 {
 		middlewares = append(middlewares, r.middlewarePreChain...)
 	}
@@ -43,8 +43,8 @@ func (r *Router) Request(route string, method string, fns ...any) {
 		switch fn := el.(type) {
 		case func(http.Handler) http.Handler:
 			middlewares = append(middlewares, fn)
-		case func(http.ResponseWriter, *http.Request):
-			finalHandler = http.HandlerFunc(fn)
+		case middleware.HTTPFunc:
+			finalHandler = fn
 		}
 	}
 	handler := finalHandler
