@@ -37,6 +37,7 @@ func main() {
 		})
 		panic(err)
 	}
+
 	dbLink, ok := os.LookupEnv("DbLink")
 	if !ok {
 		err := errors.New("DbLink variable has not been initialized")
@@ -45,11 +46,13 @@ func main() {
 		})
 		panic(err)
 	}
+
 	db, err := config.NewDB(dbLink, "postgres")
 	if err != nil {
 		loggerService.Error("Failed to connect to database", err)
 		panic(err)
 	}
+
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
 	authService := service.NewAuthService(loggerService, userRepository, authRepository)
