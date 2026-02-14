@@ -13,6 +13,7 @@ import (
 	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
 	userRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
 )
@@ -38,11 +39,11 @@ func main() {
 		panic(err)
 	}
 
-	dbLink, ok := os.LookupEnv("DbLink")
+	dbLink, ok := os.LookupEnv("DB_LINK")
 	if !ok {
-		err := errors.New("DbLink variable has not been initialized")
+		err := errors.New("DB_LINK variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
-			"variable": "DbLink",
+			"variable": "DB_LINK",
 		})
 		panic(err)
 	}
@@ -53,9 +54,28 @@ func main() {
 		panic(err)
 	}
 
+	accessTokenSecret, ok := os.LookupEnv("ACCESS_TOKEN_SECRET")
+	if !ok {
+		err := errors.New("ACCESS_TOKEN_SECRET variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "ACCESS_TOKEN_SECRET",
+		})
+		panic(err)
+	}
+	refreshTokenSecret, ok := os.LookupEnv("REFRESH_TOKEN_SECRET")
+	if !ok {
+		err := errors.New("REFRESH_TOKEN_SECRET variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "REFRESH_TOKEN_SECRET",
+		})
+		panic(err)
+	}
+
+	authorization := middleware.NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService)
+
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
-	authService := service.NewAuthService(loggerService, userRepository, authRepository)
+	authService := service.NewAuthService(loggerService, userRepository, authRepository, *authorization)
 	authController := controller.NewAuthController(loggerService, authService)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authController)

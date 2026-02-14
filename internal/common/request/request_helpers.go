@@ -22,7 +22,7 @@ func Make(f HTTPFunc) http.HandlerFunc {
 			if apiErr, ok := err.(*commonErrors.APIError); ok {
 				response.Send(w, apiErr.StatusCode, map[string]string{"message": apiErr.Message})
 			} else {
-				response.Send(w, 500, map[string]string{"message": "Internal server error", "err": err.Error()})
+				response.Send(w, 500, map[string]string{"message": "Internal server error"})
 			}
 		}
 	}

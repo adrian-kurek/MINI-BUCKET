@@ -6,3 +6,8 @@ type CreateUser struct {
 	Password        string `validate:"required,min=12"`
 	ConfirmPassword string `validate:"required,eqfield=Password"`
 }
+
+type LoginUser struct {
+	Email    string `validate:"required,email"`
+	Password string `validate:"required,min=12"`
+}
