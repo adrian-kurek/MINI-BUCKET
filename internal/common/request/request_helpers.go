@@ -9,7 +9,24 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/response"
 )
+
+type HTTPFunc func(w http.ResponseWriter, r *http.Request) error
+
+func Make(f HTTPFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := f(w, r); err != nil {
+			if apiErr, ok := err.(*commonErrors.APIError); ok {
+				response.Send(w, apiErr.StatusCode, map[string]string{"message": apiErr.Message})
+			} else {
+				response.Send(w, 500, map[string]string{"message": "Internal server error", "err": err.Error()})
+			}
+		}
+	}
+}
 
 func SendHTTP(ctx context.Context, URL, authorizationHeader, method string, body []byte, readBody bool) (int,
 	map[string]any, error,

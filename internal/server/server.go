@@ -1,3 +1,4 @@
+// Package server hold whole logic associated with server and router
 package server
 
 import (
@@ -7,7 +8,6 @@ import (
 
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server/routes"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/server/routes/handlers"
 )
 
 type DependencyConfig struct {
@@ -25,13 +25,13 @@ func NewDependencyConfig(port string, authController controller.AuthController) 
 type Server struct {
 	config *DependencyConfig
 	server *http.Server
-	router *routes.Router
+	router *http.ServeMux
 }
 
 func NewServer(config *DependencyConfig) *Server {
 	return &Server{
 		config: config,
-		router: routes.NewRouter(),
+		router: http.NewServeMux(),
 	}
 }
 
@@ -48,7 +48,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) SetupRoutes() {
-	authHandler := handlers.NewAuthHandler(&s.config.authController)
+	authHandler := routes.NewAuthHandler(&s.config.authController)
 	authHandler.SetupAuthHandlers(s.router)
 }
 
