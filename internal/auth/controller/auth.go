@@ -3,7 +3,9 @@ package controller
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -19,7 +21,8 @@ import (
 
 type authService interface {
 	Register(ctx context.Context, user authDto.CreateUser) error
-	Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, string, error)
+	Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error)
+	RefreshToken(ctx context.Context, token []byte) (string, error)
 }
 
 type AuthController struct {
@@ -75,13 +78,18 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 
 	accessToken, refreshToken, err := ac.authService.Login(ctx, *reqData, ipAddress, deviceInfo)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			ac.loggerService.Info("request timed out", nil)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
 		return err
 	}
 
 	expiration := time.Now().Add(7 * 24 * time.Hour)
+
 	cookie := http.Cookie{
 		Name:     "refreshToken",
-		Value:    refreshToken,
+		Value:    hex.EncodeToString(refreshToken),
 		Expires:  expiration,
 		Secure:   os.Getenv("NODE_ENV") == "production",
 		SameSite: http.SameSiteStrictMode,
@@ -90,6 +98,34 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 
 	http.SetCookie(w, &cookie)
 	response.Send(w, http.StatusOK, map[string]string{"token": accessToken})
+
+	return nil
+}
+
+func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+	refreshToken, err := r.Cookie("refreshToken")
+	if err != nil {
+		return err
+	}
+	fmt.Printf("cookie value: %q\n", refreshToken.Value)
+
+	tokenBytes, err := hex.DecodeString(refreshToken.Value)
+	if err != nil {
+		return err
+	}
+
+	newAccessToken, err := ac.authService.RefreshToken(ctx, tokenBytes)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			ac.loggerService.Info("request timed out", nil)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
+		return err
+	}
+
+	response.Send(w, http.StatusOK, map[string]string{"token": newAccessToken})
 
 	return nil
 }

@@ -36,18 +36,21 @@ func NewAuthorization(accessTokenSecret string, refreshTokenSecret string, logge
 	}
 }
 
-func (ar Authorization) GenerataRefreshToken() (string, error) {
+func (ar Authorization) GenerataRefreshToken() ([]byte, error) {
 	bytes := make([]byte, 64)
 
 	_, err := rand.Read(bytes)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	hasher := sha256.New()
-	hasher.Write([]byte(hex.EncodeToString(bytes)))
+	return bytes, nil
+}
 
-	return hex.EncodeToString(hasher.Sum(nil)), nil
+func (ar Authorization) HashToken(token []byte) string {
+	hasher := sha256.New()
+	hasher.Write(token)
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (ar Authorization) GenerateAccessToken(user userModel.User) (string, error) {
@@ -56,7 +59,7 @@ func (ar Authorization) GenerateAccessToken(user userModel.User) (string, error)
 		"id":       user.ID,
 		"email":    user.Email,
 		"username": user.Username,
-		"exp":      time.Now().Add(2 * time.Hour).Unix(),
+		"exp":      time.Now().Add(15 * time.Minute).Unix(),
 	})
 
 	tokenString, err := tokenWithData.SignedString([]byte(ar.accessTokenSecret))

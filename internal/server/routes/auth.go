@@ -11,6 +11,7 @@ import (
 type authController interface {
 	Register(w http.ResponseWriter, r *http.Request) error
 	Login(w http.ResponseWriter, r *http.Request) error
+	RefreshToken(w http.ResponseWriter, r *http.Request) error
 }
 
 type AuthHandler struct {
@@ -27,4 +28,5 @@ func (ah *AuthHandler) SetupAuthHandlers(router *http.ServeMux) {
 	prefix := "/auth"
 	router.Handle(fmt.Sprintf("POST %s/register", prefix), request.Make(ah.authController.Register))
 	router.Handle(fmt.Sprintf("POST %s/login", prefix), request.Make(ah.authController.Login))
+	router.Handle(fmt.Sprintf("POST %s/refreshToken", prefix), request.Make(ah.authController.RefreshToken))
 }
