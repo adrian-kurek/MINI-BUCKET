@@ -4,7 +4,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -59,6 +58,10 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 		return err
 	}
 
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	err = as.authRepository.RegisterUser(ctx, user, hashedPassword)
 	if err != nil {
 		return err
@@ -87,10 +90,14 @@ func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, i
 
 	err = bcrypt.CompareHashAndPassword([]byte(userFromDB.Password), []byte(loginData.Password))
 	if err != nil {
-
 		err := errors.New("provided incorrect password")
 		as.loggerService.Info(err.Error(), loginData.Email)
 		return "", nil, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+
+	}
+
+	if err := ctx.Err(); err != nil {
+		return "", nil, err
 	}
 
 	accessToken, err := as.authorization.GenerateAccessToken(userFromDB)
@@ -105,12 +112,14 @@ func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, i
 
 	hashedRefreshToken := as.authorization.HashToken(refreshToken)
 
+	if err := ctx.Err(); err != nil {
+		return "", nil, err
+	}
+
 	err = as.authRepository.InsertRefreshToken(ctx, ipAddress, deviceInfo, hashedRefreshToken, userFromDB.ID)
 	if err != nil {
 		return "", nil, err
 	}
-
-	fmt.Println(string(refreshToken))
 
 	return accessToken, refreshToken, nil
 }

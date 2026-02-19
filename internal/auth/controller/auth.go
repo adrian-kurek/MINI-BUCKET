@@ -45,7 +45,7 @@ func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) error
 
 	reqData, err := request.ReadBody[authDto.CreateUser](r)
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -72,7 +72,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 
 	reqData, err := request.ReadBody[authDto.LoginUser](r)
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}
 
 	ipAddress := r.RemoteAddr
@@ -134,6 +134,24 @@ func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
+func (ac *AuthController) Verify(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	r = r.WithContext(ctx)
+
+	err := ac.authorization.VerifyToken(r)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			ac.loggerService.Info("request timed out", r.URL)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
@@ -157,6 +175,10 @@ func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) err
 
 	err = ac.authService.LogoutUser(ctx, tokenBytes)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			ac.loggerService.Info("request timed out", nil)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
 		return err
 	}
 

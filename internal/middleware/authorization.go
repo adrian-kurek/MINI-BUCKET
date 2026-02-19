@@ -86,6 +86,11 @@ func (ar Authorization) parseClaimsFromToken(tokenString string) (*jwt.Token, us
 }
 
 func (ar Authorization) VerifyToken(r *http.Request) error {
+	ctx := r.Context()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	authHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		ar.loggerService.Info("token is missing", authHeader)
@@ -94,10 +99,18 @@ func (ar Authorization) VerifyToken(r *http.Request) error {
 
 	tokenString := strings.Split(authHeader, " ")[1]
 
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	tokenWithData, user, err := ar.parseClaimsFromToken(tokenString)
 	if err != nil {
 		ar.loggerService.Info("failed to read data properly", err.Error())
 		return commonErrors.NewAPIError(401, "provided token is invalid")
+	}
+
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 
 	if !tokenWithData.Valid {

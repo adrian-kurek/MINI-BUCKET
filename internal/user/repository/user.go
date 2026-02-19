@@ -23,7 +23,7 @@ func NewUserRepository(loggerService commonInterfaces.Logger, db *sql.DB) *UserR
 }
 
 func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (model.User, error) {
-	query := "SELECT id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1"
+	query := "SELECT  id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1"
 	stmt, err := ur.db.PrepareContext(ctx, query)
 	if err != nil {
 		ur.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
@@ -54,7 +54,7 @@ func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (mo
 			"args":  []any{email},
 			"error": err,
 		})
-		return model.User{}, errors.New("failed")
+		return model.User{}, err
 	}
 	return user, nil
 }

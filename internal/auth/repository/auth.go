@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"net/http"
 	"time"
 
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
@@ -54,7 +53,7 @@ func (ar *AuthRepository) RegisterUser(ctx context.Context, user authDto.CreateU
 			},
 			"error": err,
 		})
-		return commonErrors.NewAPIError(http.StatusBadRequest, "failed to register a new user")
+		return err
 	}
 
 	return nil
@@ -91,7 +90,7 @@ func (ar *AuthRepository) InsertRefreshToken(ctx context.Context, ipAddress, dev
 			},
 			"error": err,
 		})
-		return commonErrors.NewAPIError(http.StatusBadRequest, "failed to authorize a user")
+		return err
 	}
 
 	return nil
