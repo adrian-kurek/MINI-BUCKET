@@ -165,3 +165,8 @@ func RemoveLastCharacterFromURL(route string) string {
 	}
 	return route
 }
+
+func SetContext(r *http.Request, key, data any) *http.Request {
+	ctx := context.WithValue(r.Context(), key, data)
+	return r.WithContext(ctx)
+}

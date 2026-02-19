@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -23,17 +22,20 @@ type authService interface {
 	Register(ctx context.Context, user authDto.CreateUser) error
 	Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error)
 	RefreshToken(ctx context.Context, token []byte) (string, error)
+	LogoutUser(ctx context.Context, refreshToken []byte) error
 }
 
 type AuthController struct {
 	loggerService commonInterfaces.Logger
 	authService   authService
+	authorization middleware.Authorization
 }
 
-func NewAuthController(loggerService commonInterfaces.Logger, authService authService) *AuthController {
+func NewAuthController(loggerService commonInterfaces.Logger, authService authService, authorization middleware.Authorization) *AuthController {
 	return &AuthController{
 		loggerService: loggerService,
 		authService:   authService,
+		authorization: authorization,
 	}
 }
 
@@ -105,14 +107,16 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
+
 	refreshToken, err := r.Cookie("refreshToken")
 	if err != nil {
+		ac.loggerService.Error("failed to read cookie from request", nil)
 		return err
 	}
-	fmt.Printf("cookie value: %q\n", refreshToken.Value)
 
 	tokenBytes, err := hex.DecodeString(refreshToken.Value)
 	if err != nil {
+		ac.loggerService.Error("failed to decode string into bytes", nil)
 		return err
 	}
 
@@ -126,6 +130,35 @@ func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) e
 	}
 
 	response.Send(w, http.StatusOK, map[string]string{"token": newAccessToken})
+
+	return nil
+}
+
+func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	err := ac.authorization.BlacklistUser(ctx, r)
+	if err != nil {
+		return err
+	}
+
+	refreshToken, err := r.Cookie("refreshToken")
+	if err != nil {
+		ac.loggerService.Error("failed to read cookie from request", nil)
+		return err
+	}
+
+	tokenBytes, err := hex.DecodeString(refreshToken.Value)
+	if err != nil {
+		ac.loggerService.Error("failed to decode string into bytes", nil)
+		return err
+	}
+
+	err = ac.authService.LogoutUser(ctx, tokenBytes)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

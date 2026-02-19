@@ -54,6 +54,21 @@ func main() {
 		panic(err)
 	}
 
+	cacheConnectionLink, ok := os.LookupEnv("CACHE_LINK")
+	if !ok {
+		err := errors.New("CACHE_LINK variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "CACHE_LINK",
+		})
+		panic(err)
+	}
+
+	cacheService, err := config.NewCacheService(cacheConnectionLink)
+	if err != nil {
+		loggerService.Error("failed to connect to cache service", err.Error())
+		panic(err)
+	}
+
 	accessTokenSecret, ok := os.LookupEnv("ACCESS_TOKEN_SECRET")
 	if !ok {
 		err := errors.New("ACCESS_TOKEN_SECRET variable has not been initialized")
@@ -62,6 +77,7 @@ func main() {
 		})
 		panic(err)
 	}
+
 	refreshTokenSecret, ok := os.LookupEnv("REFRESH_TOKEN_SECRET")
 	if !ok {
 		err := errors.New("REFRESH_TOKEN_SECRET variable has not been initialized")
@@ -71,12 +87,12 @@ func main() {
 		panic(err)
 	}
 
-	authorization := middleware.NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService)
+	authorization := middleware.NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
 	authService := service.NewAuthService(loggerService, userRepository, authRepository, *authorization)
-	authController := controller.NewAuthController(loggerService, authService)
+	authController := controller.NewAuthController(loggerService, authService, *authorization)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authController)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())

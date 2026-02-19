@@ -171,3 +171,27 @@ func (ar *AuthRepository) UpdateLastTimeUsedToken(ctx context.Context, refreshTo
 
 	return nil
 }
+
+func (ar *AuthRepository) RemoveTokenFromDB(ctx context.Context, refreshToken string) error {
+	query := "DELETE FROM refresh_tokens WHERE token_hash = $1"
+
+	stmt, err := ar.db.PrepareContext(ctx, query)
+	if err != nil {
+		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+			"query": query,
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, refreshToken)
+	if err != nil {
+		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+			"query": query,
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}

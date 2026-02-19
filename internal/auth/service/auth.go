@@ -22,6 +22,7 @@ type authRepository interface {
 	InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error
 	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (model.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
+	RemoveTokenFromDB(ctx context.Context, refreshToken string) error
 }
 
 type AuthService struct {
@@ -114,8 +115,8 @@ func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, i
 	return accessToken, refreshToken, nil
 }
 
-func (as *AuthService) RefreshToken(ctx context.Context, token []byte) (string, error) {
-	hashedRefreshToken := as.authorization.HashToken(token)
+func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (string, error) {
+	hashedRefreshToken := as.authorization.HashToken(refreshToken)
 
 	tokenWithUserEmailToRefreshToken, err := as.authRepository.GetRefreshTokenByTokenHash(ctx, hashedRefreshToken)
 	if err != nil {
@@ -145,4 +146,15 @@ func (as *AuthService) RefreshToken(ctx context.Context, token []byte) (string, 
 	}
 
 	return accessToken, nil
+}
+
+func (as *AuthService) LogoutUser(ctx context.Context, refreshToken []byte) error {
+	hashedRefreshToken := as.authorization.HashToken(refreshToken)
+
+	err := as.authRepository.RemoveTokenFromDB(ctx, hashedRefreshToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
