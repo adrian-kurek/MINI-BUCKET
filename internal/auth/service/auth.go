@@ -22,6 +22,7 @@ type authRepository interface {
 	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (model.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
 	RemoveTokenFromDB(ctx context.Context, refreshToken string) error
+	RemoveTokensFromDBByUserID(ctx context.Context, userID int) error
 }
 
 type AuthService struct {
@@ -161,6 +162,15 @@ func (as *AuthService) LogoutUser(ctx context.Context, refreshToken []byte) erro
 	hashedRefreshToken := as.authorization.HashToken(refreshToken)
 
 	err := as.authRepository.RemoveTokenFromDB(ctx, hashedRefreshToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (as *AuthService) LogoutUserFromAllDevices(ctx context.Context, userID int) error {
+	err := as.authRepository.RemoveTokensFromDBByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}

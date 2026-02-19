@@ -194,3 +194,27 @@ func (ar *AuthRepository) RemoveTokenFromDB(ctx context.Context, refreshToken st
 
 	return nil
 }
+
+func (ar *AuthRepository) RemoveTokensFromDBByUserID(ctx context.Context, userID int) error {
+	query := "DELETE FROM refresh_tokens WHERE user_id = $1"
+
+	stmt, err := ar.db.PrepareContext(ctx, query)
+	if err != nil {
+		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+			"query": query,
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, userID)
+	if err != nil {
+		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+			"query": query,
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}

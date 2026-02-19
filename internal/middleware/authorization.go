@@ -85,45 +85,44 @@ func (ar Authorization) parseClaimsFromToken(tokenString string) (*jwt.Token, us
 	return token, user, nil
 }
 
-func (ar Authorization) VerifyToken(r *http.Request) error {
+func (ar Authorization) VerifyToken(r *http.Request) (*http.Request, error) {
 	ctx := r.Context()
 	if err := ctx.Err(); err != nil {
-		return err
+		return r, err
 	}
 
 	authHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		ar.loggerService.Info("token is missing", authHeader)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, "failed to authorize a user")
+		return r, commonErrors.NewAPIError(http.StatusUnauthorized, "failed to authorize a user")
 	}
 
 	tokenString := strings.Split(authHeader, " ")[1]
 
 	if err := ctx.Err(); err != nil {
-		return err
+		return r, err
 	}
 
 	tokenWithData, user, err := ar.parseClaimsFromToken(tokenString)
 	if err != nil {
 		ar.loggerService.Info("failed to read data properly", err.Error())
-		return commonErrors.NewAPIError(401, "provided token is invalid")
+		return r, commonErrors.NewAPIError(401, "provided token is invalid")
 	}
 
 	if err := ctx.Err(); err != nil {
-		return err
+		return r, err
 	}
 
 	if !tokenWithData.Valid {
 		err := errors.New("provided token is invalid")
 		ar.loggerService.Info(err.Error(), tokenString)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+		return r, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 	}
 
-	request.SetContext(r, "id", user.ID)
-	request.SetContext(r, "email", user.Email)
-	request.SetContext(r, "username", user.Username)
-
-	return nil
+	r = request.SetContext(r, "id", user.ID)
+	r = request.SetContext(r, "email", user.Email)
+	r = request.SetContext(r, "username", user.Username)
+	return r, nil
 }
 
 func (ar Authorization) BlacklistUser(ctx context.Context, r *http.Request) error {

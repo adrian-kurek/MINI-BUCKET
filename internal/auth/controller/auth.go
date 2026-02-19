@@ -23,6 +23,7 @@ type authService interface {
 	Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error)
 	RefreshToken(ctx context.Context, token []byte) (string, error)
 	LogoutUser(ctx context.Context, refreshToken []byte) error
+	LogoutUserFromAllDevices(ctx context.Context, userID int) error
 }
 
 type AuthController struct {
@@ -140,7 +141,7 @@ func (ac *AuthController) Verify(w http.ResponseWriter, r *http.Request) error {
 
 	r = r.WithContext(ctx)
 
-	err := ac.authorization.VerifyToken(r)
+	r, err := ac.authorization.VerifyToken(r)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			ac.loggerService.Info("request timed out", r.URL)
@@ -176,7 +177,37 @@ func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) err
 	err = ac.authService.LogoutUser(ctx, tokenBytes)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", nil)
+			ac.loggerService.Info("request timed out", r.URL)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (ac *AuthController) LogoutUserFromAllDevices(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	r, err := ac.authorization.VerifyToken(r)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			ac.loggerService.Info("request timed out", r.URL)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
+		return err
+	}
+
+	userID, err := request.ReadUserIDFromToken(r)
+	if err != nil {
+		return err
+	}
+
+	err = ac.authService.LogoutUserFromAllDevices(ctx, userID)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			ac.loggerService.Info("request timed out", r.URL)
 			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
 		}
 		return err

@@ -14,6 +14,7 @@ type authController interface {
 	RefreshToken(w http.ResponseWriter, r *http.Request) error
 	LogoutUser(w http.ResponseWriter, r *http.Request) error
 	Verify(w http.ResponseWriter, r *http.Request) error
+	LogoutUserFromAllDevices(w http.ResponseWriter, r *http.Request) error
 }
 
 type AuthHandler struct {
@@ -31,6 +32,7 @@ func (ah *AuthHandler) SetupAuthHandlers(router *http.ServeMux) {
 	router.Handle(fmt.Sprintf("POST %s/register", prefix), request.Make(ah.authController.Register))
 	router.Handle(fmt.Sprintf("POST %s/login", prefix), request.Make(ah.authController.Login))
 	router.Handle(fmt.Sprintf("POST %s/refreshToken", prefix), request.Make(ah.authController.RefreshToken))
-	router.Handle(fmt.Sprintf("DELETE %s/logout", prefix), request.Make(ah.authController.RefreshToken))
+	router.Handle(fmt.Sprintf("DELETE %s/logout", prefix), request.Make(ah.authController.LogoutUser))
 	router.Handle(fmt.Sprintf("GET %s/verify", prefix), request.Make(ah.authController.Verify))
+	router.Handle(fmt.Sprintf("DELETE %s/logoutAll", prefix), request.Make(ah.authController.LogoutUserFromAllDevices))
 }
