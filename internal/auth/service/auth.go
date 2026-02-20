@@ -10,8 +10,8 @@ import (
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -29,10 +29,10 @@ type AuthService struct {
 	loggerService  commonInterfaces.Logger
 	userRepository commonInterfaces.UserRepository
 	authRepository authRepository
-	authorization  middleware.Authorization
+	authorization  interfaces.AuthorizationMiddleware
 }
 
-func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization middleware.Authorization) *AuthService {
+func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization interfaces.AuthorizationMiddleware) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,
@@ -106,7 +106,7 @@ func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, i
 		return "", nil, err
 	}
 
-	refreshToken, err := as.authorization.GenerataRefreshToken()
+	refreshToken, err := as.authorization.GenerateRefreshToken()
 	if err != nil {
 		return "", nil, err
 	}
@@ -152,7 +152,7 @@ func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (s
 
 	accessToken, err := as.authorization.GenerateAccessToken(user)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return accessToken, nil

@@ -34,7 +34,7 @@ func NewAuthorization(accessTokenSecret string, refreshTokenSecret string, logge
 	}
 }
 
-func (ar Authorization) GenerataRefreshToken() ([]byte, error) {
+func (ar Authorization) GenerateRefreshToken() ([]byte, error) {
 	bytes := make([]byte, 64)
 
 	_, err := rand.Read(bytes)
