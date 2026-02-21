@@ -29,10 +29,10 @@ type authService interface {
 type AuthController struct {
 	loggerService commonInterfaces.Logger
 	authService   authService
-	authorization middleware.Authorization
+	authorization commonInterfaces.AuthorizationMiddleware
 }
 
-func NewAuthController(loggerService commonInterfaces.Logger, authService authService, authorization middleware.Authorization) *AuthController {
+func NewAuthController(loggerService commonInterfaces.Logger, authService authService, authorization commonInterfaces.AuthorizationMiddleware) *AuthController {
 	return &AuthController{
 		loggerService: loggerService,
 		authService:   authService,
@@ -74,6 +74,11 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 	reqData, err := request.ReadBody[authDto.LoginUser](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+	}
+
+	err = middleware.ValidateRequestData(reqData)
+	if err != nil {
+		return err
 	}
 
 	ipAddress := r.RemoteAddr
@@ -159,6 +164,10 @@ func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) err
 
 	err := ac.authorization.BlacklistUser(ctx, r)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			ac.loggerService.Info("request timed out", r.URL)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
 		return err
 	}
 

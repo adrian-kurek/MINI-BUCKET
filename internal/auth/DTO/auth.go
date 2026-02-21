@@ -9,5 +9,5 @@ type CreateUser struct {
 
 type LoginUser struct {
 	Email    string `validate:"required,email"`
-	Password string `validate:"required,min=12"`
+	Password string
 }
