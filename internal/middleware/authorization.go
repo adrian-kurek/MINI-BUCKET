@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -106,7 +105,7 @@ func (ar Authorization) VerifyToken(r *http.Request) (*http.Request, error) {
 	tokenWithData, user, err := ar.parseClaimsFromToken(tokenString)
 	if err != nil {
 		ar.loggerService.Info("failed to read data properly", err.Error())
-		return r, commonErrors.NewAPIError(401, "provided token is invalid")
+		return r, commonErrors.NewAPIError(http.StatusUnauthorized, "provided token is invalid")
 	}
 
 	if err := ctx.Err(); err != nil {
@@ -125,7 +124,9 @@ func (ar Authorization) VerifyToken(r *http.Request) (*http.Request, error) {
 	return r, nil
 }
 
-func (ar Authorization) BlacklistUser(ctx context.Context, r *http.Request) error {
+func (ar Authorization) BlacklistUser(r *http.Request) error {
+	ctx := r.Context()
+
 	authHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		ar.loggerService.Info("token is missing", authHeader)
@@ -146,7 +147,7 @@ func (ar Authorization) BlacklistUser(ctx context.Context, r *http.Request) erro
 	}
 
 	cacheKey := "tokenBlackList-" + tokenString
-	result, err := ar.cacheService.ExistsData(ctx, cacheKey)
+	result, err := ar.cacheService.Exists(ctx, cacheKey)
 	if err != nil {
 		ar.loggerService.Info("failed to check blacklist", err)
 		return err
@@ -160,7 +161,7 @@ func (ar Authorization) BlacklistUser(ctx context.Context, r *http.Request) erro
 
 	expirationTime := time.Until(user.ExpiresAt.Time)
 
-	err = ar.cacheService.SetData(ctx, cacheKey, "true", expirationTime)
+	err = ar.cacheService.Set(ctx, cacheKey, "true", expirationTime)
 	if err != nil {
 		ar.loggerService.Info("failed to set data in cache", err)
 		return err
