@@ -1,7 +1,6 @@
 package mocks
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/stretchr/testify/mock"
@@ -33,7 +32,7 @@ func (m *MockAuthorizationMiddleware) VerifyToken(r *http.Request) (*http.Reques
 	return args.Get(0).(*http.Request), args.Error(1)
 }
 
-func (m *MockAuthorizationMiddleware) BlacklistUser(ctx context.Context, r *http.Request) error {
-	args := m.Called(ctx, r)
+func (m *MockAuthorizationMiddleware) BlacklistUser( r *http.Request) error {
+	args := m.Called( r)
 	return args.Error(0)
 }

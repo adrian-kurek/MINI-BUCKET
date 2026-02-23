@@ -162,7 +162,7 @@ func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) err
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 
-	err := ac.authorization.BlacklistUser(ctx, r)
+	err := ac.authorization.BlacklistUser(r)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			ac.loggerService.Info("request timed out", r.URL)
