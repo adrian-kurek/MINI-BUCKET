@@ -9,7 +9,7 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
 )
 
-func ValidateRequestData[validationSchemaType any](dataFromRequest validationSchemaType) error {
+func ValidateRequestData(dataFromRequest any) error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	err := validate.Struct(dataFromRequest)
 	if err != nil {
