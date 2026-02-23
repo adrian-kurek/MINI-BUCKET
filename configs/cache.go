@@ -22,7 +22,7 @@ func NewCacheService(cacheLink string) (*CacheService, error) {
 	}, nil
 }
 
-func (c *CacheService) SetData(ctx context.Context, key string, data string, ttl time.Duration) error {
+func (c *CacheService) Set(ctx context.Context, key string, data string, ttl time.Duration) error {
 	err := c.client.Set(ctx, key, data, ttl).Err()
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (c *CacheService) SetData(ctx context.Context, key string, data string, ttl
 	return nil
 }
 
-func (c *CacheService) GetData(ctx context.Context, key string) (string, error) {
+func (c *CacheService) Get(ctx context.Context, key string) (string, error) {
 	res, err := c.client.Get(ctx, key).Result()
 	if err != nil {
 		return "", err
@@ -40,7 +40,7 @@ func (c *CacheService) GetData(ctx context.Context, key string) (string, error) 
 	return res, nil
 }
 
-func (c *CacheService) ExistsData(ctx context.Context, key string) (int64, error) {
+func (c *CacheService) Exists(ctx context.Context, key string) (int64, error) {
 	res, err := c.client.Exists(ctx, key).Result()
 	if err != nil {
 		return 0, err
@@ -49,7 +49,7 @@ func (c *CacheService) ExistsData(ctx context.Context, key string) (int64, error
 	return res, nil
 }
 
-func (c *CacheService) DeleteData(ctx context.Context, key string) error {
+func (c *CacheService) Delete(ctx context.Context, key string) error {
 	err := c.client.Del(ctx, key).Err()
 	if err != nil {
 		return err

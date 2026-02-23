@@ -29,7 +29,7 @@ func NewLogger(logDir string, dateFormat string, timeFormat string) *Logger {
 		dateFormat: dateFormat,
 		timeFormat: timeFormat,
 	}
-	logger.InitializeLogger()
+	logger.initializeLogger()
 	return logger
 }
 
@@ -92,7 +92,7 @@ func (l *Logger) emit(message, typeOfLog string, data any) {
 	}
 }
 
-func (l *Logger) InitializeLogger() {
+func (l *Logger) initializeLogger() {
 	if _, err := os.Stat(l.logDir); os.IsNotExist(err) {
 		if err := os.Mkdir(l.logDir, os.ModePerm); err != nil {
 			panic(err)
@@ -121,10 +121,12 @@ func (l *Logger) InitializeLogger() {
 	if err != nil {
 		fmt.Println("something went wrong during writing to data to the file")
 	}
+	l.Info("successfully initialized new logger", nil)
 }
 
 func (l *Logger) validate() {
 	actualDate := time.Now().Format(l.dateFormat)
+
 	if actualDate != l.startTime {
 
 		fmt.Println("closing old file and creating the new one for new date")
@@ -177,17 +179,19 @@ func (l *Logger) Warning(message string, data any) {
 	l.emit(message, "WARNING", data)
 }
 
-func (l *Logger) Close() {
+func (l *Logger) Close() error {
 	if l.file == nil {
 		fmt.Println("failed to close the file")
-		return
+		return nil
 	}
 	_, err := l.file.WriteString("]")
 	if err != nil {
 		fmt.Println("something went wrong during writing  data to the file")
+		return err
 	}
 	err = l.file.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }

@@ -9,8 +9,25 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	// "github.com/slodkiadrianek/octopus/internal/DTO"
+
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/response"
 )
+
+type HTTPFunc func(w http.ResponseWriter, r *http.Request) error
+
+func Make(f HTTPFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := f(w, r); err != nil {
+			if apiErr, ok := err.(*commonErrors.APIError); ok {
+				response.Send(w, apiErr.StatusCode, map[string]string{"message": apiErr.Message})
+			} else {
+				fmt.Println(err.Error())
+				response.Send(w, 500, map[string]string{"message": "Internal server error"})
+			}
+		}
+	}
+}
 
 func SendHTTP(ctx context.Context, URL, authorizationHeader, method string, body []byte, readBody bool) (int,
 	map[string]any, error,
@@ -43,6 +60,7 @@ func SendHTTP(ctx context.Context, URL, authorizationHeader, method string, body
 			return 0, map[string]any{}, err
 		}
 	}
+
 	return response.StatusCode, bodyFromResponse, nil
 }
 
@@ -52,6 +70,7 @@ func ReadUserIDFromToken(r *http.Request) (int, error) {
 		err := errors.New("failed to read user from context")
 		return 0, err
 	}
+
 	return userID, nil
 }
 
@@ -63,6 +82,7 @@ func ReadBody[T any](r *http.Request) (*T, error) {
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
+
 	err := decoder.Decode(&body)
 	if err != nil {
 		return nil, err
@@ -129,7 +149,7 @@ func ReadAllParams(r *http.Request) (map[string]string, error) {
 	splittedPath := strings.Split(strings.Trim(path, "/"), "/")
 	splittedRouteKeyPath := strings.Split(strings.Trim(s, "/"), "/")
 
-	params := make(map[string]string)
+	params := make(map[string]string, len(splittedPath))
 	for i := range len(splittedPath) {
 		if strings.Contains(splittedRouteKeyPath[i], ":") {
 			paramName := splittedRouteKeyPath[i][1:]
@@ -144,4 +164,9 @@ func RemoveLastCharacterFromURL(route string) string {
 		route = route[:len(route)-1]
 	}
 	return route
+}
+
+func SetContext(r *http.Request, key, data any) *http.Request {
+	ctx := context.WithValue(r.Context(), key, data)
+	return r.WithContext(ctx)
 }
