@@ -9,9 +9,9 @@ import (
 	"os/signal"
 
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
+	authController "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
 	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
+	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
@@ -27,6 +27,15 @@ func main() {
 	}()
 	err := config.SetupEnvVariables("./.env")
 	if err != nil {
+		panic(err)
+	}
+
+	_, ok := os.LookupEnv("HOST_LINK")
+	if !ok {
+		err := errors.New("HOST_LINK variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "HOST_LINK",
+		})
 		panic(err)
 	}
 
@@ -87,12 +96,30 @@ func main() {
 		panic(err)
 	}
 
-	authorization := middleware.NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+	hostEmail, ok := os.LookupEnv("HOST_EMAIL")
+	if !ok {
+		err := errors.New("HOST_EMAIL variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "HOST_EMAIL",
+		})
+		panic(err)
+	}
 
+	passwordEmail, ok := os.LookupEnv("PASSWORD_EMAIL")
+	if !ok {
+		err := errors.New("PASSWORD_EMAIL variable has not been initialized")
+		loggerService.Error(err.Error(), map[string]string{
+			"variable": "PASSWORD_EMAIL",
+		})
+		panic(err)
+	}
+
+	authorization := middleware.NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+	emailService := authService.NewEmailService(hostEmail, passwordEmail, loggerService)
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
-	authService := service.NewAuthService(loggerService, userRepository, authRepository, *authorization)
-	authController := controller.NewAuthController(loggerService, authService, *authorization)
+	authService := authService.NewAuthService(loggerService, userRepository, authRepository, *authorization, *emailService)
+	authController := authController.NewAuthController(loggerService, authService, *authorization)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authController)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
