@@ -8,16 +8,26 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/response"
+)
+
+const (
+	green = "\x1b[32m"
+	reset = "\x1b[0m"
 )
 
 type HTTPFunc func(w http.ResponseWriter, r *http.Request) error
 
 func Make(f HTTPFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		actualDate := time.Now()
+		logTime := actualDate.Format("2006-01-02 15:04:05")
 		if err := f(w, r); err != nil {
 			if apiErr, ok := err.(*commonErrors.APIError); ok {
 				response.Send(w, apiErr.StatusCode, map[string]string{"message": apiErr.Message})
@@ -26,6 +36,11 @@ func Make(f HTTPFunc) http.HandlerFunc {
 				response.Send(w, 500, map[string]string{"message": "Internal server error"})
 			}
 		}
+		durationOfTheRoute := time.Since(start) / time.Millisecond
+		formattedDurationOfTheRoute := strconv.FormatInt(int64(durationOfTheRoute), 10) + "ms"
+
+		fmt.Println(green + "[INFO: " + logTime + "] " + r.Method + "-" + r.URL.Path + "-" + r.
+			RemoteAddr + "-" + formattedDurationOfTheRoute + reset)
 	}
 }
 
