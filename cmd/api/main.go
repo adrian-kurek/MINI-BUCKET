@@ -118,7 +118,7 @@ func main() {
 	emailService := authService.NewEmailService(hostEmail, passwordEmail, loggerService)
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
-	authService := authService.NewAuthService(loggerService, userRepository, authRepository, *authorization, *emailService)
+	authService := authService.NewAuthService(loggerService, userRepository, authRepository, *authorization, emailService)
 	authController := authController.NewAuthController(loggerService, authService, *authorization)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authController)

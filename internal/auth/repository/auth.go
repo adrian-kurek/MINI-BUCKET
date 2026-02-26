@@ -12,6 +12,8 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 )
 
+const refreshTokenExpiration = 7 * 24 * time.Hour
+
 type AuthRepository struct {
 	loggerService commonInterfaces.Logger
 	db            *sql.DB
@@ -76,7 +78,7 @@ func (ar *AuthRepository) InsertRefreshToken(ctx context.Context, ipAddress, dev
 		}
 	}()
 
-	expiration := time.Now().Add(7 * 24 * time.Hour)
+	expiration := time.Now().Add(refreshTokenExpiration)
 	lastUsedAt := time.Now()
 
 	_, err = stmt.ExecContext(ctx, userID, refreshToken, deviceInfo, ipAddress, expiration, lastUsedAt)
@@ -156,6 +158,11 @@ func (ar *AuthRepository) UpdateLastTimeUsedToken(ctx context.Context, refreshTo
 		})
 		return err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	lastUsedAt := time.Now()
 
@@ -182,6 +189,11 @@ func (ar *AuthRepository) RemoveTokenFromDB(ctx context.Context, refreshToken st
 		})
 		return err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	_, err = stmt.ExecContext(ctx, refreshToken)
 	if err != nil {
@@ -206,6 +218,11 @@ func (ar *AuthRepository) ActivateAccount(ctx context.Context, userID int) error
 		})
 		return err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	_, err = stmt.ExecContext(ctx, userID)
 	if err != nil {
@@ -230,6 +247,11 @@ func (ar *AuthRepository) RemoveTokensFromDBByUserID(ctx context.Context, userID
 		})
 		return err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	_, err = stmt.ExecContext(ctx, userID)
 	if err != nil {

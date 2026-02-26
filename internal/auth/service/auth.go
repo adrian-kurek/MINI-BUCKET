@@ -26,15 +26,19 @@ type authRepository interface {
 	ActivateAccount(ctx context.Context, userID int) error
 }
 
+type emailService interface {
+	SendEmail(to, subject, body string) error
+}
+
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
 	userRepository commonInterfaces.UserRepository
 	authRepository authRepository
 	authorization  commonInterfaces.AuthorizationMiddleware
-	emailService   EmailService
+	emailService   emailService
 }
 
-func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization commonInterfaces.AuthorizationMiddleware, emailService EmailService) *AuthService {
+func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization commonInterfaces.AuthorizationMiddleware, emailService emailService) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,
@@ -58,7 +62,7 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		as.loggerService.Info(err.Error(), user.Email)
+		as.loggerService.Info(err.Error(), nil)
 		return err
 	}
 
@@ -163,7 +167,9 @@ func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (s
 	}
 
 	if tokenWithUserEmailToRefreshToken.ID == 0 {
-		return "", commonErrors.NewAPIError(http.StatusUnauthorized, "token not found")
+		err := errors.New("token not found")
+		as.loggerService.Info(err.Error(), nil)
+		return "", commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 	}
 
 	if tokenWithUserEmailToRefreshToken.ExpiresAt.Before(time.Now()) {

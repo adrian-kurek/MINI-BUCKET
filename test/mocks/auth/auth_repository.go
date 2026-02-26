@@ -41,3 +41,9 @@ func (m *MockAuthRepository) RemoveTokensFromDBByUserID(ctx context.Context, use
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
+
+
+func (m *MockAuthRepository) ActivateAccount(ctx context.Context, userID int) error {
+	args := m.Called(ctx,userID)
+	return args.Error(0)
+}

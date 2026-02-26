@@ -13,6 +13,7 @@ import (
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
+	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -44,14 +45,14 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID: 0,
 				}, nil)
 				mAuthRepository.On("RegisterUser", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware 
 			},
 			wantErr: false,
 			err:     nil,
@@ -65,9 +66,9 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID: 1,
 				}, nil)
@@ -86,9 +87,9 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{}, errors.New("failed to find user by email"))
 				mAuthRepository.On("RegisterUser", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
@@ -105,9 +106,9 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID: 0,
 				}, nil)
@@ -126,7 +127,8 @@ func TestRegister(t *testing.T) {
 
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware)
+			emailService := new(authMocks.MockEmailService)
+			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware,emailService)
 
 			err := authService.Register(ctx, testScenario.user)
 
@@ -147,7 +149,7 @@ func TestLogin(t *testing.T) {
 	type args struct {
 		title     string
 		user      authDto.LoginUser
-		setupMock func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware)
+		setupMock func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService)
 		wantErr   bool
 		err       error
 	}
@@ -159,10 +161,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mAuthRepository.On("InsertRefreshToken", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID:            1,
@@ -173,7 +177,7 @@ func TestLogin(t *testing.T) {
 				mAuthorizationMiddleware.On("GenerateRefreshToken").Return([]byte("2324242"), nil)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("12345")
 
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
 			},
 			wantErr: false,
 			err:     nil,
@@ -184,12 +188,14 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{}, errors.New("failed to get user from DB"))
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
 			},
 			wantErr: true,
 			err:     errors.New("failed to get user from DB"),
@@ -200,15 +206,17 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID: 0,
 				}, nil)
 
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
 			},
 			wantErr: true,
 			err:     errors.New("api error: user with provided email not found"),
@@ -219,19 +227,69 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123245", nil)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					EmailVerified: false,
 					ID:            1,
 				}, nil)
 
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware,mEmailService
 			},
 			wantErr: true,
-			err:     errors.New("api error: user with provided email is not verified"),
+			err:     errors.New("api error: user with provided email is not verified, we sent to you mail with activation link"),
+		},
+		{
+			title: "failed to send email with activation link",
+			user: authDto.LoginUser{
+				Email:    "joedoe@gmail.com",
+				Password: "zasfsafds@#!sdwe32",
+			},
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mUserRepository := new(mocks.MockUserRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to send email with activation link"))
+				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
+					ID:            1,
+					EmailVerified: false,
+					Password:      "$2a$12$uqfZc1qMbaeN2HKUQhY6SOimGPw6j6Vam6njGSJfbz.bghZGAwkOK",
+				}, nil)
+				mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123245", nil)
+
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
+			},
+			wantErr: true,
+			err:     errors.New("failed to send email with activation link"),
+		},
+		{
+			title: "failed to generateAccessToken for activation link",
+			user: authDto.LoginUser{
+				Email:    "joedoe@gmail.com",
+				Password: "zasfsafds@#!sdwe32",
+			},
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mUserRepository := new(mocks.MockUserRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
+					ID:            1,
+					EmailVerified: false,
+					Password:      "$2a$12$uqfZc1qMbaeN2HKUQhY6SOimGPw6j6Vam6njGSJfbz.bghZGAwkOK",
+				}, nil)
+				mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123245", errors.New("failed to generate new access token"))
+
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
+			},
+			wantErr: true,
+			err:     errors.New("failed to generate new access token"),
 		},
 		{
 			title: "provided incorrect password",
@@ -239,17 +297,19 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe37",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID:            1,
 					EmailVerified: true,
 					Password:      "$2a$12$uqfZc1qMbaeN2HKUQhY6SOimGPw6j6Vam6njGSJfbz.bghZGAwkOK",
 				}, nil)
 
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
 			},
 			wantErr: true,
 			err:     errors.New("api error: provided incorrect password"),
@@ -260,10 +320,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID:            1,
 					EmailVerified: true,
@@ -271,7 +333,7 @@ func TestLogin(t *testing.T) {
 				}, nil)
 				mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("", errors.New("failed to generate new access token"))
 
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
 			},
 			wantErr: true,
 			err:     errors.New("failed to generate new access token"),
@@ -282,10 +344,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID:            1,
 					EmailVerified: true,
@@ -294,7 +358,7 @@ func TestLogin(t *testing.T) {
 				mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123245", nil)
 				mAuthorizationMiddleware.On("GenerateRefreshToken").Return([]byte("2324242"), errors.New("failed to generate new refresh token"))
 
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
 			},
 			wantErr: true,
 			err:     errors.New("failed to generate new refresh token"),
@@ -305,10 +369,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
+			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware, emailService) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mEmailService := new(authMocks.MockEmailService)
+				mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mAuthRepository.On("InsertRefreshToken", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to insert refresh token to DB"))
 				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID:            1,
@@ -319,7 +385,7 @@ func TestLogin(t *testing.T) {
 				mAuthorizationMiddleware.On("GenerateRefreshToken").Return([]byte("2324242"), nil)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("12345")
 
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware, mEmailService
 			},
 			wantErr: true,
 			err:     errors.New("failed to insert refresh token to DB"),
@@ -331,9 +397,9 @@ func TestLogin(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
 
-			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
+			authRepository, userRepository, authorizationMiddleware , emailService := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware)
+			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			ipAddress := "127.0.0.1:2137"
 			deviceInfo := "Apple computer"
@@ -365,8 +431,8 @@ func TestRefreshToken(t *testing.T) {
 			title:        "with proper data",
 			refreshToken: []byte("123456789"),
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
@@ -384,8 +450,8 @@ func TestRefreshToken(t *testing.T) {
 			title:        "GetRefreshTokenByTokenHash failed",
 			refreshToken: []byte("123456789"),
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{}, errors.New("failed to get token from DB"))
@@ -398,8 +464,8 @@ func TestRefreshToken(t *testing.T) {
 			title:        "token not found",
 			refreshToken: []byte("123456789"),
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
@@ -414,8 +480,8 @@ func TestRefreshToken(t *testing.T) {
 			title:        "refresh token expired",
 			refreshToken: []byte("123456789"),
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
@@ -431,8 +497,8 @@ func TestRefreshToken(t *testing.T) {
 			title:        "UpdateLastTimeUsedToken failed",
 			refreshToken: []byte("123456789"),
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
@@ -450,8 +516,8 @@ func TestRefreshToken(t *testing.T) {
 			title:        "GenerateAccessToken failed",
 			refreshToken: []byte("123456789"),
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
@@ -474,7 +540,8 @@ func TestRefreshToken(t *testing.T) {
 
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware)
+			emailService := new(authMocks.MockEmailService)
+			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			_, err := authService.RefreshToken(ctx, testScenario.refreshToken)
 			if (err != nil) != testScenario.wantErr {
@@ -503,8 +570,8 @@ func TestLogoutUser(t *testing.T) {
 			title: "with proper data",
 
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("12345")
@@ -518,8 +585,8 @@ func TestLogoutUser(t *testing.T) {
 			title: "RemoveTokenFromDB failed",
 
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
 				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("12345")
@@ -538,7 +605,8 @@ func TestLogoutUser(t *testing.T) {
 
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware)
+			emailService := new(authMocks.MockEmailService)
+			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			err := authService.LogoutUser(ctx, []byte("123456"))
 			if (err != nil) != testScenario.wantErr {
@@ -566,8 +634,8 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 		{
 			title: "with proper data",
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
 				mAuthRepository.On("RemoveTokensFromDBByUserID", mock.Anything, mock.Anything).Return(nil)
@@ -580,8 +648,8 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			title: "RemoveTokenFromDB failed",
 
 			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
-				mAuthRepository := new(mocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(mocks.MockAuthorizationMiddleware)
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
 				mAuthRepository.On("RemoveTokensFromDBByUserID", mock.Anything, mock.Anything).Return(errors.New("failed to remove token from DB"))
@@ -599,7 +667,8 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware)
+			emailService := new(authMocks.MockEmailService)
+			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			err := authService.LogoutUserFromAllDevices(ctx, 2)
 			if (err != nil) != testScenario.wantErr {
@@ -615,3 +684,59 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 	}
 }
 
+func TestActivateAccount(t *testing.T) {
+	type args struct {
+		title string
+		setupMock func() (authRepository)
+		wantErr bool
+		err error
+	}
+
+	testsScenarios := []args{
+		{
+			title: "with proper data",
+			setupMock: func() (authRepository) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthRepository.On("ActivateAccount", mock.Anything, mock.Anything).Return(nil)
+				return mAuthRepository
+			},
+			wantErr: false,
+			err: nil,
+		},
+		{
+			title: "ActivateAccount failed",
+			setupMock: func() (authRepository) {
+				mAuthRepository := new(authMocks.MockAuthRepository)
+				mAuthRepository.On("ActivateAccount", mock.Anything, mock.Anything).Return(errors.New("failed to activate account"))
+				return mAuthRepository
+			},
+			wantErr: true,
+			err: errors.New("failed to activate account"),
+		},
+	}
+
+	for _, testScenario := range testsScenarios {
+		t.Run(testScenario.title, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+
+			authRepository := testScenario.setupMock()
+			loggerService := setupAuthServiceDependencies()
+			emailService := new(authMocks.MockEmailService)
+			userRepository := new(mocks.MockUserRepository)
+			authorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+
+			err := authService.ActivateAccount(ctx, 1)
+			if (err != nil) != testScenario.wantErr {
+				t.Errorf("ActivateAccount() error = %v, wantErr = %v", err, testScenario.wantErr)
+			}
+
+			if err != nil && testScenario.err != nil {
+				if err.Error() != testScenario.err.Error() {
+					t.Errorf("ActivateAccount() error = %v, scenarioError = %v", err, testScenario.err)
+				}
+			}
+		})
+	}
+}
