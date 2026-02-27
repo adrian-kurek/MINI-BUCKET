@@ -16,6 +16,8 @@ func NewCacheService(cacheLink string) (*CacheService, error) {
 	if err != nil {
 		return &CacheService{}, err
 	}
+	opt.PoolSize = 20
+	opt.MinIdleConns = 5
 
 	return &CacheService{
 		client: redis.NewClient(opt),

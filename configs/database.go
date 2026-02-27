@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -20,8 +21,14 @@ type DB struct {
 	DBConnection *sql.DB
 }
 
-func NewDB(databaseLink, driver string) (*DB, error) {
-	dbConnection, err := sql.Open(driver, databaseLink)
+var migrationDirs = []string{
+	"users",
+	"refresh_tokens",
+	// add more in dependency order here
+}
+
+func NewDB(databaseLink, dbDriver string) (*DB, error) {
+	dbConnection, err := sql.Open(dbDriver, databaseLink)
 	if err != nil {
 		return nil, err
 	}
@@ -33,43 +40,53 @@ func NewDB(databaseLink, driver string) (*DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err = dbConnection.PingContext(ctx)
-	if err != nil {
+	if err = dbConnection.PingContext(ctx); err != nil {
 		return nil, err
 	}
 
-	driverInstance, err := postgres.WithInstance(dbConnection, &postgres.Config{})
-	if err != nil {
-		return nil, err
-	}
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to get working directory: %w", err)
 	}
 
-	migrationsPath := fmt.Sprintf("file://%s/migrations", wd)
-
-	m, err := migrate.NewWithDatabaseInstance(
-		migrationsPath,
-		"postgres",
-		driverInstance,
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
 	cmd := os.Args[len(os.Args)-1]
-	if cmd == "up" {
-		if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-			log.Fatalf("Migration up failed: %v", err)
-		}
-		fmt.Println("Migration up completed successfully")
-	}
 
-	if cmd == "down" {
-		if err := m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-			log.Fatalf("Migration down failed: %v", err)
+	for _, dirName := range migrationDirs {
+		migrationsPath := filepath.Join(wd, "migrations", dirName)
+
+		if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
+			log.Printf("migrations directory not found, skipping: %s", migrationsPath)
+			continue
 		}
-		fmt.Println("Migration down completed successfully")
+
+		migrateDriver, err := postgres.WithInstance(dbConnection, &postgres.Config{
+			MigrationsTable: fmt.Sprintf("%s_migrations", dirName),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create driver for %s: %w", dirName, err)
+		}
+
+		m, err := migrate.NewWithDatabaseInstance(
+			fmt.Sprintf("file://%s", migrationsPath),
+			"postgres",
+			migrateDriver,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create migrate instance for %s: %w", dirName, err)
+		}
+
+		switch cmd {
+		case "up":
+			if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+				return nil, fmt.Errorf("migration up failed for %s: %w", dirName, err)
+			}
+			fmt.Printf("Migration up completed for %s\n", dirName)
+		case "down":
+			if err := m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+				return nil, fmt.Errorf("migration down failed for %s: %w", dirName, err)
+			}
+			fmt.Printf("Migration down completed for %s\n", dirName)
+		}
 	}
 
 	return &DB{
