@@ -57,3 +57,7 @@ func (c *CacheService) Delete(ctx context.Context, key string) error {
 
 	return nil
 }
+
+func (c *CacheService) Close() error {
+	return c.client.Close()
+}

@@ -138,6 +138,14 @@ func main() {
 
 	if err := httpServer.Shutdown(apiCtx); err != nil {
 		loggerService.Error("Server forced to shutdown:", err)
+		err := db.Close()
+		if err != nil {
+			panic(err)
+		}
+		err = cacheService.Close()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	loggerService.Info("server exited", nil)
