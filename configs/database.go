@@ -24,7 +24,6 @@ type DB struct {
 var migrationDirs = []string{
 	"users",
 	"refresh_tokens",
-	// add more in dependency order here
 }
 
 func NewDB(databaseLink, dbDriver string) (*DB, error) {
