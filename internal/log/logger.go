@@ -106,12 +106,6 @@ func (l *Logger) initializeLogger() {
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		if err := file.Close(); err != nil {
-			fmt.Printf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
-				l.getLogTime(), "ERROR", "failed to close file properly", []byte("{}"))
-		}
-	}()
 
 	l.file = file
 	stats, err := l.file.Stat()
@@ -166,12 +160,6 @@ func (l *Logger) validate() {
 		if err != nil {
 			panic(err)
 		}
-		defer func() {
-			if err := file.Close(); err != nil {
-				fmt.Printf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
-					l.getLogTime(), "ERROR", "failed to close file properly", []byte("{}"))
-			}
-		}()
 
 		l.file = file
 		_, err = l.file.WriteString("[")
