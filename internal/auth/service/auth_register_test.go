@@ -39,7 +39,7 @@ func TestRegister(t *testing.T) {
 					ID: 0,
 				}, nil)
 				mAuthRepository.On("RegisterUser", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware 
+				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -115,7 +115,7 @@ func TestRegister(t *testing.T) {
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware,emailService)
+			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			err := authService.Register(ctx, testScenario.user)
 
