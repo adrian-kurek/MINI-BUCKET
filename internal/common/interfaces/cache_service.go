@@ -10,4 +10,5 @@ type CacheService interface {
 	Exists(ctx context.Context, key string) (int64, error)
 	Delete(ctx context.Context, key string) error
 	Set(ctx context.Context, key string, data string, ttl time.Duration) error
+	Close() error
 }

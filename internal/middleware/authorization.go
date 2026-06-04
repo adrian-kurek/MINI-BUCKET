@@ -17,6 +17,8 @@ import (
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 )
 
+const accessTokenExpiration = 5 * time.Minute
+
 type Authorization struct {
 	accessTokenSecret  string
 	refreshTokenSecret string
@@ -56,13 +58,13 @@ func (ar Authorization) GenerateAccessToken(user userModel.User) (string, error)
 		"id":       user.ID,
 		"email":    user.Email,
 		"username": user.Username,
-		"exp":      time.Now().Add(15 * time.Minute).Unix(),
+		"exp":      time.Now().Add(accessTokenExpiration).Unix(),
 	})
 
 	tokenString, err := tokenWithData.SignedString([]byte(ar.accessTokenSecret))
 	if err != nil {
 		errMsg := errors.New("failed to sign access token properly")
-		ar.loggerService.Error(errMsg.Error(), err)
+		ar.loggerService.Error(errMsg.Error(), err.Error())
 		return "", commonErrors.NewAPIError(http.StatusUnauthorized, errMsg.Error())
 	}
 
@@ -97,6 +99,19 @@ func (ar Authorization) VerifyToken(r *http.Request) (*http.Request, error) {
 	}
 
 	tokenString := strings.Split(authHeader, " ")[1]
+
+	cacheKey := "tokenBlackList-" + tokenString
+	result, err := ar.cacheService.Exists(ctx, cacheKey)
+	if err != nil {
+		ar.loggerService.Info("failed to check blacklist", err)
+		return r, err
+	}
+
+	if result > 0 {
+		err := errors.New("token blacklisted")
+		ar.loggerService.Info(err.Error(), tokenString)
+		return r, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	}
 
 	if err := ctx.Err(); err != nil {
 		return r, err

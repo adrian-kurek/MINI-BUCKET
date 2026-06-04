@@ -189,37 +189,75 @@ func TestParseClaimsToken(t *testing.T) {
 
 func TestVerifyToken(t *testing.T) {
 	type args struct {
-		title   string
-		token   string
-		wantErr bool
-		err     error
+		title     string
+		token     string
+		setupMock func() interfaces.CacheService
+		wantErr   bool
+		err       error
 	}
 
 	testsScenarios := []args{
 		{
-			title:   "with proper data",
-			token:   "",
+			title: "with proper data",
+			token: "",
+			setupMock: func() interfaces.CacheService {
+				mCacheService := new(mocks.MockCacheService)
+				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(0), nil)
+				return mCacheService
+			},
 			wantErr: false,
 			err:     nil,
 		},
 		{
-			title:   "lack of token",
-			token:   " eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvZGVAZ21haWwuY29tIiwiZXhwIjoxNzcxNzc4NjEzLCJpZCI6MSwidXNlcm5hbWUiOiJqb2RlMSJ9.lZj5y7h_WpYRR5J7bDxZiFyoXlARzMbnlHjLGFGRR3U",
+			title: "lack of token",
+			token: " eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvZGVAZ21haWwuY29tIiwiZXhwIjoxNzcxNzc4NjEzLCJpZCI6MSwidXNlcm5hbWUiOiJqb2RlMSJ9.lZj5y7h_WpYRR5J7bDxZiFyoXlARzMbnlHjLGFGRR3U",
+			setupMock: func() interfaces.CacheService {
+				mCacheService := new(mocks.MockCacheService)
+				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(0), nil)
+				return mCacheService
+			},
 			wantErr: true,
 			err:     errors.New("api error: failed to authorize a user"),
 		},
 		{
-			title:   "invalid token",
-			token:   "Bearer yJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvZGVAZ21haWwuY29tIiwiZXhwIjoxNzcxNzc4NjEzLCJpZCI6MSwidXNlcm5hbWUiOiJqb2RlMSJ9.lZj5y7h_WpYRR5J7bDxZiFyoXlARzMbnlHjLGFGRR3U",
+			title: "invalid token",
+			token: "Bearer yJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvZGVAZ21haWwuY29tIiwiZXhwIjoxNzcxNzc4NjEzLCJpZCI6MSwidXNlcm5hbWUiOiJqb2RlMSJ9.lZj5y7h_WpYRR5J7bDxZiFyoXlARzMbnlHjLGFGRR3U",
+			setupMock: func() interfaces.CacheService {
+				mCacheService := new(mocks.MockCacheService)
+				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(0), nil)
+				return mCacheService
+			},
 			wantErr: true,
 			err:     errors.New("api error: provided token is invalid"),
+		},
+		{
+			title: "cacheService.Exists() failed",
+			token: "",
+			setupMock: func() interfaces.CacheService {
+				mCacheService := new(mocks.MockCacheService)
+				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(0), errors.New("failed to check existance data in cache"))
+				return mCacheService
+			},
+			wantErr: true,
+			err:     errors.New("failed to check existance data in cache"),
+		},
+		{
+			title: "cacheService.Exists() failed",
+			token: "",
+			setupMock: func() interfaces.CacheService {
+				mCacheService := new(mocks.MockCacheService)
+				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(1), nil)
+				return mCacheService
+			},
+			wantErr: true,
+			err:     errors.New("api error: token blacklisted"),
 		},
 	}
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
-			cacheService := new(mocks.MockCacheService)
+			cacheService := testScenario.setupMock()
 			authorizationMiddleware := NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{

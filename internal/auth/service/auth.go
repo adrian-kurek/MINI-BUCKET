@@ -5,12 +5,12 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
 	"time"
 
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
+	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"golang.org/x/crypto/bcrypt"
@@ -19,25 +19,32 @@ import (
 type authRepository interface {
 	RegisterUser(ctx context.Context, user authDto.CreateUser, hashedPassword []byte) error
 	InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error
-	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (model.TokenWithUserEmailToRefreshToken, error)
+	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
 	RemoveTokenFromDB(ctx context.Context, refreshToken string) error
 	RemoveTokensFromDBByUserID(ctx context.Context, userID int) error
+	ActivateAccount(ctx context.Context, userID int) error
+}
+
+type emailService interface {
+	SendEmail(to, subject, body string) error
 }
 
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
 	userRepository commonInterfaces.UserRepository
 	authRepository authRepository
-	authorization  interfaces.AuthorizationMiddleware
+	authorization  commonInterfaces.AuthorizationMiddleware
+	emailService   emailService
 }
 
-func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization interfaces.AuthorizationMiddleware) *AuthService {
+func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization commonInterfaces.AuthorizationMiddleware, emailService emailService) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,
 		authRepository: authRepository,
 		authorization:  authorization,
+		emailService:   emailService,
 	}
 }
 
@@ -55,7 +62,7 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		as.loggerService.Info(err.Error(), user.Email)
+		as.loggerService.Info(err.Error(), nil)
 		return err
 	}
 
@@ -84,7 +91,24 @@ func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, i
 	}
 
 	if !userFromDB.EmailVerified {
-		err := errors.New("user with provided email is not verified")
+		userAuthData := userModel.User{
+			ID:       userFromDB.ID,
+			Email:    userFromDB.Email,
+			Username: userFromDB.Username,
+		}
+
+		accessToken, err := as.authorization.GenerateAccessToken(userAuthData)
+		if err != nil {
+			return "", nil, err
+		}
+
+		host := os.Getenv("HOST_LINK")
+		err = as.emailService.SendEmail(loginData.Email, "activation link", host+"/auth/activateAccount?token="+accessToken)
+		if err != nil {
+			return "", nil, err
+		}
+
+		err = errors.New("user with provided email is not verified, we sent to you mail with activation link")
 		as.loggerService.Info(err.Error(), loginData.Email)
 		return "", nil, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 	}
@@ -125,6 +149,15 @@ func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, i
 	return accessToken, refreshToken, nil
 }
 
+func (as *AuthService) ActivateAccount(ctx context.Context, userID int) error {
+	err := as.authRepository.ActivateAccount(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (string, error) {
 	hashedRefreshToken := as.authorization.HashToken(refreshToken)
 
@@ -134,7 +167,9 @@ func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (s
 	}
 
 	if tokenWithUserEmailToRefreshToken.ID == 0 {
-		return "", commonErrors.NewAPIError(http.StatusUnauthorized, "token not found")
+		err := errors.New("token not found")
+		as.loggerService.Info(err.Error(), nil)
+		return "", commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 	}
 
 	if tokenWithUserEmailToRefreshToken.ExpiresAt.Before(time.Now()) {

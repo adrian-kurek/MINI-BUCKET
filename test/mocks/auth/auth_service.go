@@ -35,3 +35,8 @@ func (m *MockAuthService) LogoutUserFromAllDevices(ctx context.Context, userID i
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
+
+func (as *MockAuthService) ActivateAccount(ctx context.Context, userID int) error {
+	args := as.Called(ctx, userID)
+	return args.Error(0)
+}

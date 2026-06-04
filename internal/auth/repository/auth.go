@@ -7,10 +7,12 @@ import (
 	"time"
 
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
+	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 )
+
+const refreshTokenExpiration = 7 * 24 * time.Hour
 
 type AuthRepository struct {
 	loggerService commonInterfaces.Logger
@@ -76,7 +78,7 @@ func (ar *AuthRepository) InsertRefreshToken(ctx context.Context, ipAddress, dev
 		}
 	}()
 
-	expiration := time.Now().Add(7 * 24 * time.Hour)
+	expiration := time.Now().Add(refreshTokenExpiration)
 	lastUsedAt := time.Now()
 
 	_, err = stmt.ExecContext(ctx, userID, refreshToken, deviceInfo, ipAddress, expiration, lastUsedAt)
@@ -96,7 +98,7 @@ func (ar *AuthRepository) InsertRefreshToken(ctx context.Context, ipAddress, dev
 	return nil
 }
 
-func (ar *AuthRepository) GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (model.TokenWithUserEmailToRefreshToken, error) {
+func (ar *AuthRepository) GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error) {
 	query := `
 	SELECT 
 		rt.id,
@@ -116,7 +118,7 @@ func (ar *AuthRepository) GetRefreshTokenByTokenHash(ctx context.Context, refres
 			"query": query,
 			"error": err.Error(),
 		})
-		return model.TokenWithUserEmailToRefreshToken{}, err
+		return authModel.TokenWithUserEmailToRefreshToken{}, err
 	}
 	defer func() {
 		if closeErr := stmt.Close(); closeErr != nil {
@@ -126,19 +128,19 @@ func (ar *AuthRepository) GetRefreshTokenByTokenHash(ctx context.Context, refres
 
 	row := stmt.QueryRowContext(ctx, refreshToken)
 
-	var tokenWithUserEmailToRefreshToken model.TokenWithUserEmailToRefreshToken
+	var tokenWithUserEmailToRefreshToken authModel.TokenWithUserEmailToRefreshToken
 
 	err = row.Scan(&tokenWithUserEmailToRefreshToken.ID, &tokenWithUserEmailToRefreshToken.UserID, &tokenWithUserEmailToRefreshToken.Email, &tokenWithUserEmailToRefreshToken.Username, &tokenWithUserEmailToRefreshToken.TokenHash, &tokenWithUserEmailToRefreshToken.ExpiresAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ar.loggerService.Info("token not found", nil)
-			return model.TokenWithUserEmailToRefreshToken{ID: 0}, nil
+			return authModel.TokenWithUserEmailToRefreshToken{ID: 0}, nil
 		}
-		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+		ar.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]string{
 			"query": query,
 			"error": err.Error(),
 		})
-		return model.TokenWithUserEmailToRefreshToken{}, err
+		return authModel.TokenWithUserEmailToRefreshToken{}, err
 	}
 	return tokenWithUserEmailToRefreshToken, nil
 }
@@ -156,12 +158,17 @@ func (ar *AuthRepository) UpdateLastTimeUsedToken(ctx context.Context, refreshTo
 		})
 		return err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	lastUsedAt := time.Now()
 
 	_, err = stmt.ExecContext(ctx, lastUsedAt, refreshToken)
 	if err != nil {
-		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+		ar.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]string{
 			"query": query,
 			"error": err.Error(),
 		})
@@ -182,10 +189,44 @@ func (ar *AuthRepository) RemoveTokenFromDB(ctx context.Context, refreshToken st
 		})
 		return err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	_, err = stmt.ExecContext(ctx, refreshToken)
 	if err != nil {
+		ar.loggerService.Error(commonErrors.FailedToExecuteDeleteQuery, map[string]string{
+			"query": query,
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
+
+func (ar *AuthRepository) ActivateAccount(ctx context.Context, userID int) error {
+	query := "UPDATE users SET email_verified = true WHERE id = $1"
+
+	stmt, err := ar.db.PrepareContext(ctx, query)
+	if err != nil {
 		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+			"query": query,
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	_, err = stmt.ExecContext(ctx, userID)
+	if err != nil {
+		ar.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]string{
 			"query": query,
 			"error": err.Error(),
 		})
@@ -206,10 +247,15 @@ func (ar *AuthRepository) RemoveTokensFromDBByUserID(ctx context.Context, userID
 		})
 		return err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ar.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	_, err = stmt.ExecContext(ctx, userID)
 	if err != nil {
-		ar.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+		ar.loggerService.Error(commonErrors.FailedToExecuteDeleteQuery, map[string]string{
 			"query": query,
 			"error": err.Error(),
 		})

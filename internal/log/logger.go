@@ -106,12 +106,30 @@ func (l *Logger) initializeLogger() {
 	if err != nil {
 		panic(err)
 	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
+				l.getLogTime(), "ERROR", "failed to close file properly", []byte("{}"))
+		}
+	}()
 
 	l.file = file
-
-	_, err = l.file.WriteString("[")
+	stats, err := l.file.Stat()
 	if err != nil {
-		fmt.Println("something went wrong during writing to data to the file")
+		panic(err)
+	}
+
+	if stats.Size() > 0 {
+		os.Truncate(l.logDir+"/"+filename+".json", stats.Size()-1)
+		_, err = l.file.WriteString(",")
+		if err != nil {
+			fmt.Println("something went wrong during writing to data to the file")
+		}
+	} else {
+		_, err = l.file.WriteString("[")
+		if err != nil {
+			fmt.Println("something went wrong during writing to data to the file")
+		}
 	}
 
 	fileContentToAdd := fmt.Sprintf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
@@ -135,6 +153,7 @@ func (l *Logger) validate() {
 		if err != nil {
 			fmt.Println("something went wrong during writing  data to the file")
 		}
+
 		err = l.file.Close()
 		if err != nil {
 			fmt.Println("something went wrong during writing  data to the file")
@@ -147,6 +166,12 @@ func (l *Logger) validate() {
 		if err != nil {
 			panic(err)
 		}
+		defer func() {
+			if err := file.Close(); err != nil {
+				fmt.Printf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
+					l.getLogTime(), "ERROR", "failed to close file properly", []byte("{}"))
+			}
+		}()
 
 		l.file = file
 		_, err = l.file.WriteString("[")
