@@ -29,6 +29,15 @@ func (br *BucketRepository) CreateBucket(ctx context.Context, userID int, bucket
 	if err != nil {
 		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
+			"args": map[string]any{
+				"name":               bucket.Name,
+				"user_id":            userID,
+				"region":             "",
+				"versioning_enabled": bucket.VersioningEnabled,
+				"public_access":      bucket.PublicAccess,
+				"storage_class":      bucket.StorageClass,
+				"encryption_enabled": bucket.EncryptionEnabled,
+			},
 			"error": err.Error(),
 		})
 	}
@@ -40,8 +49,17 @@ func (br *BucketRepository) CreateBucket(ctx context.Context, userID int, bucket
 
 	_, err = stmt.ExecContext(ctx, bucket.Name, userID, "", bucket.VersioningEnabled, bucket.PublicAccess, bucket.StorageClass, bucket.EncryptionEnabled, time.Now(), time.Now())
 	if err != nil {
-		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+		br.logger.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
+			"args": map[string]any{
+				"name":               bucket.Name,
+				"user_id":            userID,
+				"region":             "",
+				"versioning_enabled": bucket.VersioningEnabled,
+				"public_access":      bucket.PublicAccess,
+				"storage_class":      bucket.StorageClass,
+				"encryption_enabled": bucket.EncryptionEnabled,
+			},
 			"error": err.Error(),
 		})
 		return err
@@ -49,4 +67,3 @@ func (br *BucketRepository) CreateBucket(ctx context.Context, userID int, bucket
 
 	return nil
 }
-
