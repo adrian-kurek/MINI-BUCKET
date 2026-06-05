@@ -32,7 +32,7 @@ func NewBucketController(bucketService bucketService, authorization commonInterf
 	}
 }
 
-func (bc *BucketController) CreateBucket(w http.ResponseWriter, r *http.Request) error {
+func (bc *BucketController) Create(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 

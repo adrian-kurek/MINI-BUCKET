@@ -8,7 +8,7 @@ import (
 )
 
 type bucketRepository interface {
-	CreateBucket(ctx context.Context, userID int, bucket bucketDTO.CreateBucket) error
+	Create(ctx context.Context, userID int, bucket bucketDTO.CreateBucket) error
 }
 
 type BucketService struct {
@@ -17,5 +17,5 @@ type BucketService struct {
 }
 
 func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDTO.CreateBucket) error {
-	return bs.bucketRepository.CreateBucket(ctx, userID, bucket)
+	return bs.bucketRepository.Create(ctx, userID, bucket)
 }

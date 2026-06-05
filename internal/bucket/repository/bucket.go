@@ -22,7 +22,7 @@ func NewBucketRepository(logger commonInterfaces.Logger, db *sql.DB) *BucketRepo
 	}
 }
 
-func (br *BucketRepository) CreateBucket(ctx context.Context, userID int, bucket bucketDto.CreateBucket) error {
+func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucketDto.CreateBucket) error {
 	query := `INSERT INTO buckets (name,user_id,region,versioning_enabled,public_access,storage_class,encryption_enabled, created_at,updated_at) VALUES ($1, $2, $3, $4, $5, $6,$7, NOW(), NOW())`
 
 	stmt, err := br.db.PrepareContext(ctx, query)
