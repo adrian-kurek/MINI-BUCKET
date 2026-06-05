@@ -9,6 +9,7 @@ import (
 
 type bucketRepository interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error
+	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
 }
 
 type BucketService struct {
@@ -18,4 +19,8 @@ type BucketService struct {
 
 func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error {
 	return bs.bucketRepository.Create(ctx, userID, bucket)
+}
+
+func (bs *BucketService) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error {
+	return bs.bucketRepository.Update(ctx, bucketID, userID, bucket)
 }

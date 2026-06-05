@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
@@ -16,6 +17,7 @@ import (
 
 type bucketService interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error
+	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
 }
 
 type BucketController struct {
@@ -60,5 +62,45 @@ func (bc *BucketController) Create(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 	response.Send(w, 201, nil)
+	return nil
+}
+
+func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	defer cancel()
+
+	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
+	if err != nil {
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+	}
+
+	err = middleware.ValidateRequestData(reqData)
+	if err != nil {
+		return err
+	}
+
+	bucketIDStr, err := request.ReadParam(r, "bucketID")
+	if err != nil {
+		return err
+	}
+	bucketID, err := strconv.Atoi(bucketIDStr)
+	if err != nil {
+		return err
+	}
+
+	userID, err := request.ReadUserIDFromToken(r)
+	if err != nil {
+		return err
+	}
+
+	err = bc.bucketService.Update(ctx, bucketID, userID, *reqData)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			bc.loggerService.Info("request timed out", r.URL.Path)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
+		return err
+	}
+
 	return nil
 }
