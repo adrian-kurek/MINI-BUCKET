@@ -1,6 +1,6 @@
 package dto
 
-type CreateBucket struct {
+type BucketInput struct {
 	Name              string `json:"name" validate:"required,min=3,max=50"`
 	VersioningEnabled bool   `json:"versioningEnabled"`
 	PublicAccess      bool   `json:"publicAccess"`

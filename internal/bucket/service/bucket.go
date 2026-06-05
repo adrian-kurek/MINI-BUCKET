@@ -8,7 +8,7 @@ import (
 )
 
 type bucketRepository interface {
-	Create(ctx context.Context, userID int, bucket bucketDTO.CreateBucket) error
+	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error
 }
 
 type BucketService struct {
@@ -16,6 +16,6 @@ type BucketService struct {
 	logger           commonInterfaces.Logger
 }
 
-func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDTO.CreateBucket) error {
+func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error {
 	return bs.bucketRepository.Create(ctx, userID, bucket)
 }
