@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
-	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/internal/common/json_util"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )

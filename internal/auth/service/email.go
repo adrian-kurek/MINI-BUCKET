@@ -1,7 +1,7 @@
 package service
 
 import (
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	gomail "gopkg.in/gomail.v2"
 )
 

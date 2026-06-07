@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/request"
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 )
 

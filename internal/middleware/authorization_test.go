@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"

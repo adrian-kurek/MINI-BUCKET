@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 )
 

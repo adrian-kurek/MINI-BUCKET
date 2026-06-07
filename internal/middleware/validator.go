@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 )
 
 func ValidateRequestData(dataFromRequest any) error {

@@ -9,13 +9,13 @@ import (
 	"os"
 	"time"
 
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/request"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/response"
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/response"
 )
 
 const authTimeout = 2 * time.Second

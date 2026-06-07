@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/response"
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/response"
 )
 
 const (

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/request"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 )
 
 type authController interface {

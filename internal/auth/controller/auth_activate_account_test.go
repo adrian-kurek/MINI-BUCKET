@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/request"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )

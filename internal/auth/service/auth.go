@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"golang.org/x/crypto/bcrypt"
 )

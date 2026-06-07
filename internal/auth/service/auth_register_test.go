@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"

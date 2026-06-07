@@ -1,13 +1,13 @@
 package service
 
-
 import (
 	"context"
 	"errors"
 	"testing"
 	"time"
+
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"

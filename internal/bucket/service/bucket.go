@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 )
 
 type bucketRepository interface {

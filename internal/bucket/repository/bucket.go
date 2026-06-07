@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
 )
 
 type BucketRepository struct {

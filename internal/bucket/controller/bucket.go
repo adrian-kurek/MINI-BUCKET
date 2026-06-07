@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
+	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/response"
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
-	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/internal/common/errors"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/internal/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/request"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/common/response"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 )
 
