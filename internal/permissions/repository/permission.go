@@ -135,3 +135,41 @@ func (pr *PermissionRepository) Update(ctx context.Context, permissionID, bucket
 
 	return nil
 }
+
+func (pr *PermissionRepository) Delete(ctx context.Context, permissionID, bucketID, userID int) error {
+	query := `DELETE FROM bucket_permissions  WHERE id = $1 AND bucket_id = $2 AND user_id = $3`
+	stmt, err := pr.db.PrepareContext(ctx, query)
+	if err != nil {
+		pr.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"permission_id": permissionID,
+				"bucket_id":     bucketID,
+				"user_id":       userID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			pr.logger.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	_, err = stmt.ExecContext(ctx, permissionID, bucketID, userID)
+	if err != nil {
+		pr.logger.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"permission_id": permissionID,
+				"bucket_id":     bucketID,
+				"user_id":       userID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
