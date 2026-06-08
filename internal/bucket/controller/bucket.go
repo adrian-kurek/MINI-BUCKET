@@ -18,6 +18,7 @@ import (
 type bucketService interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.Upsert) error
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.Upsert) error
+	Delete(ctx context.Context, bucketID, userID int) error
 }
 
 type BucketController struct {
@@ -102,5 +103,38 @@ func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
+	response.Send(w, 204, nil)
+	return nil
+}
+
+func (bc *BucketController) Delete(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	defer cancel()
+
+	bucketIDStr, err := request.ReadParam(r, "bucketID")
+	if err != nil {
+		return err
+	}
+
+	bucketID, err := strconv.Atoi(bucketIDStr)
+	if err != nil {
+		return err
+	}
+
+	userID, err := request.ReadUserIDFromToken(r)
+	if err != nil {
+		return err
+	}
+
+	err = bc.bucketService.Delete(ctx, bucketID, userID)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			bc.loggerService.Info("request timed out", r.URL.Path)
+			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		}
+		return err
+	}
+
+	response.Send(w, 204, nil)
 	return nil
 }
