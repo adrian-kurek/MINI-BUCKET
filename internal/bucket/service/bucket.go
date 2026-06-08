@@ -9,7 +9,6 @@ import (
 
 type bucketRepository interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) (int, error)
-	CreatePermission(ctx context.Context, bucketID, userID, permission int) (int, error)
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
 }
 

@@ -69,45 +69,6 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 	return bucketID, nil
 }
 
-func (br *BucketRepository) CreatePermission(ctx context.Context, bucketID, userID, permission int) (int, error) {
-	query := `INSERT INTO bucket_permissions (bucket_id,user_id,permission,created_at,updated_at) VALUES ($1, $2, $3, NOW(), NOW())`
-	stmt, err := br.db.PrepareContext(ctx, query)
-	if err != nil {
-		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
-			"query": query,
-			"args": map[string]any{
-				"bucket_id":  bucketID,
-				"user_id":    userID,
-				"permission": permission,
-			},
-			"error": err.Error(),
-		})
-		return 0, err
-	}
-	defer func() {
-		if closeErr := stmt.Close(); closeErr != nil {
-			br.logger.Error(commonErrors.FailedToCloseStatement, closeErr)
-		}
-	}()
-
-	var bucketPermissionID int
-	err = stmt.QueryRowContext(ctx, bucketID, userID, permission).Scan(bucketPermissionID)
-	if err != nil {
-		br.logger.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
-			"query": query,
-			"args": map[string]any{
-				"bucket_id":  bucketID,
-				"user_id":    userID,
-				"permission": permission,
-			},
-			"error": err.Error(),
-		})
-		return 0, err
-	}
-
-	return bucketID, nil
-}
-
 func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error {
 	query := "UPDATE buckets SET name = $1,versioning_enabled = $2, public_access = $3, storage_class = $4, encryption_enabled = $5, updated_at = NOW() WHERE id = $6 AND owner_id = $7"
 
