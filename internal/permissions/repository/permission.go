@@ -159,7 +159,7 @@ func (pr *PermissionRepository) Delete(ctx context.Context, permissionID, bucket
 
 	_, err = stmt.ExecContext(ctx, permissionID, bucketID, userID)
 	if err != nil {
-		pr.logger.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+		pr.logger.Error(commonErrors.FailedToExecuteDeleteQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"permission_id": permissionID,

@@ -11,6 +11,7 @@ type permissionRepository interface {
 	Create(ctx context.Context, bucketID, userID, permission int) (int, error)
 	GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
 	Update(ctx context.Context, permissionID, bucketID, userID, permission int) error
+	Delete(ctx context.Context, permissionID, bucketID, userID int) error
 }
 
 type PermissionService struct {
@@ -46,10 +47,24 @@ func (ps *PermissionService) Update(ctx context.Context, permissionID, bucketID,
 		return err
 	}
 
-	if permission != 7 {
+	if permission != 7 && permission != 3 && permission != 5 {
 		ps.logger.Info("user tried to perform operation which is not allowed for him", authorizedUserID)
 		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
 
 	return ps.permissionRepository.Update(ctx, permissionID, bucketID, userID, permission)
+}
+
+func (ps *PermissionService) Delete(ctx context.Context, permissionID, bucketID, userID, authorizedUserID int) error {
+	permission, err := ps.permissionRepository.GetPermissionValByUserID(ctx, bucketID, authorizedUserID)
+	if err != nil {
+		return err
+	}
+
+	if permission != 7 && permission != 3 && permission != 5 {
+		ps.logger.Info("user tried to perform operation which is not allowed for him", authorizedUserID)
+		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
+	}
+
+	return ps.permissionRepository.Delete(ctx, bucketID, userID, permission)
 }
