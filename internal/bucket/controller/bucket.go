@@ -16,8 +16,8 @@ import (
 )
 
 type bucketService interface {
-	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error
-	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
+	Create(ctx context.Context, userID int, bucket bucketDTO.Upsert) error
+	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.Upsert) error
 }
 
 type BucketController struct {
@@ -38,7 +38,7 @@ func (bc *BucketController) Create(w http.ResponseWriter, r *http.Request) error
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
-	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
+	reqData, err := request.ReadBody[bucketDTO.Upsert](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}
@@ -69,7 +69,7 @@ func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
-	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
+	reqData, err := request.ReadBody[bucketDTO.Upsert](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}

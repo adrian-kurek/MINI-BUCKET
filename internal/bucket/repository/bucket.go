@@ -21,7 +21,7 @@ func NewBucketRepository(logger commonInterfaces.Logger, db *sql.DB) *BucketRepo
 	}
 }
 
-func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) (int, error) {
+func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucketDTO.Upsert) (int, error) {
 	query := `INSERT INTO buckets (name,user_id,region,versioning_enabled,public_access,storage_class,encryption_enabled, created_at,updated_at) VALUES ($1, $2, $3, $4, $5, $6,$7, NOW(), NOW())`
 
 	stmt, err := br.db.PrepareContext(ctx, query)
@@ -69,7 +69,7 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 	return bucketID, nil
 }
 
-func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error {
+func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.Upsert) error {
 	query := "UPDATE buckets SET name = $1,versioning_enabled = $2, public_access = $3, storage_class = $4, encryption_enabled = $5, updated_at = NOW() WHERE id = $6 AND owner_id = $7"
 
 	stmt, err := br.db.PrepareContext(ctx, query)

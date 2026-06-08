@@ -8,24 +8,28 @@ import (
 )
 
 type bucketRepository interface {
-	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) (int, error)
-	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
+	Create(ctx context.Context, userID int, bucket bucketDTO.Upsert) (int, error)
+	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.Upsert) error
+}
+type permissinRepository interface {
+	Create(ctx context.Context, bucketID, userID, permission int) (int, error)
 }
 
 type BucketService struct {
-	bucketRepository bucketRepository
-	logger           commonInterfaces.Logger
+	bucketRepository     bucketRepository
+	permissionRepository permissinRepository
+	logger               commonInterfaces.Logger
 }
 
-func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error {
+func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDTO.Upsert) error {
 	bucketID, err := bs.bucketRepository.Create(ctx, userID, bucket)
 	if err != nil {
 		return err
 	}
-	_, err = bs.bucketRepository.CreatePermission(ctx, bucketID, userID, 7)
+	_, err = bs.permissionRepository.Create(ctx, bucketID, userID, 7)
 	return err
 }
 
-func (bs *BucketService) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error {
+func (bs *BucketService) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.Upsert) error {
 	return bs.bucketRepository.Update(ctx, bucketID, userID, bucket)
 }
