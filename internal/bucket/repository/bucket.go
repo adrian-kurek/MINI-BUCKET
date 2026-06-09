@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
@@ -107,4 +108,35 @@ func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bu
 		return err
 	}
 	return nil
+}
+
+func (br *BucketRepository) Exists(ctx context.Context, bucketID int) (bool, error) {
+	query := "SELECT bucketID FROM buckets WHERE id = $1"
+	stmt, err := br.db.PrepareContext(ctx, query)
+	if err != nil {
+		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return false, err
+	}
+
+	_, err = stmt.ExecContext(ctx, bucketID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		br.logger.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return false, err
+	}
+	return true, nil
 }

@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"io"
+	"database/sql"
 
 	"github.com/google/uuid"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -11,7 +11,15 @@ import (
 )
 
 type (
-	objectRepository     interface{}
+	bucketRepository interface {
+		Exists(ctx context.Context, bucketID int) (bool, error)
+	}
+	objectRepository interface {
+		Create(ctx context.Context, tx *sql.Tx, file dto.Create) (int, error)
+		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
+		CreateVersion(ctx context.Context, file dto.CreateVersion) error
+		Exists(ctx context.Context, tx *sql.Tx, objectID int) (bool, error)
+	}
 	permissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
 	}
@@ -21,6 +29,8 @@ type ObjectService struct {
 	loggerService        commonInterfaces.Logger
 	objectRepository     objectRepository
 	permissionRepository permissionRepository
+	bucketRepository     bucketRepository
+	db                   *sql.DB
 }
 
 func NewObjectService(loggerService commonInterfaces.Logger, objectRepository objectRepository) *ObjectService {
@@ -30,8 +40,8 @@ func NewObjectService(loggerService commonInterfaces.Logger, objectRepository ob
 	}
 }
 
-func (obs *ObjectService) Create(ctx context.Context, userID int, fileInfo dto.Create, body io.Reader) error {
-	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, fileInfo.BuckeID, userID)
+func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo dto.IncomingFile) error {
+	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}
@@ -41,7 +51,55 @@ func (obs *ObjectService) Create(ctx context.Context, userID int, fileInfo dto.C
 		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
 
-	objectKey := uuid.NewString()
+	doesBucketExist, err := obs.bucketRepository.Exists(ctx, bucketID)
+	if err != nil {
+		return err
+	}
+	if !doesBucketExist {
+		return commonErrors.NewAPIError(404, "bucket with provided id does not exist")
+	}
+
+	tx, err := obs.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	doesObjectExist, err := obs.objectRepository.Exists(ctx, tx, objectID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	object := dto.Create{
+		BucketID:    bucketID,
+		ObjectKey:   uuid.NewString(),
+		ContentType: fileInfo.ContentType,
+		SizeBytes:   fileInfo.SizeBytes,
+		ETag:        "",
+	}
+	if !doesObjectExist {
+		objectID, err = obs.objectRepository.Create(ctx, tx, object)
+	}
+
+	// TODO: upload file to disk
+
+	newVersionNumber, err := obs.objectRepository.GetNewVersionNumber(ctx, tx, objectID)
+	if err != nil {
+		return err
+	}
+
+	newVersionInfo := dto.CreateVersion{
+		ObjectID:      objectID,
+		VersionNumber: newVersionNumber,
+		SizeBytes:     fileInfo.SizeBytes,
+		ETag:          "",
+		StorageClass:  "",
+	}
+	err = obs.objectRepository.CreateVersion(ctx, newVersionInfo)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
