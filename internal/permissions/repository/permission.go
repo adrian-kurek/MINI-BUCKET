@@ -80,7 +80,7 @@ func (pr *PermissionRepository) GetPermissionValByUserID(ctx context.Context, bu
 	}()
 
 	var permission int
-	err = stmt.QueryRowContext(ctx, bucketID, userID).Scan(permission)
+	err = stmt.QueryRowContext(ctx, bucketID, userID).Scan(&permission)
 	if err != nil {
 		pr.logger.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,

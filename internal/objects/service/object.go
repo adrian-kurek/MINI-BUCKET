@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"database/sql"
+	"io"
+	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/google/uuid"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -17,8 +21,9 @@ type (
 	objectRepository interface {
 		Create(ctx context.Context, tx *sql.Tx, file dto.Create) (int, error)
 		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
-		CreateVersion(ctx context.Context, file dto.CreateVersion) error
-		Exists(ctx context.Context, tx *sql.Tx, objectID int) (bool, error)
+		CreateVersion(ctx context.Context, tx *sql.Tx, file dto.CreateVersion) (int, error)
+		GetObjectKey(ctx context.Context, tx *sql.Tx, objectID int) (bool, string, error)
+		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
 	}
 	permissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
@@ -33,10 +38,13 @@ type ObjectService struct {
 	db                   *sql.DB
 }
 
-func NewObjectService(loggerService commonInterfaces.Logger, objectRepository objectRepository) *ObjectService {
+func NewObjectService(loggerService commonInterfaces.Logger, objectRepository objectRepository, permissionRepository permissionRepository, bucketRepository bucketRepository, db *sql.DB) *ObjectService {
 	return &ObjectService{
-		loggerService:    loggerService,
-		objectRepository: objectRepository,
+		loggerService:        loggerService,
+		objectRepository:     objectRepository,
+		permissionRepository: permissionRepository,
+		bucketRepository:     bucketRepository,
+		db:                   db,
 	}
 }
 
@@ -46,7 +54,7 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 		return err
 	}
 
-	if permission != 2 && permission != 6 && permission != 3 {
+	if permission != 2 && permission != 6 && permission != 3 && permission != 7 {
 		obs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
 		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
@@ -65,27 +73,45 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 	}
 	defer tx.Rollback()
 
-	doesObjectExist, err := obs.objectRepository.Exists(ctx, tx, objectID)
+	doesObjectExist, objectKey, err := obs.objectRepository.GetObjectKey(ctx, tx, objectID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	object := dto.Create{
-		BucketID:    bucketID,
-		ObjectKey:   uuid.NewString(),
-		ContentType: fileInfo.ContentType,
-		SizeBytes:   fileInfo.SizeBytes,
-		ETag:        "",
-	}
 	if !doesObjectExist {
+		object := dto.Create{
+			BucketID:    bucketID,
+			ObjectKey:   uuid.NewString(),
+			ContentType: fileInfo.ContentType,
+			SizeBytes:   fileInfo.SizeBytes,
+			ETag:        "",
+		}
+		objectKey = object.ObjectKey
 		objectID, err = obs.objectRepository.Create(ctx, tx, object)
+		if err != nil {
+			return err
+		}
 	}
-
-	// TODO: upload file to disk
 
 	newVersionNumber, err := obs.objectRepository.GetNewVersionNumber(ctx, tx, objectID)
 	if err != nil {
+		return err
+	}
+
+	uploadDir := "./uploads/" + strconv.Itoa(bucketID)
+	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
+		return err
+	}
+	destPath := filepath.Join(uploadDir, objectKey+"-"+strconv.Itoa(newVersionNumber))
+	destFile, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, fileInfo.File); err != nil {
+		destFile.Close()
+		os.Remove(destPath)
 		return err
 	}
 
@@ -96,10 +122,21 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 		ETag:          "",
 		StorageClass:  "",
 	}
-	err = obs.objectRepository.CreateVersion(ctx, newVersionInfo)
+	newVersionID, err := obs.objectRepository.CreateVersion(ctx, tx, newVersionInfo)
 	if err != nil {
+		os.Remove(destPath)
 		return err
 	}
 
+	err = obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx, tx, objectID, newVersionID)
+	if err != nil {
+		os.Remove(destPath)
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		os.Remove(destPath)
+		return err
+	}
 	return nil
 }

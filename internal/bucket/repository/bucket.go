@@ -111,7 +111,7 @@ func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bu
 }
 
 func (br *BucketRepository) Exists(ctx context.Context, bucketID int) (bool, error) {
-	query := "SELECT bucketID FROM buckets WHERE id = $1"
+	query := "SELECT id FROM buckets WHERE id = $1"
 	stmt, err := br.db.PrepareContext(ctx, query)
 	if err != nil {
 		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{

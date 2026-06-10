@@ -32,7 +32,7 @@ func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file dto.Cre
 		is_deleted,
 		created_at,
 		updated_at
-	) VALUES ($1,$2,$3,$4,$5,false,NOW(), NOW())`
+	) VALUES ($1,$2,$3,$4,$5,false,NOW(), NOW()) RETURNING id`
 
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
@@ -56,7 +56,7 @@ func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file dto.Cre
 	}()
 
 	var ObjectID int
-	err = stmt.QueryRowContext(ctx, file.BucketID, file.ObjectKey, file.ContentType, file.SizeBytes, file.ETag).Scan(ObjectID)
+	err = stmt.QueryRowContext(ctx, file.BucketID, file.ObjectKey, file.ContentType, file.SizeBytes, file.ETag).Scan(&ObjectID)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
@@ -76,11 +76,11 @@ func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file dto.Cre
 }
 
 func (or *ObjectRepository) GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error) {
-	query := `SELECT COALESCE(MAX(version_number), 0) + 1 FROM object_versions WHERE object_id = $1 FOR UPDATE`
+	query := `SELECT COALESCE(MAX(version_number), 0) + 1 FROM object_versions WHERE object_id = $1  `
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
-			"query": stmt,
+			"query": query,
 			"args": map[string]any{
 				"object_id": objectID,
 			},
@@ -94,7 +94,7 @@ func (or *ObjectRepository) GetNewVersionNumber(ctx context.Context, tx *sql.Tx,
 		}
 	}()
 	var newVersionNumber int
-	err = stmt.QueryRowContext(ctx, objectID).Scan(newVersionNumber)
+	err = stmt.QueryRowContext(ctx, objectID).Scan(&newVersionNumber)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
@@ -109,23 +109,18 @@ func (or *ObjectRepository) GetNewVersionNumber(ctx context.Context, tx *sql.Tx,
 	return newVersionNumber, nil
 }
 
-func (or *ObjectRepository) CreateVersion(ctx context.Context, file dto.CreateVersion) error {
-	tx, err := or.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
+func (or *ObjectRepository) CreateVersion(ctx context.Context, tx *sql.Tx, file dto.CreateVersion) (int, error) {
 	query := `INSERT INTO object_versions (
 		object_id,
 		version_number,
 		size_bytes,
 		etag,
-		storage_class
+		storage_class,
 		created_at,
 		updated_at
-	) VALUES($1,$2,$3,$4,$5,NOW(), NOW())`
+	) VALUES($1,$2,$3,$4,$5,NOW(), NOW()) RETURNING id`
 
-	stmt, err := or.db.PrepareContext(ctx, query)
+	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
@@ -138,7 +133,7 @@ func (or *ObjectRepository) CreateVersion(ctx context.Context, file dto.CreateVe
 			},
 			"error": err.Error(),
 		})
-		return err
+		return 0, err
 	}
 	defer func() {
 		if closeErr := stmt.Close(); closeErr != nil {
@@ -146,8 +141,8 @@ func (or *ObjectRepository) CreateVersion(ctx context.Context, file dto.CreateVe
 		}
 	}()
 
-	var ObjectID int
-	err = stmt.QueryRowContext(ctx, file.ObjectID, file.VersionNumber, file.SizeBytes, file.ETag, file.StorageClass).Scan(ObjectID)
+	var newVersionID int
+	err = stmt.QueryRowContext(ctx, file.ObjectID, file.VersionNumber, file.SizeBytes, file.ETag, file.StorageClass).Scan(&newVersionID)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
@@ -160,14 +155,14 @@ func (or *ObjectRepository) CreateVersion(ctx context.Context, file dto.CreateVe
 			},
 			"error": err.Error(),
 		})
-		return err
+		return 0, err
 	}
 
-	return nil
+	return newVersionID, nil
 }
 
-func (or *ObjectRepository) Exists(ctx context.Context, tx *sql.Tx, objectID int) (bool, error) {
-	query := "SELECT id FROM objects WHERE id = $1 FOR UPDATE"
+func (or *ObjectRepository) GetObjectKey(ctx context.Context, tx *sql.Tx, objectID int) (bool, string, error) {
+	query := "SELECT object_key FROM objects WHERE id = $1 FOR UPDATE"
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
@@ -177,13 +172,13 @@ func (or *ObjectRepository) Exists(ctx context.Context, tx *sql.Tx, objectID int
 			},
 			"error": err.Error(),
 		})
-		return false, err
+		return false, "", err
 	}
-
-	_, err = stmt.ExecContext(ctx, objectID)
+	var objectKey string
+	err = stmt.QueryRowContext(ctx, objectID).Scan(&objectKey)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
+			return false, "", nil
 		}
 		or.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
@@ -192,7 +187,42 @@ func (or *ObjectRepository) Exists(ctx context.Context, tx *sql.Tx, objectID int
 			},
 			"error": err.Error(),
 		})
-		return false, err
+		return false, "", err
 	}
-	return true, nil
+	return true, objectKey, nil
+}
+
+func (or *ObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error {
+	query := `UPDATE objects SET current_version_id = $1 WHERE id = $2`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_id":          objectID,
+				"current_version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+	_, err = stmt.ExecContext(ctx, versionID, objectID)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_id":          objectID,
+				"current_version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
 }

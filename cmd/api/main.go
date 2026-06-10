@@ -12,8 +12,13 @@ import (
 	authController "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
 	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
+	bucketRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/repository"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
+	objectController "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/controller"
+	objectRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/repository"
+	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
+	permissionRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/repository"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
 	userRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
 )
@@ -121,7 +126,13 @@ func main() {
 	authService := authService.NewAuthService(loggerService, userRepository, authRepository, *authorization, emailService)
 	authController := authController.NewAuthController(loggerService, authService, *authorization)
 
-	dependenciesConfig := server.NewDependencyConfig(port, *authController)
+	permissionRepository := permissionRepository.NewPermissionRepository(loggerService, db.DBConnection)
+	bucketRepository := bucketRepository.NewBucketRepository(loggerService, db.DBConnection)
+	objectRepository := objectRepository.NewObjectRepository(db.DBConnection, loggerService)
+	objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db.DBConnection)
+	objectController := objectController.NewObjectRepository(loggerService, authorization, objectService)
+
+	dependenciesConfig := server.NewDependencyConfig(port, *authController, *objectController)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)
 	go func() {

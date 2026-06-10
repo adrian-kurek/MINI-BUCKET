@@ -13,7 +13,7 @@ type Create struct {
 }
 
 type IncomingFile struct {
-	Body        io.Reader
+	File        io.Reader
 	ContentType string
 	SizeBytes   int
 }
