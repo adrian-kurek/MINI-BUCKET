@@ -6,19 +6,22 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
+	authController "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
+	objectController "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/controller"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server/routes"
 )
 
 type DependencyConfig struct {
-	port           string
-	authController controller.AuthController
+	port             string
+	authController   authController.AuthController
+	objectController objectController.ObjectController
 }
 
-func NewDependencyConfig(port string, authController controller.AuthController) *DependencyConfig {
+func NewDependencyConfig(port string, authController authController.AuthController, objectController objectController.ObjectController) *DependencyConfig {
 	return &DependencyConfig{
-		port:           port,
-		authController: authController,
+		port:             port,
+		authController:   authController,
+		objectController: objectController,
 	}
 }
 
@@ -50,6 +53,8 @@ func (s *Server) Start() error {
 func (s *Server) SetupRoutes() {
 	authHandler := routes.NewAuthHandler(&s.config.authController)
 	authHandler.SetupAuthHandlers(s.router)
+	objectHandler := routes.NewObjectHandler(&s.config.objectController)
+	objectHandler.SetupObjectHandlers(s.router)
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
