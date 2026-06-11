@@ -11,7 +11,7 @@ import (
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
-	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
@@ -21,8 +21,8 @@ import (
 const authTimeout = 2 * time.Second
 
 type authService interface {
-	Register(ctx context.Context, user authDto.CreateUser) error
-	Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error)
+	Register(ctx context.Context, user authDTO.CreateUser) error
+	Login(ctx context.Context, loginData authDTO.LoginUser, ipAddress, deviceInfo string) (string, []byte, error)
 	RefreshToken(ctx context.Context, token []byte) (string, error)
 	LogoutUser(ctx context.Context, refreshToken []byte) error
 	LogoutUserFromAllDevices(ctx context.Context, userID int) error
@@ -55,7 +55,7 @@ func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) error
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
-	reqData, err := request.ReadBody[authDto.CreateUser](r)
+	reqData, err := request.ReadBody[authDTO.CreateUser](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}
@@ -78,7 +78,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
-	reqData, err := request.ReadBody[authDto.LoginUser](r)
+	reqData, err := request.ReadBody[authDTO.LoginUser](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}
