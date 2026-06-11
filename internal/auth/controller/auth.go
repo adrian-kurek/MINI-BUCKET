@@ -113,23 +113,31 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
-	defer cancel()
-
+func (ac *AuthController) readRefreshToken(r *http.Request) ([]byte, error) {
 	refreshToken, err := r.Cookie("refreshToken")
 	if err != nil {
 		ac.loggerService.Error("failed to read cookie from request", err.Error())
-		return err
+		return nil, err
 	}
 
 	tokenBytes, err := hex.DecodeString(refreshToken.Value)
 	if err != nil {
 		ac.loggerService.Error("failed to decode string into bytes", err.Error())
+		return nil, err
+	}
+	return tokenBytes, nil
+}
+
+func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
+	defer cancel()
+
+	refreshToken, err := ac.readRefreshToken(r)
+	if err != nil {
 		return err
 	}
 
-	newAccessToken, err := ac.authService.RefreshToken(ctx, tokenBytes)
+	newAccessToken, err := ac.authService.RefreshToken(ctx, refreshToken)
 	if err != nil {
 		ac.handleTimeout(err, r.URL.Path)
 	}
@@ -189,19 +197,12 @@ func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) err
 		ac.handleTimeout(err, r.URL.Path)
 	}
 
-	refreshToken, err := r.Cookie("refreshToken")
+	refreshToken, err := ac.readRefreshToken(r)
 	if err != nil {
-		ac.loggerService.Error("failed to read cookie from request", r.URL.Path)
 		return err
 	}
 
-	tokenBytes, err := hex.DecodeString(refreshToken.Value)
-	if err != nil {
-		ac.loggerService.Error("failed to decode string into bytes", r.URL.Path)
-		return err
-	}
-
-	err = ac.authService.LogoutUser(ctx, tokenBytes)
+	err = ac.authService.LogoutUser(ctx, refreshToken)
 	if err != nil {
 		ac.handleTimeout(err, r.URL.Path)
 	}
