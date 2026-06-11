@@ -1,4 +1,4 @@
-package service
+package mail
 
 import (
 	"os"
@@ -9,26 +9,24 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-
 func TestSendEmail(t *testing.T) {
 	type args struct {
-		title string
-		to string
+		title   string
+		to      string
 		wantErr bool
 	}
 
 	testsScenarios := []args{
 		{
-			title: "with proper data",
-			to: "test@gmail.com",
+			title:   "with proper data",
+			to:      "test@gmail.com",
 			wantErr: false,
 		},
 		{
-			title: "with empty email",
-			to: "",
+			title:   "with empty email",
+			to:      "",
 			wantErr: true,
 		},
-
 	}
 
 	for _, testScenario := range testsScenarios {
@@ -43,13 +41,13 @@ func TestSendEmail(t *testing.T) {
 			loggerService := setupAuthServiceDependencies()
 			hostEmail := os.Getenv("HOST_EMAIL")
 			emailPassword := os.Getenv("PASSWORD_EMAIL")
-			emailService := NewEmailService(hostEmail, emailPassword,loggerService )
+			emailService := NewEmailService(hostEmail, emailPassword, loggerService)
 			err = emailService.SendEmail(testScenario.to, "subject", "body")
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("SendEmail() error = %v, wantErr %v", err, testScenario.wantErr)
 			}
-
 		})
 	}
 }
+

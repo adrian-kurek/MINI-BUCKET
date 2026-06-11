@@ -1,4 +1,4 @@
-package service
+package mail
 
 import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
@@ -7,14 +7,14 @@ import (
 
 type EmailService struct {
 	loggerService commonInterfaces.Logger
-	hostEmail string
+	hostEmail     string
 	emailPassword string
 }
 
 func NewEmailService(hostEmail, emailPassword string, loggerService commonInterfaces.Logger) *EmailService {
 	return &EmailService{
 		loggerService: loggerService,
-		hostEmail: hostEmail,
+		hostEmail:     hostEmail,
 		emailPassword: emailPassword,
 	}
 }
@@ -25,13 +25,13 @@ func (es *EmailService) SendEmail(to, subject, body string) error {
 	message.SetHeader("To", to)
 	message.SetHeader("Subject", subject)
 	message.SetBody("text/html", body)
-	
+
 	dialer := gomail.NewDialer("smtp.gmail.com", 587, es.hostEmail, es.emailPassword)
 	if err := dialer.DialAndSend(message); err != nil {
-		es.loggerService.Error("failed to send email" ,err)
+		es.loggerService.Error("failed to send email", err)
 		return err
 	}
 
-	es.loggerService.Info("email sent successfully",to)
+	es.loggerService.Info("email sent successfully", to)
 	return nil
 }
