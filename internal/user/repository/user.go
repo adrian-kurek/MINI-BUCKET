@@ -22,7 +22,7 @@ func NewUserRepository(loggerService commonInterfaces.Logger, db *sql.DB) *UserR
 	}
 }
 
-func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (model.User, error) {
+func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (model.User, error) {
 	query := "SELECT  id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1"
 	stmt, err := ur.db.PrepareContext(ctx, query)
 	if err != nil {

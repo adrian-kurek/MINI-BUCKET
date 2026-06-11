@@ -29,16 +29,19 @@ type authRepository interface {
 type emailService interface {
 	SendEmail(to, subject, body string) error
 }
+type userRepository interface {
+	FindByEmail(ctx context.Context, email string) (userModel.User, error) 
 
+}
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
-	userRepository commonInterfaces.UserRepository
+	userRepository userRepository
 	authRepository authRepository
 	authorization  commonInterfaces.AuthenticationMiddleware
 	emailService   emailService
 }
 
-func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization commonInterfaces.AuthenticationMiddleware, emailService emailService) *AuthService {
+func NewAuthService(loggerService commonInterfaces.Logger, userRepository userRepository, authRepository authRepository, authorization commonInterfaces.AuthenticationMiddleware, emailService emailService) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,
@@ -49,7 +52,7 @@ func NewAuthService(loggerService commonInterfaces.Logger, userRepository common
 }
 
 func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) error {
-	userFromDB, err := as.userRepository.FindUserByEmail(ctx, user.Email)
+	userFromDB, err := as.userRepository.FindByEmail(ctx, user.Email)
 	if err != nil {
 		return err
 	}
@@ -79,7 +82,7 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 }
 
 func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
-	userFromDB, err := as.userRepository.FindUserByEmail(ctx, loginData.Email)
+	userFromDB, err := as.userRepository.FindByEmail(ctx, loginData.Email)
 	if err != nil {
 		return "", nil, err
 	}

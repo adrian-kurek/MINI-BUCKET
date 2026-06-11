@@ -14,7 +14,7 @@ import (
 func TestLogoutUser(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr   bool
 		err       error
 	}
@@ -23,7 +23,7 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title: "with proper data",
 
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -38,7 +38,7 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title: "RemoveTokenFromDB failed",
 
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -79,7 +79,7 @@ func TestLogoutUser(t *testing.T) {
 func TestLogoutUserFromAllDevices(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr   bool
 		err       error
 	}
@@ -87,7 +87,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -101,7 +101,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 		{
 			title: "RemoveTokenFromDB failed",
 
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)

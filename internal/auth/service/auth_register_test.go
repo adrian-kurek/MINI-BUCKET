@@ -18,7 +18,7 @@ func TestRegister(t *testing.T) {
 	type args struct {
 		title     string
 		user      authDto.CreateUser
-		setupMock func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr   bool
 		err       error
 	}
@@ -31,11 +31,11 @@ func TestRegister(t *testing.T) {
 				Password:        "zaq1@#$rfvbgt5",
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
+				mUserRepository.On("FindByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID: 0,
 				}, nil)
 				mAuthRepository.On("RegisterUser", mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -52,11 +52,11 @@ func TestRegister(t *testing.T) {
 				Password:        "zaq1@#$rfvbgt5",
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
+				mUserRepository.On("FindByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID: 1,
 				}, nil)
 				mAuthRepository.On("RegisterUser", mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -66,18 +66,18 @@ func TestRegister(t *testing.T) {
 			err:     errors.New("api error: user with provided email already exists"),
 		},
 		{
-			title: "FindUserByEmail failed",
+			title: "FindByEmail failed",
 			user: authDto.CreateUser{
 				Username:        "joeDoe",
 				Email:           "joedoe@gmail.com",
 				Password:        "zaq1@#$rfvbgt5",
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{}, errors.New("failed to find user by email"))
+				mUserRepository.On("FindByEmail", mock.Anything, mock.Anything).Return(userModel.User{}, errors.New("failed to find user by email"))
 				mAuthRepository.On("RegisterUser", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
@@ -92,11 +92,11 @@ func TestRegister(t *testing.T) {
 				Password:        "zaq1@#$rfvbgt5",
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			},
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				mUserRepository.On("FindUserByEmail", mock.Anything, mock.Anything).Return(userModel.User{
+				mUserRepository.On("FindByEmail", mock.Anything, mock.Anything).Return(userModel.User{
 					ID: 0,
 				}, nil)
 				mAuthRepository.On("RegisterUser", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to insert user to DB"))
