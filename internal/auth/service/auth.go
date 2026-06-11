@@ -30,8 +30,7 @@ type emailService interface {
 	SendEmail(to, subject, body string) error
 }
 type userRepository interface {
-	FindByEmail(ctx context.Context, email string) (userModel.User, error) 
-
+	FindByEmail(ctx context.Context, email string) (userModel.User, error)
 }
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
@@ -51,18 +50,25 @@ func NewAuthService(loggerService commonInterfaces.Logger, userRepository userRe
 	}
 }
 
+func (as *AuthService) getUser(ctx context.Context, email string) (userModel.User, error) {
+	user, err := as.userRepository.FindByEmail(ctx, email)
+	if err != nil {
+		return userModel.User{}, err
+	}
+
+	if user.ID != 0 {
+		err := errors.New("user with provided email already exists")
+		as.loggerService.Info(err.Error(), user.Email)
+		return userModel.User{}, commonErrors.NewAPIError(http.StatusBadRequest, err.Error())
+	}
+	return user, nil
+}
+
 func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) error {
-	userFromDB, err := as.userRepository.FindByEmail(ctx, user.Email)
+	_, err := as.getUser(ctx, user.Email)
 	if err != nil {
 		return err
 	}
-
-	if userFromDB.ID != 0 {
-		err := errors.New("user with provided email already exists")
-		as.loggerService.Info(err.Error(), user.Email)
-		return commonErrors.NewAPIError(http.StatusBadRequest, err.Error())
-	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		as.loggerService.Info(err.Error(), nil)
@@ -82,15 +88,9 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 }
 
 func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
-	userFromDB, err := as.userRepository.FindByEmail(ctx, loginData.Email)
+	userFromDB, err := as.getUser(ctx, loginData.Email)
 	if err != nil {
 		return "", nil, err
-	}
-
-	if userFromDB.ID == 0 {
-		err := errors.New("user with provided email not found")
-		as.loggerService.Info(err.Error(), loginData.Email)
-		return "", nil, commonErrors.NewAPIError(http.StatusNotFound, err.Error())
 	}
 
 	if !userFromDB.EmailVerified {
