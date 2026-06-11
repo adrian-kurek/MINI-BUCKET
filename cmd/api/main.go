@@ -8,13 +8,13 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/slodkiadrianek/MINI-BUCKET/common/log"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	authController "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
 	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	bucketRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/repository"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 	objectController "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/controller"
 	objectRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/repository"
 	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
@@ -119,12 +119,12 @@ func main() {
 		panic(err)
 	}
 
-	authorization := middleware.NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+	authorization := middleware.NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 	emailService := authService.NewEmailService(hostEmail, passwordEmail, loggerService)
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
-	authService := authService.NewAuthService(loggerService, userRepository, authRepository, *authorization, emailService)
-	authController := authController.NewAuthController(loggerService, authService, *authorization)
+	authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorization, emailService)
+	authController := authController.NewAuthController(loggerService, authService, authorization)
 
 	permissionRepository := permissionRepository.NewPermissionRepository(loggerService, db.DBConnection)
 	bucketRepository := bucketRepository.NewBucketRepository(loggerService, db.DBConnection)

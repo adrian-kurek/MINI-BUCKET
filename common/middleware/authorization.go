@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -19,15 +20,15 @@ import (
 
 const accessTokenExpiration = 5 * time.Minute
 
-type Authorization struct {
+type AuthenticationMiddleware struct {
 	accessTokenSecret  string
 	refreshTokenSecret string
 	loggerService      commonInterfaces.Logger
 	cacheService       commonInterfaces.CacheService
 }
 
-func NewAuthorization(accessTokenSecret string, refreshTokenSecret string, loggerService commonInterfaces.Logger, cacheService commonInterfaces.CacheService) *Authorization {
-	return &Authorization{
+func NewAuthenticationMiddleware(accessTokenSecret string, refreshTokenSecret string, loggerService commonInterfaces.Logger, cacheService commonInterfaces.CacheService) *AuthenticationMiddleware {
+	return &AuthenticationMiddleware{
 		accessTokenSecret:  accessTokenSecret,
 		refreshTokenSecret: refreshTokenSecret,
 		loggerService:      loggerService,
@@ -35,7 +36,7 @@ func NewAuthorization(accessTokenSecret string, refreshTokenSecret string, logge
 	}
 }
 
-func (ar Authorization) GenerateRefreshToken() ([]byte, error) {
+func (am *AuthenticationMiddleware) GenerateRefreshToken() ([]byte, error) {
 	bytes := make([]byte, 64)
 
 	_, err := rand.Read(bytes)
@@ -46,14 +47,14 @@ func (ar Authorization) GenerateRefreshToken() ([]byte, error) {
 	return bytes, nil
 }
 
-func (ar Authorization) HashToken(token []byte) string {
+func (am *AuthenticationMiddleware) HashToken(token []byte) string {
 	hasher := sha256.New()
 	hasher.Write(token)
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (ar Authorization) GenerateAccessToken(user userModel.User) (string, error) {
-	ar.loggerService.Info("started signing a new access token", nil)
+func (am *AuthenticationMiddleware) GenerateAccessToken(user userModel.User) (string, error) {
+	am.loggerService.Info("started signing a new access token", nil)
 	tokenWithData := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       user.ID,
 		"email":    user.Email,
@@ -61,24 +62,24 @@ func (ar Authorization) GenerateAccessToken(user userModel.User) (string, error)
 		"exp":      time.Now().Add(accessTokenExpiration).Unix(),
 	})
 
-	tokenString, err := tokenWithData.SignedString([]byte(ar.accessTokenSecret))
+	tokenString, err := tokenWithData.SignedString([]byte(am.accessTokenSecret))
 	if err != nil {
 		errMsg := errors.New("failed to sign access token properly")
-		ar.loggerService.Error(errMsg.Error(), err.Error())
+		am.loggerService.Error(errMsg.Error(), err.Error())
 		return "", commonErrors.NewAPIError(http.StatusUnauthorized, errMsg.Error())
 	}
 
-	ar.loggerService.Info("Successfully signed a new access token", nil)
+	am.loggerService.Info("Successfully signed a new access token", nil)
 	return tokenString, nil
 }
 
-func (ar Authorization) parseClaimsFromToken(tokenString string) (*jwt.Token, userModel.UserClaims, error) {
+func (am *AuthenticationMiddleware) parseClaimsFromToken(tokenString string) (*jwt.Token, userModel.UserClaims, error) {
 	var user userModel.UserClaims
 	token, err := jwt.ParseWithClaims(tokenString, &user, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(ar.accessTokenSecret), nil
+		return []byte(am.accessTokenSecret), nil
 	})
 	if err != nil {
 		return nil, userModel.UserClaims{}, err
@@ -86,40 +87,64 @@ func (ar Authorization) parseClaimsFromToken(tokenString string) (*jwt.Token, us
 	return token, user, nil
 }
 
-func (ar Authorization) VerifyToken(r *http.Request) (*http.Request, error) {
+func (am *AuthenticationMiddleware) readTokenFromRequest(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		am.loggerService.Info("token is missing", authHeader)
+		return "", commonErrors.NewAPIError(http.StatusUnauthorized, "failed to authorize a user")
+	}
+
+	return strings.Split(authHeader, " ")[1], nil
+}
+
+func (am *AuthenticationMiddleware) isTokenBlackListed(ctx context.Context, token string) error {
+	cacheKey := "tokenBlackList-" + token
+	result, err := am.cacheService.Exists(ctx, cacheKey)
+	if err != nil {
+		am.loggerService.Info("failed to check blacklist", err)
+		return err
+	}
+
+	if result > 0 {
+		err := errors.New("token blacklisted")
+		am.loggerService.Info(err.Error(), token)
+		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	}
+	return nil
+}
+
+func (am *AuthenticationMiddleware) checkIsTokenValid(token *jwt.Token) error {
+	if !token.Valid {
+		err := errors.New("provided token is invalid")
+		am.loggerService.Info(err.Error(), token)
+		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	}
+	return nil
+}
+
+func (am *AuthenticationMiddleware) VerifyToken(r *http.Request) (*http.Request, error) {
 	ctx := r.Context()
 	if err := ctx.Err(); err != nil {
 		return r, err
 	}
 
-	authHeader := r.Header.Get("Authorization")
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		ar.loggerService.Info("token is missing", authHeader)
-		return r, commonErrors.NewAPIError(http.StatusUnauthorized, "failed to authorize a user")
-	}
-
-	tokenString := strings.Split(authHeader, " ")[1]
-
-	cacheKey := "tokenBlackList-" + tokenString
-	result, err := ar.cacheService.Exists(ctx, cacheKey)
+	token, err := am.readTokenFromRequest(r)
 	if err != nil {
-		ar.loggerService.Info("failed to check blacklist", err)
 		return r, err
 	}
 
-	if result > 0 {
-		err := errors.New("token blacklisted")
-		ar.loggerService.Info(err.Error(), tokenString)
-		return r, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	err = am.isTokenBlackListed(ctx, token)
+	if err != nil {
+		return r, err
 	}
 
 	if err := ctx.Err(); err != nil {
 		return r, err
 	}
 
-	tokenWithData, user, err := ar.parseClaimsFromToken(tokenString)
+	tokenWithData, user, err := am.parseClaimsFromToken(token)
 	if err != nil {
-		ar.loggerService.Info("failed to read data properly", err.Error())
+		am.loggerService.Info("failed to read data properly", err.Error())
 		return r, commonErrors.NewAPIError(http.StatusUnauthorized, "provided token is invalid")
 	}
 
@@ -127,10 +152,9 @@ func (ar Authorization) VerifyToken(r *http.Request) (*http.Request, error) {
 		return r, err
 	}
 
-	if !tokenWithData.Valid {
-		err := errors.New("provided token is invalid")
-		ar.loggerService.Info(err.Error(), tokenString)
-		return r, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	err = am.checkIsTokenValid(tokenWithData)
+	if err != nil {
+		return r, err
 	}
 
 	r = request.SetContext(r, "id", user.ID)
@@ -139,46 +163,35 @@ func (ar Authorization) VerifyToken(r *http.Request) (*http.Request, error) {
 	return r, nil
 }
 
-func (ar Authorization) BlacklistUser(r *http.Request) error {
+func (am *AuthenticationMiddleware) BlacklistUser(r *http.Request) error {
 	ctx := r.Context()
 
-	authHeader := r.Header.Get("Authorization")
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		ar.loggerService.Info("token is missing", authHeader)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, "failed to authorize a user")
-	}
-
-	tokenString := strings.Split(authHeader, " ")[1]
-
-	tokenWithData, user, err := ar.parseClaimsFromToken(tokenString)
+	token, err := am.readTokenFromRequest(r)
 	if err != nil {
-		ar.loggerService.Info("failed to read data properly", tokenString)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, "failed to read token")
-	}
-
-	if !tokenWithData.Valid {
-		ar.loggerService.Info("provided token is invalid", tokenString)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, "provided token is invalid")
-	}
-
-	cacheKey := "tokenBlackList-" + tokenString
-	result, err := ar.cacheService.Exists(ctx, cacheKey)
-	if err != nil {
-		ar.loggerService.Info("failed to check blacklist", err)
 		return err
 	}
 
-	if result > 0 {
-		err := errors.New("token already blacklisted")
-		ar.loggerService.Info(err.Error(), tokenString)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	tokenWithData, user, err := am.parseClaimsFromToken(token)
+	if err != nil {
+		am.loggerService.Info("failed to read data properly", token)
+		return commonErrors.NewAPIError(http.StatusUnauthorized, "failed to read token")
+	}
+
+	err = am.checkIsTokenValid(tokenWithData)
+	if err != nil {
+		return err
+	}
+	err = am.isTokenBlackListed(ctx, token)
+	if err != nil {
+		return err
 	}
 
 	expirationTime := time.Until(user.ExpiresAt.Time)
 
-	err = ar.cacheService.Set(ctx, cacheKey, "true", expirationTime)
+	cacheKey := "tokenBlackList-" + token
+	err = am.cacheService.Set(ctx, cacheKey, "true", expirationTime)
 	if err != nil {
-		ar.loggerService.Info("failed to set data in cache", err)
+		am.loggerService.Info("failed to set data in cache", err)
 		return err
 	}
 

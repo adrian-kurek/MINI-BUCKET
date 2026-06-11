@@ -16,7 +16,7 @@ func TestRefreshToken(t *testing.T) {
 	type args struct {
 		title      string
 		setCookie  bool
-		setupMocks func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter)
+		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
 		wantErr    bool
 		err        error
 	}
@@ -25,11 +25,11 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:     "with proper data",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("12323232", nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: false,
 			err:     nil,
@@ -37,11 +37,11 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:     "failed to read cookied from request",
 			setCookie: false,
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("12323232", nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("http: named cookie not present"),
@@ -50,11 +50,11 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:     "authService.RefreshToken failed",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("", errors.New("failed to process data"))
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("failed to process data"),
@@ -62,11 +62,11 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:     "context.DeadlineExceeded",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("", context.DeadlineExceeded)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),

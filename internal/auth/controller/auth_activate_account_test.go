@@ -16,7 +16,7 @@ func TestActivateAccount(t *testing.T) {
 	type args struct {
 		title      string
 		token      string
-		setupMocks func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter)
+		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
 		wantErr    bool
 		err        error
 	}
@@ -25,8 +25,8 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "with proper data",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
@@ -34,9 +34,9 @@ func TestActivateAccount(t *testing.T) {
 				}
 
 				r = request.SetContext(r, "id", 1)
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: false,
 			err:     nil,
@@ -44,8 +44,8 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "authorization.VerifyToken() context.DeadlineExceeded",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
@@ -53,9 +53,9 @@ func TestActivateAccount(t *testing.T) {
 				}
 
 				r = request.SetContext(r, "id", 1)
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
 				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),
@@ -63,8 +63,8 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "authorization.VerifyToken() failed",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
@@ -72,9 +72,9 @@ func TestActivateAccount(t *testing.T) {
 				}
 
 				r = request.SetContext(r, "id", 1)
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to process data"))
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to process data"))
 				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("failed to process data"),
@@ -82,8 +82,8 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "authService.ActivateAccount() failed",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
@@ -91,9 +91,9 @@ func TestActivateAccount(t *testing.T) {
 				}
 
 				r = request.SetContext(r, "id", 1)
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).Return(errors.New("failed to process data"))
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("failed to process data"),
@@ -101,8 +101,8 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "authService.ActivateAccount() context.DeadlineExceeded",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
@@ -110,9 +110,9 @@ func TestActivateAccount(t *testing.T) {
 				}
 
 				r = request.SetContext(r, "id", 1)
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).Return(context.DeadlineExceeded)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),

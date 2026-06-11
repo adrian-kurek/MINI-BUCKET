@@ -52,7 +52,7 @@ func TestActivateAccount(t *testing.T) {
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
 			userRepository := new(mocks.MockUserRepository)
-			authorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			authorizationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			err := authService.ActivateAccount(ctx, 1)

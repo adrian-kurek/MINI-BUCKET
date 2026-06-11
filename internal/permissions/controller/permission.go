@@ -10,7 +10,7 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 )
 
@@ -21,11 +21,11 @@ type permissionService interface {
 }
 type PermissionController struct {
 	permissionService permissionService
-	authorization     commonInterfaces.AuthorizationMiddleware
+	authorization     commonInterfaces.AuthenticationMiddleware
 	loggerService     commonInterfaces.Logger
 }
 
-func NewPermissionController(permissionService permissionService, authorizationService commonInterfaces.AuthorizationMiddleware, loggerService commonInterfaces.Logger) *PermissionController {
+func NewPermissionController(permissionService permissionService, authorizationService commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *PermissionController {
 	return &PermissionController{
 		permissionService: permissionService,
 		authorization:     authorizationService,

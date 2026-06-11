@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/log"
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
@@ -69,7 +69,7 @@ func TestGenerateRefreshToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 			token, err := authorizationMiddleware.GenerateRefreshToken()
 
@@ -104,7 +104,7 @@ func TestHashToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 			if got := authorizationMiddleware.HashToken(testScenario.token); got != testScenario.want {
 				t.Errorf("HashToken() = %v, want %v", got, testScenario.want)
@@ -130,7 +130,7 @@ func TestGenerateAccessToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 			_, err := authorizationMiddleware.GenerateAccessToken(model.User{ID: 1, Email: "jode@gmail.com", Username: "jode1"})
 			if (err != nil) != testScenario.wantErr {
@@ -163,7 +163,7 @@ func TestParseClaimsToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
 				ID:       1,
@@ -258,7 +258,7 @@ func TestVerifyToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := testScenario.setupMock()
-			authorizationMiddleware := NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
 				ID:       1,
@@ -377,7 +377,7 @@ func TestBlacklistUser(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := testScenario.setupMock()
-			authorizationMiddleware := NewAuthorization(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
 
 			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
 				ID:       1,

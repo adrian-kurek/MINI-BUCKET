@@ -34,11 +34,11 @@ type AuthService struct {
 	loggerService  commonInterfaces.Logger
 	userRepository commonInterfaces.UserRepository
 	authRepository authRepository
-	authorization  commonInterfaces.AuthorizationMiddleware
+	authorization  commonInterfaces.AuthenticationMiddleware
 	emailService   emailService
 }
 
-func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization commonInterfaces.AuthorizationMiddleware, emailService emailService) *AuthService {
+func NewAuthService(loggerService commonInterfaces.Logger, userRepository commonInterfaces.UserRepository, authRepository authRepository, authorization commonInterfaces.AuthenticationMiddleware, emailService emailService) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,
