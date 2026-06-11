@@ -17,7 +17,6 @@ import (
 )
 
 type authRepository interface {
-	RegisterUser(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error
 	InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error
 	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
@@ -31,6 +30,8 @@ type emailService interface {
 }
 type userRepository interface {
 	FindByEmail(ctx context.Context, email string) (userModel.User, error)
+	Create(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error 
+
 }
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
@@ -71,7 +72,7 @@ func (as *AuthService) Register(ctx context.Context, user authDTO.CreateUser) er
 		return err
 	}
 
-	err = as.authRepository.RegisterUser(ctx, user, hashedPassword)
+	err = as.userRepository.Create(ctx, user, hashedPassword)
 	if err != nil {
 		return err
 	}
