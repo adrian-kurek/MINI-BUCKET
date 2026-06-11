@@ -58,13 +58,16 @@ func TestLoggerInfo(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			logger := NewLogger(pathToLogDirectory, dateFormat, timeFormat)
 			logger.Info(testCase.message, "")
-			logger.Close()
+			err := logger.Close()
+			if err != nil {
+				panic(err)
+			}
 
 			actualDate := time.Now().Format(dateFormat)
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
 			var logs []log
-			err := json.Unmarshal(content, &logs)
+			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -100,13 +103,16 @@ func TestLoggerWarning(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			logger := NewLogger(pathToLogDirectory, dateFormat, timeFormat)
 			logger.Warning(testCase.message, "")
-			logger.Close()
+			err := logger.Close()
+			if err != nil {
+				panic(err)
+			}
 
 			actualDate := time.Now().Format(dateFormat)
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
 			var logs []log
-			err := json.Unmarshal(content, &logs)
+			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -142,13 +148,16 @@ func TestLoggerError(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			logger := NewLogger(pathToLogDirectory, dateFormat, timeFormat)
 			logger.Error(testCase.message, "")
-			logger.Close()
+			err := logger.Close()
+			if err != nil {
+				panic(err)
+			}
 
 			actualDate := time.Now().Format(dateFormat)
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
 			var logs []log
-			err := json.Unmarshal(content, &logs)
+			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -189,12 +198,15 @@ func TestLoggerValidate(t *testing.T) {
 
 			logger.startTime = time.Now().Add(time.Hour * time.Duration(-24)).Format(dateFormat)
 			logger.validate()
-			logger.Close()
+			err := logger.Close()
+			if err != nil {
+				panic(err)
+			}
 
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
 			var logs []log
-			err := json.Unmarshal(content, &logs)
+			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)
 			}
