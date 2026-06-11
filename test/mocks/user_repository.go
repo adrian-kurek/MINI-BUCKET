@@ -11,7 +11,7 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) FindUserByEmail(ctx context.Context, email string) (model.User, error) {
+func (m *MockUserRepository) FindByEmail(ctx context.Context, email string) (model.User, error) {
 	args := m.Called(ctx, email)
 	return args.Get(0).(model.User), args.Error(1)
 }

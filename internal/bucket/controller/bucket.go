@@ -9,10 +9,10 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/response"
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/middleware"
 )
 
 type bucketService interface {
@@ -22,11 +22,11 @@ type bucketService interface {
 
 type BucketController struct {
 	bucketService bucketService
-	authorization commonInterfaces.AuthorizationMiddleware
+	authorization commonInterfaces.AuthenticationMiddleware
 	loggerService commonInterfaces.Logger
 }
 
-func NewBucketController(bucketService bucketService, authorization commonInterfaces.AuthorizationMiddleware, loggerService commonInterfaces.Logger) *BucketController {
+func NewBucketController(bucketService bucketService, authorization commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *BucketController {
 	return &BucketController{
 		bucketService: bucketService,
 		authorization: authorization,

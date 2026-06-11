@@ -17,7 +17,7 @@ func TestRefreshToken(t *testing.T) {
 	type args struct {
 		title        string
 		refreshToken []byte
-		setupMock    func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware)
+		setupMock    func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr      bool
 		err          error
 	}
@@ -25,18 +25,18 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "with proper data",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
 					ID:        1,
 					ExpiresAt: time.Now().Add(10 * time.Minute),
 				}, nil)
 				mAuthRepository.On("UpdateLastTimeUsedToken", mock.Anything, mock.Anything).Return(nil)
-				mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123456", nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				mAuthenticationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123456", nil)
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -44,13 +44,13 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "GetRefreshTokenByTokenHash failed",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{}, errors.New("failed to get token from DB"))
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to get token from DB"),
@@ -58,15 +58,15 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "token not found",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
 					ID: 0,
 				}, nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: token not found"),
@@ -74,16 +74,16 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "refresh token expired",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
 					ID:        1,
 					ExpiresAt: time.Now().Add(-2 * time.Minute),
 				}, nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: refresh token expired"),
@@ -91,18 +91,18 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "UpdateLastTimeUsedToken failed",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
 					ID:        1,
 					ExpiresAt: time.Now().Add(10 * time.Minute),
 				}, nil)
 				mAuthRepository.On("UpdateLastTimeUsedToken", mock.Anything, mock.Anything).Return(errors.New("failed to update last time used token"))
-				// mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123456", nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				// mAuthenticationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123456", nil)
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to update last time used token"),
@@ -110,18 +110,18 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "GenerateAccessToken failed",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
 				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
 					ID:        1,
 					ExpiresAt: time.Now().Add(10 * time.Minute),
 				}, nil)
 				mAuthRepository.On("UpdateLastTimeUsedToken", mock.Anything, mock.Anything).Return(nil)
-				mAuthorizationMiddleware.On("GenerateAccessToken", mock.Anything).Return("", errors.New("failed to generate new access token"))
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				mAuthenticationMiddleware.On("GenerateAccessToken", mock.Anything).Return("", errors.New("failed to generate new access token"))
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to generate new access token"),

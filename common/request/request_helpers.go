@@ -2,14 +2,12 @@
 package request
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -44,40 +42,6 @@ func Make(f HTTPFunc) http.HandlerFunc {
 	}
 }
 
-func SendHTTP(ctx context.Context, URL, authorizationHeader, method string, body []byte, readBody bool) (int,
-	map[string]any, error,
-) {
-	httpClient := &http.Client{}
-	req, err := http.NewRequestWithContext(ctx, method, URL, bytes.NewBuffer(body))
-	if err != nil {
-		return 0, map[string]any{}, err
-	}
-	if authorizationHeader != "" {
-		req.Header.Add("Authorization", authorizationHeader)
-	}
-
-	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	response, err := httpClient.Do(req)
-	if err != nil {
-		return 0, map[string]any{}, err
-	}
-	defer func() {
-		if closeErr := response.Body.Close(); closeErr != nil {
-			fmt.Printf("failed to close response body: %s", closeErr.Error())
-		}
-	}()
-
-	var bodyFromResponse map[string]any
-	if readBody {
-		err = json.NewDecoder(response.Body).Decode(&bodyFromResponse)
-		fmt.Println(err)
-		if err != nil {
-			return 0, map[string]any{}, err
-		}
-	}
-
-	return response.StatusCode, bodyFromResponse, nil
-}
 
 func ReadUserIDFromToken(r *http.Request) (int, error) {
 	userID, ok := r.Context().Value("id").(int)
@@ -111,75 +75,6 @@ func ReadQueryParam(r *http.Request, QueryName string) string {
 	return name
 }
 
-func MatchRoute(routeURL, URLPath string) bool {
-	splittedRouteURL := strings.Split(strings.Trim(routeURL, "/"), "/")
-	splittedURLPath := strings.Split(strings.Trim(URLPath, "/"), "/")
-
-	if len(splittedRouteURL) != len(splittedURLPath) {
-		return false
-	}
-
-	for i := range len(splittedRouteURL) {
-		if strings.Contains(splittedRouteURL[i], ":") {
-			continue
-		}
-		if splittedURLPath[i] != splittedRouteURL[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func ReadParam(r *http.Request, paramToRead string) (string, error) {
-	path := r.URL.Path
-	routeKeyPath := r.Context().Value("routeKeyPath")
-	s, ok := routeKeyPath.(string)
-	if !ok {
-		return "", errors.New("failed to read context routeKeyPath, must be type string")
-	}
-	splittedPath := strings.Split(strings.Trim(path, "/"), "/")
-	splittedRouteKeyPath := strings.Split(strings.Trim(s, "/"), "/")
-
-	param := ""
-	for i := range len(splittedPath) {
-		if strings.Contains(splittedRouteKeyPath[i], ":") && splittedRouteKeyPath[i][1:] == paramToRead {
-			param = splittedPath[i]
-			break
-		}
-	}
-	if param == "" {
-		return "", errors.New("the is no parameter called: " + paramToRead)
-	}
-	return param, nil
-}
-
-func ReadAllParams(r *http.Request) (map[string]string, error) {
-	path := r.URL.Path
-	routeKeyPath := r.Context().Value("routeKeyPath")
-	s, ok := routeKeyPath.(string)
-	if !ok {
-		return nil, errors.New("failed to read context routeKeyPath, must be type string")
-	}
-
-	splittedPath := strings.Split(strings.Trim(path, "/"), "/")
-	splittedRouteKeyPath := strings.Split(strings.Trim(s, "/"), "/")
-
-	params := make(map[string]string, len(splittedPath))
-	for i := range len(splittedPath) {
-		if strings.Contains(splittedRouteKeyPath[i], ":") {
-			paramName := splittedRouteKeyPath[i][1:]
-			params[paramName] = splittedPath[i]
-		}
-	}
-	return params, nil
-}
-
-func RemoveLastCharacterFromURL(route string) string {
-	if string(route[len(route)-1]) == "/" {
-		route = route[:len(route)-1]
-	}
-	return route
-}
 
 func SetContext(r *http.Request, key, data any) *http.Request {
 	ctx := context.WithValue(r.Context(), key, data)

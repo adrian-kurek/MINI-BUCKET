@@ -2,6 +2,7 @@
 package log
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -114,10 +115,25 @@ func (l *Logger) initializeLogger() {
 	}
 
 	if stats.Size() > 0 {
-		os.Truncate(l.logDir+"/"+filename+".json", stats.Size()-1)
-		_, err = l.file.WriteString(",")
+		content, err := os.ReadFile(l.logDir + "/" + filename + ".json")
 		if err != nil {
-			fmt.Println("something went wrong during writing to data to the file")
+			panic(err)
+		}
+		lastBrace := bytes.LastIndexByte(content, '}')
+		if lastBrace == -1 {
+			_, err = l.file.WriteString("[")
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			err = os.Truncate(l.logDir+"/"+filename+".json", int64(lastBrace+1))
+			if err != nil {
+				panic(err)
+			}
+			_, err = l.file.WriteString(",")
+			if err != nil {
+				fmt.Println("something went wrong during writing to data to the file")
+			}
 		}
 	} else {
 		_, err = l.file.WriteString("[")

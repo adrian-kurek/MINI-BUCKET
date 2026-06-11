@@ -18,7 +18,7 @@ func TestRegister(t *testing.T) {
 	type args struct {
 		title           string
 		bodyRequestData authDto.CreateUser
-		setupMocks      func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter)
+		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
 		wantErr         bool
 		err             error
 	}
@@ -32,11 +32,11 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: false,
 			err:     nil,
@@ -49,11 +49,11 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: the ConfirmPassword field must be the same as Password field"),
@@ -66,11 +66,11 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: the Password field must be at least 12 characters long"),
@@ -83,11 +83,11 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: the Email field must be a valid email address"),
@@ -100,11 +100,11 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joe",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: the Username field must be at least 6 characters long"),
@@ -117,11 +117,11 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(errors.New("failed to process data"))
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("failed to process data"),
@@ -134,11 +134,11 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(context.DeadlineExceeded)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),

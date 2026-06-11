@@ -14,7 +14,7 @@ import (
 func TestLogoutUser(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware)
+		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr   bool
 		err       error
 	}
@@ -23,14 +23,14 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title: "with proper data",
 
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("12345")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("12345")
 				mAuthRepository.On("RemoveTokenFromDB", mock.Anything, mock.Anything).Return(nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -38,14 +38,14 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title: "RemoveTokenFromDB failed",
 
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
-				mAuthorizationMiddleware.On("HashToken", mock.Anything).Return("12345")
+				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("12345")
 				mAuthRepository.On("RemoveTokenFromDB", mock.Anything, mock.Anything).Return(errors.New("failed to remove token from DB"))
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to remove token from DB"),
@@ -79,7 +79,7 @@ func TestLogoutUser(t *testing.T) {
 func TestLogoutUserFromAllDevices(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware)
+		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr   bool
 		err       error
 	}
@@ -87,13 +87,13 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
 				mAuthRepository.On("RemoveTokensFromDBByUserID", mock.Anything, mock.Anything).Return(nil)
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -101,13 +101,13 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 		{
 			title: "RemoveTokenFromDB failed",
 
-			setupMock: func() (authRepository, commonInterfaces.UserRepository, commonInterfaces.AuthorizationMiddleware) {
+			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
 				mAuthRepository.On("RemoveTokensFromDBByUserID", mock.Anything, mock.Anything).Return(errors.New("failed to remove token from DB"))
-				return mAuthRepository, mUserRepository, mAuthorizationMiddleware
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to remove token from DB"),

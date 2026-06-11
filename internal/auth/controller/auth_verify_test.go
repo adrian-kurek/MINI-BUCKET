@@ -17,7 +17,7 @@ import (
 func TestVerify(t *testing.T) {
 	type args struct {
 		title      string
-		setupMocks func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter)
+		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
 		wantErr    bool
 		err        error
 	}
@@ -25,30 +25,30 @@ func TestVerify(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/verify", nil)
 				if err != nil {
 					panic(err)
 				}
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: false,
 			err:     nil,
 		},
 		{
 			title: "authorization.VerifyToken failed",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/verify", nil)
 				if err != nil {
 					panic(err)
 				}
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to process the data"))
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to process the data"))
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("failed to process the data"),
@@ -56,15 +56,15 @@ func TestVerify(t *testing.T) {
 
 		{
 			title: "context.DeadlineExceeded",
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest("GET", "/auth/verify", nil)
 				if err != nil {
 					panic(err)
 				}
-				mAuthorizationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),

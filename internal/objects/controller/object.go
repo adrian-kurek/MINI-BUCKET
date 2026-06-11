@@ -19,11 +19,11 @@ type objectService interface {
 
 type ObjectController struct {
 	loggerService        commonInterfaces.Logger
-	authorizationService commonInterfaces.AuthorizationMiddleware
+	authorizationService commonInterfaces.AuthenticationMiddleware
 	objectService        objectService
 }
 
-func NewObjectRepository(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthorizationMiddleware, objectService objectService) *ObjectController {
+func NewObjectRepository(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService objectService) *ObjectController {
 	return &ObjectController{
 		loggerService:        loggerService,
 		authorizationService: authorizationService,

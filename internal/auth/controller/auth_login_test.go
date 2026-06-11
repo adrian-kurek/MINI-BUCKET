@@ -19,7 +19,7 @@ func TestLogin(t *testing.T) {
 	type args struct {
 		title           string
 		bodyRequestData authDto.LoginUser
-		setupMocks      func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter)
+		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
 		wantErr         bool
 		err             error
 	}
@@ -31,11 +31,11 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("12312", []byte("1233445"), nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: false,
 			err:     nil,
@@ -46,11 +46,11 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("12312", []byte("1233445"), nil)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: the Email field must be a valid email address"),
@@ -61,11 +61,11 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", []byte(""), errors.New("failed to process the data"))
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("failed to process the data"),
@@ -76,11 +76,11 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthorizationMiddleware, authService, http.ResponseWriter) {
-				mAuthorizationMiddleware := new(authMocks.MockAuthorizationMiddleware)
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", []byte(""), context.DeadlineExceeded)
-				return mAuthorizationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),

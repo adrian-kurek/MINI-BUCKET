@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/log"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/log"
 )
 
 func TestMain(m *testing.M) {
