@@ -9,8 +9,8 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 )
 
