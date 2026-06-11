@@ -22,5 +22,5 @@ func NewObjectHandler(objectController objectController) *ObjectHandler {
 
 func (oh *ObjectHandler) SetupObjectHandlers(router *http.ServeMux) {
 	prefix := "/buckets"
-	router.Handle(fmt.Sprintf("PUT %s/{bucketID}/objects", prefix), request.Make(oh.objectController.Upload))
+	router.Handle(fmt.Sprintf("PUT %s/{bucketID}/objects/{objectID}", prefix), request.Make(oh.objectController.Upload))
 }

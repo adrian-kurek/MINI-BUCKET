@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -43,26 +44,23 @@ func (oc *ObjectController) Upload(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	// bucketIDStr, err := request.ReadParam(r, "bucketID")
-	// if err != nil {
-	// 	return err
-	// }
-	bucketID := 1
-	// if err != nil {
-	// 	return err
-	// }
-	var objectID int = 0
-	// objectIDStr, err := request.ReadParam(r, "objectID")
-	// if err != nil {
-	// 	objectID = 0
-	// } else {
-	// 	objectID, err = strconv.Atoi(objectIDStr)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	bucketID ,err := strconv.Atoi(r.PathValue("bucketID"))
+	if err != nil {
+		return err
+	}
 
-	const maxUploadSize int64 = 256 << 30 // 32 GB
+	var objectID int
+	objectIDStr := r.PathValue("objectID")
+	if objectIDStr == "" {
+		objectID = 0
+	}else{
+		objectID ,err = strconv.Atoi(objectIDStr)
+		if err != nil {
+		return err
+		}
+	}
+
+	const maxUploadSize int64 = 256 << 30 // 256 GB
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	defer r.Body.Close()
