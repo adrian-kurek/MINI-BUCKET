@@ -7,18 +7,17 @@ import (
 	"time"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
 
-
 func TestLogin(t *testing.T) {
 	type args struct {
 		title     string
-		user      authDto.LoginUser
+		user      authDTO.LoginUser
 		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService)
 		wantErr   bool
 		err       error
@@ -27,7 +26,7 @@ func TestLogin(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -54,7 +53,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "FindByEmail failed",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -72,7 +71,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "user with provided email not found",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -93,7 +92,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "user with provided email is not verified",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -109,14 +108,14 @@ func TestLogin(t *testing.T) {
 					ID:            1,
 				}, nil)
 
-				return mAuthRepository, mUserRepository, mAuthenticationMiddleware,mEmailService
+				return mAuthRepository, mUserRepository, mAuthenticationMiddleware, mEmailService
 			},
 			wantErr: true,
 			err:     errors.New("api error: user with provided email is not verified, we sent to you mail with activation link"),
 		},
 		{
 			title: "failed to send email with activation link",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -140,7 +139,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "failed to generateAccessToken for activation link",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -163,7 +162,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "provided incorrect password",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe37",
 			},
@@ -186,7 +185,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "GenerateAccessToken failed",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -210,7 +209,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "GenerateRefreshToken failed",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -235,7 +234,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "InsertRefreshToken failed",
-			user: authDto.LoginUser{
+			user: authDTO.LoginUser{
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
@@ -267,7 +266,7 @@ func TestLogin(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
 
-			authRepository, userRepository, authorizationMiddleware , emailService := testScenario.setupMock()
+			authRepository, userRepository, authorizationMiddleware, emailService := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
@@ -287,3 +286,4 @@ func TestLogin(t *testing.T) {
 		})
 	}
 }
+

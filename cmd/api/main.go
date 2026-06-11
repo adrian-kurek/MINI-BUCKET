@@ -15,6 +15,7 @@ import (
 	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	bucketRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/repository"
+	mailService "github.com/slodkiadrianek/MINI-BUCKET/internal/mail"
 	objectController "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/controller"
 	objectRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/repository"
 	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
@@ -120,10 +121,10 @@ func main() {
 	}
 
 	authorization := middleware.NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
-	emailService := authService.NewEmailService(hostEmail, passwordEmail, loggerService)
+	mailService := mailService.NewEmailService(hostEmail, passwordEmail, loggerService)
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
-	authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorization, emailService)
+	authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorization, mailService)
 	authController := authController.NewAuthController(loggerService, authService, authorization)
 
 	permissionRepository := permissionRepository.NewPermissionRepository(loggerService, db.DBConnection)

@@ -10,14 +10,14 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type authRepository interface {
-	RegisterUser(ctx context.Context, user authDto.CreateUser, hashedPassword []byte) error
+	RegisterUser(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error
 	InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error
 	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
@@ -30,8 +30,7 @@ type emailService interface {
 	SendEmail(to, subject, body string) error
 }
 type userRepository interface {
-	FindByEmail(ctx context.Context, email string) (userModel.User, error) 
-
+	FindByEmail(ctx context.Context, email string) (userModel.User, error)
 }
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
@@ -51,7 +50,7 @@ func NewAuthService(loggerService commonInterfaces.Logger, userRepository userRe
 	}
 }
 
-func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) error {
+func (as *AuthService) Register(ctx context.Context, user authDTO.CreateUser) error {
 	userFromDB, err := as.userRepository.FindByEmail(ctx, user.Email)
 	if err != nil {
 		return err
@@ -62,7 +61,6 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 		as.loggerService.Info(err.Error(), user.Email)
 		return commonErrors.NewAPIError(http.StatusBadRequest, err.Error())
 	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		as.loggerService.Info(err.Error(), nil)
@@ -81,7 +79,7 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 	return nil
 }
 
-func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
+func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
 	userFromDB, err := as.userRepository.FindByEmail(ctx, loginData.Email)
 	if err != nil {
 		return "", nil, err
