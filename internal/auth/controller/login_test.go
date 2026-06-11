@@ -10,7 +10,7 @@ import (
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
-	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
@@ -18,7 +18,7 @@ import (
 func TestLogin(t *testing.T) {
 	type args struct {
 		title           string
-		bodyRequestData authDto.LoginUser
+		bodyRequestData authDTO.LoginUser
 		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
 		wantErr         bool
 		err             error
@@ -27,7 +27,7 @@ func TestLogin(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			bodyRequestData: authDto.LoginUser{
+			bodyRequestData: authDTO.LoginUser{
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
@@ -42,7 +42,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "incorrect email format",
-			bodyRequestData: authDto.LoginUser{
+			bodyRequestData: authDTO.LoginUser{
 				Email:    "joeDoe1gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
@@ -57,7 +57,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "authService.Login failed",
-			bodyRequestData: authDto.LoginUser{
+			bodyRequestData: authDTO.LoginUser{
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
@@ -72,7 +72,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			title: "context.DeadlineExceeded",
-			bodyRequestData: authDto.LoginUser{
+			bodyRequestData: authDTO.LoginUser{
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
@@ -118,3 +118,4 @@ func TestLogin(t *testing.T) {
 		})
 	}
 }
+

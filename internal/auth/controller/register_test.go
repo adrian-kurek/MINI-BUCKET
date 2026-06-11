@@ -10,14 +10,15 @@ import (
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
-	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
+
 func TestRegister(t *testing.T) {
 	type args struct {
 		title           string
-		bodyRequestData authDto.CreateUser
+		bodyRequestData authDTO.CreateUser
 		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
 		wantErr         bool
 		err             error
@@ -26,7 +27,7 @@ func TestRegister(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			bodyRequestData: authDto.CreateUser{
+			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1@gmail.com",
 				Password:        "zaq1@#$rfVaaa",
 				ConfirmPassword: "zaq1@#$rfVaaa",
@@ -43,7 +44,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			title: "ConfirmPassword is not equal to password ",
-			bodyRequestData: authDto.CreateUser{
+			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1@gmail.com",
 				Password:        "zaq1@#$rfVaaa",
 				ConfirmPassword: "zaq1@#$rfVaa",
@@ -60,7 +61,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			title: "too weak password",
-			bodyRequestData: authDto.CreateUser{
+			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1@gmail.com",
 				Password:        "zaq1@#$rfVa",
 				ConfirmPassword: "zaq1@#$rfVa",
@@ -77,7 +78,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			title: "incorrect email format",
-			bodyRequestData: authDto.CreateUser{
+			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1gmail.com",
 				Password:        "zaq1@#$rfVaaa",
 				ConfirmPassword: "zaq1@#$rfVaaa",
@@ -94,7 +95,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			title: "too short username",
-			bodyRequestData: authDto.CreateUser{
+			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1@gmail.com",
 				Password:        "zaq1@#$rfVaaa",
 				ConfirmPassword: "zaq1@#$rfVaaa",
@@ -111,7 +112,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			title: "authService.Register failed",
-			bodyRequestData: authDto.CreateUser{
+			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1@gmail.com",
 				Password:        "zaq1@#$rfVaaa",
 				ConfirmPassword: "zaq1@#$rfVaaa",
@@ -128,7 +129,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			title: "context.DeadlineExceeded",
-			bodyRequestData: authDto.CreateUser{
+			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1@gmail.com",
 				Password:        "zaq1@#$rfVaaa",
 				ConfirmPassword: "zaq1@#$rfVaaa",
@@ -176,3 +177,4 @@ func TestRegister(t *testing.T) {
 		})
 	}
 }
+

@@ -10,14 +10,14 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type authRepository interface {
-	RegisterUser(ctx context.Context, user authDto.CreateUser, hashedPassword []byte) error
+	RegisterUser(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error
 	InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error
 	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
@@ -50,24 +50,16 @@ func NewAuthService(loggerService commonInterfaces.Logger, userRepository userRe
 	}
 }
 
-func (as *AuthService) getUser(ctx context.Context, email string) (userModel.User, error) {
-	user, err := as.userRepository.FindByEmail(ctx, email)
-	if err != nil {
-		return userModel.User{}, err
-	}
-
-	if user.ID != 0 {
-		err := errors.New("user with provided email already exists")
-		as.loggerService.Info(err.Error(), user.Email)
-		return userModel.User{}, commonErrors.NewAPIError(http.StatusBadRequest, err.Error())
-	}
-	return user, nil
-}
-
-func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) error {
-	_, err := as.getUser(ctx, user.Email)
+func (as *AuthService) Register(ctx context.Context, user authDTO.CreateUser) error {
+	userFromDB, err := as.userRepository.FindByEmail(ctx, user.Email)
 	if err != nil {
 		return err
+	}
+
+	if userFromDB.ID != 0 {
+		err := errors.New("user with provided email already exists")
+		as.loggerService.Info(err.Error(), user.Email)
+		return commonErrors.NewAPIError(http.StatusBadRequest, err.Error())
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -87,10 +79,16 @@ func (as *AuthService) Register(ctx context.Context, user authDto.CreateUser) er
 	return nil
 }
 
-func (as *AuthService) Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
-	userFromDB, err := as.getUser(ctx, loginData.Email)
+func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
+	userFromDB, err := as.userRepository.FindByEmail(ctx, loginData.Email)
 	if err != nil {
 		return "", nil, err
+	}
+
+	if userFromDB.ID == 0 {
+		err := errors.New("user with provided email not found")
+		as.loggerService.Info(err.Error(), loginData.Email)
+		return "", nil, commonErrors.NewAPIError(http.StatusNotFound, err.Error())
 	}
 
 	if !userFromDB.EmailVerified {
