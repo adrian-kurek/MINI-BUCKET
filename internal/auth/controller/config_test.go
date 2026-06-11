@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -15,11 +14,5 @@ func TestMain(m *testing.M) {
 }
 
 func setupAuthControllerDependencies() *log.Logger {
-	loggerService := log.NewLogger("./logs", "2006-01-02", "15:04:05")
-	defer func() {
-		if closeErr := loggerService.Close(); closeErr != nil {
-			fmt.Printf("failed to properly close file with logs:%s", closeErr.Error())
-		}
-	}()
-	return loggerService
+	return log.NewLogger("./logs", "2006-01-02", "15:04:05")
 }
