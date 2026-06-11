@@ -43,6 +43,14 @@ func NewAuthController(loggerService commonInterfaces.Logger, authService authSe
 	}
 }
 
+func (ac *AuthController) handleTimeout(err error, path string) error {
+	if errors.Is(err, context.DeadlineExceeded) {
+		ac.loggerService.Info("request timed out", path)
+		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+	}
+	return err
+}
+
 func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
@@ -59,11 +67,7 @@ func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) error
 
 	err = ac.authService.Register(ctx, *reqData)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	response.Send(w, http.StatusOK, map[string]string{})
@@ -89,11 +93,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 
 	accessToken, refreshToken, err := ac.authService.Login(ctx, *reqData, ipAddress, deviceInfo)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	expiration := time.Now().Add(7 * 24 * time.Hour)
@@ -131,11 +131,7 @@ func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) e
 
 	newAccessToken, err := ac.authService.RefreshToken(ctx, tokenBytes)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	response.Send(w, http.StatusOK, map[string]string{"token": newAccessToken})
@@ -151,11 +147,7 @@ func (ac *AuthController) Verify(w http.ResponseWriter, r *http.Request) error {
 
 	r, err := ac.authorization.VerifyToken(r)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
@@ -172,11 +164,7 @@ func (ac *AuthController) ActivateAccount(w http.ResponseWriter, r *http.Request
 
 	r, err := ac.authorization.VerifyToken(r)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
@@ -186,11 +174,7 @@ func (ac *AuthController) ActivateAccount(w http.ResponseWriter, r *http.Request
 
 	err = ac.authService.ActivateAccount(ctx, userID)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
@@ -202,11 +186,7 @@ func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) err
 
 	err := ac.authorization.BlacklistUser(r)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	refreshToken, err := r.Cookie("refreshToken")
@@ -223,11 +203,7 @@ func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) err
 
 	err = ac.authService.LogoutUser(ctx, tokenBytes)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
@@ -239,11 +215,7 @@ func (ac *AuthController) LogoutUserFromAllDevices(w http.ResponseWriter, r *htt
 
 	r, err := ac.authorization.VerifyToken(r)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
@@ -253,11 +225,7 @@ func (ac *AuthController) LogoutUserFromAllDevices(w http.ResponseWriter, r *htt
 
 	err = ac.authService.LogoutUserFromAllDevices(ctx, userID)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			ac.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		ac.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
