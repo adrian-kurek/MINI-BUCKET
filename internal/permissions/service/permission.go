@@ -26,44 +26,41 @@ func NewPermissionRepository(permissionRepository permissionRepository, loggerSe
 	}
 }
 
-func (ps *PermissionService) Create(ctx context.Context, bucketID, userID, authorizedUserID, permission int) error {
-	permission, err := ps.permissionRepository.GetPermissionValByUserID(ctx, bucketID, authorizedUserID)
+func (ps *PermissionService) checkPermissions(ctx context.Context, bucketID, userID int) error {
+	permission, err := ps.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}
 
 	if permission != 7 && permission != 3 && permission != 5 {
-		ps.logger.Info("user tried to perform operation which is not allowed for him", authorizedUserID)
+		ps.logger.Info("user tried to perform operation which is not allowed for him", userID)
 		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
+	return nil
+}
 
+func (ps *PermissionService) Create(ctx context.Context, bucketID, userID, authorizedUserID, permission int) error {
+	err := ps.checkPermissions(ctx, bucketID, authorizedUserID)
+	if err != nil {
+		return err
+	}
 	_, err = ps.permissionRepository.Create(ctx, bucketID, userID, permission)
 	return err
 }
 
 func (ps *PermissionService) Update(ctx context.Context, permissionID, bucketID, userID, authorizedUserID, permission int) error {
-	permission, err := ps.permissionRepository.GetPermissionValByUserID(ctx, bucketID, authorizedUserID)
+	err := ps.checkPermissions(ctx, bucketID, authorizedUserID)
 	if err != nil {
 		return err
-	}
-
-	if permission != 7 && permission != 3 && permission != 5 {
-		ps.logger.Info("user tried to perform operation which is not allowed for him", authorizedUserID)
-		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
 
 	return ps.permissionRepository.Update(ctx, permissionID, bucketID, userID, permission)
 }
 
 func (ps *PermissionService) Delete(ctx context.Context, permissionID, bucketID, userID, authorizedUserID int) error {
-	permission, err := ps.permissionRepository.GetPermissionValByUserID(ctx, bucketID, authorizedUserID)
+	err := ps.checkPermissions(ctx, bucketID, authorizedUserID)
 	if err != nil {
 		return err
-	}
-
-	if permission != 7 && permission != 3 && permission != 5 {
-		ps.logger.Info("user tried to perform operation which is not allowed for him", authorizedUserID)
-		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
 
 	return ps.permissionRepository.Delete(ctx, bucketID, userID, permission)
