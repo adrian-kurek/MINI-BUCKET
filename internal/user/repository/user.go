@@ -7,6 +7,7 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 )
 
@@ -20,6 +21,39 @@ func NewUserRepository(loggerService commonInterfaces.Logger, db *sql.DB) *UserR
 		loggerService: loggerService,
 		db:            db,
 	}
+}
+
+func (ur *UserRepository) Create(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error {
+	query := `INSERT INTO users (email,username,password,created_at,updated_at) VALUES ($1,$2,$3,$4,now(),now())`
+
+	stmt, err := ur.db.PrepareContext(ctx, query)
+	if err != nil {
+		ur.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]string{
+			"query": query,
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ur.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	_, err = stmt.ExecContext(ctx, user.Email, user.Username, hashedPassword)
+	if err != nil {
+		ur.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
+			"query": query,
+			"args": map[string]string{
+				"username": user.Username,
+				"email":    user.Email,
+			},
+			"error": err,
+		})
+		return err
+	}
+
+	return nil
 }
 
 func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (model.User, error) {

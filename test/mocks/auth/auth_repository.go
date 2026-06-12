@@ -3,7 +3,6 @@ package mocks
 import (
 	"context"
 
-	authDto "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 	"github.com/stretchr/testify/mock"
 )
@@ -12,10 +11,6 @@ type MockAuthRepository struct {
 	mock.Mock
 }
 
-func (m *MockAuthRepository) RegisterUser(ctx context.Context, user authDto.CreateUser, hashedPassword []byte) error {
-	args := m.Called(ctx, user, hashedPassword)
-	return args.Error(0)
-}
 
 func (m *MockAuthRepository) InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error {
 	args := m.Called(ctx, ipAddress, deviceInfo, refreshToken, userID)
