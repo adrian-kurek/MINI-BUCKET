@@ -83,11 +83,7 @@ func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
-	if err != nil {
-		return err
-	}
-	bucketID, err := strconv.Atoi(bucketIDStr)
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
