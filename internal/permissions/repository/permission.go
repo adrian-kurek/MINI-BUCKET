@@ -60,7 +60,7 @@ func (pr *PermissionRepository) Create(ctx context.Context, bucketID, userID, pe
 }
 
 func (pr *PermissionRepository) GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error) {
-	query := `SELECT permission FROM bucket_permissions WHERE bucket_id = $1 AND user_id = $2`
+	query := `SELECT id, permission FROM bucket_permissions WHERE bucket_id = $1 AND user_id = $2`
 	stmt, err := pr.db.PrepareContext(ctx, query)
 	if err != nil {
 		pr.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
@@ -80,7 +80,8 @@ func (pr *PermissionRepository) GetPermissionValByUserID(ctx context.Context, bu
 	}()
 
 	var permission int
-	err = stmt.QueryRowContext(ctx, bucketID, userID).Scan(&permission)
+	var permissionID int
+	err = stmt.QueryRowContext(ctx, bucketID, userID).Scan(&permissionID, &permission)
 	if err != nil {
 		pr.logger.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,

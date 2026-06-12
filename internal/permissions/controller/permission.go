@@ -33,6 +33,14 @@ func NewPermissionController(permissionService permissionService, authorizationS
 	}
 }
 
+func (pc *PermissionController) handleTimeout(err error, URLPath string) error {
+	if errors.Is(err, context.DeadlineExceeded) {
+		pc.loggerService.Info("request timed out", URLPath)
+		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+	}
+	return err
+}
+
 func (pc *PermissionController) Create(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
@@ -52,23 +60,14 @@ func (pc *PermissionController) Create(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
-	if err != nil {
-		return err
-	}
-
-	bucketID, err := strconv.Atoi(bucketIDStr)
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
 
 	err = pc.permissionService.Create(ctx, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			pc.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		return pc.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
@@ -93,33 +92,19 @@ func (pc *PermissionController) Update(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
 
-	bucketID, err := strconv.Atoi(bucketIDStr)
-	if err != nil {
-		return err
-	}
-
-	permissionIDStr, err := request.ReadParam(r, "permissionID")
-	if err != nil {
-		return err
-	}
-
-	permissionID, err := strconv.Atoi(permissionIDStr)
+	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
 		return err
 	}
 
 	err = pc.permissionService.Update(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			pc.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		return pc.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
@@ -144,33 +129,19 @@ func (pc *PermissionController) Delete(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
 
-	bucketID, err := strconv.Atoi(bucketIDStr)
-	if err != nil {
-		return err
-	}
-
-	permissionIDStr, err := request.ReadParam(r, "permissionID")
-	if err != nil {
-		return err
-	}
-
-	permissionID, err := strconv.Atoi(permissionIDStr)
+	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
 		return err
 	}
 
 	err = pc.permissionService.Delete(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			pc.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		return pc.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
