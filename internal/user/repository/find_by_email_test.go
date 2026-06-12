@@ -25,12 +25,12 @@ func TestFindByEmail(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at,updated_at FROM USERS WHERE email = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1")).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnRows(
-						sqlmock.NewRows([]string{"id", "email", "username", "password", "email_verified", "created_at", "updated_at"}).
-							AddRow(1, "test@example.com", "testuser", "hashedpass", true, time.Now(), time.Now()),
+						sqlmock.NewRows([]string{"id", "email", "username", "password", "email_verified", "created_at"}).
+							AddRow(1, "test@example.com", "testuser", "hashedpass", true, time.Now()),
 					)
 				return db, ctx
 			},
@@ -42,7 +42,7 @@ func TestFindByEmail(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at,updated_at FROM USERS WHERE email = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1")).
 					WillReturnError(errors.New("failed to prepare sql query"))
 				return db, ctx
 			},
@@ -54,7 +54,7 @@ func TestFindByEmail(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at,updated_at FROM USERS WHERE email = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1")).
 					ExpectQuery().WithArgs(sqlmock.AnyArg()).
 					WillReturnError(&pq.Error{Code: "23505", Message: "failed to execute the query"})
 				return db, ctx
@@ -67,7 +67,7 @@ func TestFindByEmail(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at,updated_at FROM USERS WHERE email = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1")).
 					ExpectQuery().WithArgs(sqlmock.AnyArg()).
 					WillReturnError(sql.ErrNoRows)
 				return db, ctx
@@ -81,7 +81,7 @@ func TestFindByEmail(t *testing.T) {
 				db, mock, _ := sqlmock.New()
 				ctx, cancel := context.WithCancel(context.Background())
 				cancel()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at,updated_at FROM USERS WHERE email = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id,email, username,password,email_verified,created_at FROM USERS WHERE email = $1")).
 					ExpectQuery().WithArgs(sqlmock.AnyArg()).
 					WillReturnError(context.Canceled)
 				return db, ctx
