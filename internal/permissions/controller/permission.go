@@ -52,12 +52,7 @@ func (pc *PermissionController) Create(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
-	if err != nil {
-		return err
-	}
-
-	bucketID, err := strconv.Atoi(bucketIDStr)
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
@@ -93,22 +88,12 @@ func (pc *PermissionController) Update(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
 
-	bucketID, err := strconv.Atoi(bucketIDStr)
-	if err != nil {
-		return err
-	}
-
-	permissionIDStr, err := request.ReadParam(r, "permissionID")
-	if err != nil {
-		return err
-	}
-
-	permissionID, err := strconv.Atoi(permissionIDStr)
+	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
 		return err
 	}
@@ -144,22 +129,12 @@ func (pc *PermissionController) Delete(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
 
-	bucketID, err := strconv.Atoi(bucketIDStr)
-	if err != nil {
-		return err
-	}
-
-	permissionIDStr, err := request.ReadParam(r, "permissionID")
-	if err != nil {
-		return err
-	}
-
-	permissionID, err := strconv.Atoi(permissionIDStr)
+	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
 		return err
 	}
