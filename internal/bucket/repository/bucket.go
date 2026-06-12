@@ -11,14 +11,14 @@ import (
 )
 
 type BucketRepository struct {
-	logger commonInterfaces.Logger
-	db     *sql.DB
+	loggerService commonInterfaces.Logger
+	db            *sql.DB
 }
 
-func NewBucketRepository(logger commonInterfaces.Logger, db *sql.DB) *BucketRepository {
+func NewBucketRepository(loggerService commonInterfaces.Logger, db *sql.DB) *BucketRepository {
 	return &BucketRepository{
-		logger: logger,
-		db:     db,
+		loggerService: loggerService,
+		db:            db,
 	}
 }
 
@@ -27,7 +27,7 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 
 	stmt, err := br.db.PrepareContext(ctx, query)
 	if err != nil {
-		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+		br.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
@@ -44,14 +44,14 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 	}
 	defer func() {
 		if closeErr := stmt.Close(); closeErr != nil {
-			br.logger.Error(commonErrors.FailedToCloseStatement, closeErr)
+			br.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
 		}
 	}()
 
 	var bucketID int
 	err = stmt.QueryRowContext(ctx, bucket.Name, userID, "", bucket.VersioningEnabled, bucket.PublicAccess, bucket.StorageClass, bucket.EncryptionEnabled).Scan(bucketID)
 	if err != nil {
-		br.logger.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
+		br.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
@@ -75,7 +75,7 @@ func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bu
 
 	stmt, err := br.db.PrepareContext(ctx, query)
 	if err != nil {
-		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+		br.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
@@ -92,7 +92,7 @@ func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bu
 
 	_, err = stmt.ExecContext(ctx, bucket.Name, bucket.VersioningEnabled, bucket.PublicAccess, bucket.StorageClass, bucket.EncryptionEnabled, bucketID, userID)
 	if err != nil {
-		br.logger.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
+		br.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
@@ -114,7 +114,7 @@ func (br *BucketRepository) Exists(ctx context.Context, bucketID int) (bool, err
 	query := "SELECT id FROM buckets WHERE id = $1"
 	stmt, err := br.db.PrepareContext(ctx, query)
 	if err != nil {
-		br.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+		br.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"bucket_id": bucketID,
@@ -129,7 +129,7 @@ func (br *BucketRepository) Exists(ctx context.Context, bucketID int) (bool, err
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
-		br.logger.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+		br.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"bucket_id": bucketID,

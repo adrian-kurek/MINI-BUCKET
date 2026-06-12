@@ -21,14 +21,14 @@ type permissionRepository interface {
 type BucketService struct {
 	bucketRepository     bucketRepository
 	permissionRepository permissionRepository
-	logger               commonInterfaces.Logger
+	loggerService        commonInterfaces.Logger
 }
 
 func NewBucketService(bucketRepository bucketRepository, permissionRepository permissionRepository, loggerService commonInterfaces.Logger) *BucketService {
 	return &BucketService{
 		bucketRepository:     bucketRepository,
 		permissionRepository: permissionRepository,
-		logger:               loggerService,
+		loggerService:        loggerService,
 	}
 }
 
@@ -39,7 +39,7 @@ func (bs *BucketService) checkPermissions(ctx context.Context, bucketID, userID 
 	}
 
 	if permission != 7 && permission != 3 && permission != 5 {
-		bs.logger.Info("user tried to perform operation which is not allowed for him", userID)
+		bs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
 		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
 	return nil
