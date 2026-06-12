@@ -63,5 +63,5 @@ func (ps *PermissionService) Delete(ctx context.Context, permissionID, bucketID,
 		return err
 	}
 
-	return ps.permissionRepository.Delete(ctx, bucketID, userID, permission)
+	return ps.permissionRepository.Delete(ctx, permissionID, bucketID, userID)
 }
