@@ -34,6 +34,14 @@ func NewBucketController(bucketService bucketService, authorization commonInterf
 	}
 }
 
+func (bc *BucketController) handleTimeout(err error, URLPath string) error {
+	if errors.Is(err, context.DeadlineExceeded) {
+		bc.loggerService.Info("request timed out", URLPath)
+		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+	}
+	return err
+}
+
 func (bc *BucketController) Create(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
@@ -55,11 +63,7 @@ func (bc *BucketController) Create(w http.ResponseWriter, r *http.Request) error
 
 	err = bc.bucketService.Create(ctx, userID, *reqData)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			bc.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		return bc.handleTimeout(err, r.URL.Path)
 	}
 	response.Send(w, 201, nil)
 	return nil
@@ -79,11 +83,7 @@ func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	bucketIDStr, err := request.ReadParam(r, "bucketID")
-	if err != nil {
-		return err
-	}
-	bucketID, err := strconv.Atoi(bucketIDStr)
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
@@ -95,11 +95,7 @@ func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error
 
 	err = bc.bucketService.Update(ctx, bucketID, userID, *reqData)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			bc.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		return bc.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
