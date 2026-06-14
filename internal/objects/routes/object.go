@@ -10,17 +10,17 @@ import (
 type objectController interface {
 	Upload(w http.ResponseWriter, r *http.Request) error
 }
-type ObjectHandler struct {
+type ObjectRoutes struct {
 	objectController objectController
 }
 
-func NewObjectHandler(objectController objectController) *ObjectHandler {
-	return &ObjectHandler{
+func NewObjectRoutes(objectController objectController) *ObjectRoutes {
+	return &ObjectRoutes{
 		objectController: objectController,
 	}
 }
 
-func (oh *ObjectHandler) SetupObjectHandlers(router *http.ServeMux) {
+func (oh *ObjectRoutes) SetupObjectRoutes(router *http.ServeMux) {
 	prefix := "/buckets"
 	router.Handle(fmt.Sprintf("PUT %s/{bucketID}/objects/{objectID}", prefix), request.Make(oh.objectController.Upload))
 }

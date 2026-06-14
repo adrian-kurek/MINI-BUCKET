@@ -7,8 +7,9 @@ import (
 	"time"
 
 	authController "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
+	authRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/routes"
 	objectController "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/controller"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/server/routes"
+	objectRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/routes"
 )
 
 type DependencyConfig struct {
@@ -51,10 +52,10 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) SetupRoutes() {
-	authHandler := routes.NewAuthHandler(&s.config.authController)
-	authHandler.SetupAuthHandlers(s.router)
-	objectHandler := routes.NewObjectHandler(&s.config.objectController)
-	objectHandler.SetupObjectHandlers(s.router)
+	authHandler := authRoutes.NewAuthRoutes(&s.config.authController)
+	authHandler.SetupAuthRoutes(s.router)
+	objectHandler := objectRoutes.NewObjectRoutes(&s.config.objectController)
+	objectHandler.SetupObjectRoutes(s.router)
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
