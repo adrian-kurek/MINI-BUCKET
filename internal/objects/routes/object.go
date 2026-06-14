@@ -7,20 +7,20 @@ import (
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 )
 
-type objectController interface {
+type objectHandler interface {
 	Upload(w http.ResponseWriter, r *http.Request) error
 }
 type ObjectRoutes struct {
-	objectController objectController
+	objectHandler objectHandler
 }
 
-func NewObjectRoutes(objectController objectController) *ObjectRoutes {
+func NewObjectRoutes(objectHandler objectHandler) *ObjectRoutes {
 	return &ObjectRoutes{
-		objectController: objectController,
+		objectHandler: objectHandler,
 	}
 }
 
 func (oh *ObjectRoutes) SetupObjectRoutes(router *http.ServeMux) {
-	prefix := "/buckets"
-	router.Handle(fmt.Sprintf("PUT %s/{bucketID}/objects/{objectID}", prefix), request.Make(oh.objectController.Upload))
+	prefix := "/buckets/{bucketID}"
+	router.Handle(fmt.Sprintf("PUT %s/objects/{objectID}", prefix), request.Make(oh.objectHandler.Upload))
 }
