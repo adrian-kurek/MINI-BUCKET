@@ -18,17 +18,17 @@ type authController interface {
 	ActivateAccount(w http.ResponseWriter, r *http.Request) error
 }
 
-type AuthHandler struct {
+type AuthRoutes struct {
 	authController authController
 }
 
-func NewAuthHandler(authController authController) *AuthHandler {
-	return &AuthHandler{
+func NewAuthRoutes(authController authController) *AuthRoutes {
+	return &AuthRoutes{
 		authController: authController,
 	}
 }
 
-func (ah *AuthHandler) SetupAuthHandlers(router *http.ServeMux) {
+func (ah *AuthRoutes) SetupAuthRoutes(router *http.ServeMux) {
 	prefix := "/auth"
 	router.Handle(fmt.Sprintf("POST %s/register", prefix), request.Make(ah.authController.Register))
 	router.Handle(fmt.Sprintf("POST %s/login", prefix), request.Make(ah.authController.Login))
