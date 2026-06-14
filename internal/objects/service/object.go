@@ -48,7 +48,7 @@ func NewObjectService(loggerService commonInterfaces.Logger, objectRepository ob
 	}
 }
 
-func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo dto.IncomingFile) error {
+func (obs *ObjectService) checkPermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -58,13 +58,51 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 		obs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
 		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
 	}
+	return nil
+}
 
+func (obs *ObjectService) checkDoesBucketExists(ctx context.Context, bucketID int) error {
 	doesBucketExist, err := obs.bucketRepository.Exists(ctx, bucketID)
 	if err != nil {
 		return err
 	}
 	if !doesBucketExist {
 		return commonErrors.NewAPIError(404, "bucket with provided id does not exist")
+	}
+	return nil
+}
+
+func (obs *ObjectService) uploadFileToDirectory(destPath string, file io.Reader) error {
+	destFile, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, file); err != nil {
+		destFile.Close()
+		os.Remove(destPath)
+		return err
+	}
+	return nil
+}
+
+func (obs *ObjectService) createDestPath(bucketID, versionNumber int, objectKey string) (string, error) {
+	uploadDir := "./uploads/" + strconv.Itoa(bucketID)
+	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
+		return "", err
+	}
+	return filepath.Join(uploadDir, objectKey+"-"+strconv.Itoa(versionNumber)), nil
+}
+
+func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo dto.IncomingFile) error {
+	err := obs.checkPermissions(ctx, bucketID, userID)
+	if err != nil {
+		return err
+	}
+	err = obs.checkDoesBucketExists(ctx, bucketID)
+	if err != nil {
+		return err
 	}
 
 	tx, err := obs.db.BeginTx(ctx, nil)
@@ -98,20 +136,13 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 		return err
 	}
 
-	uploadDir := "./uploads/" + strconv.Itoa(bucketID)
-	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
-		return err
-	}
-	destPath := filepath.Join(uploadDir, objectKey+"-"+strconv.Itoa(newVersionNumber))
-	destFile, err := os.Create(destPath)
+	destPath, err := obs.createDestPath(bucketID, newVersionNumber, objectKey)
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
 
-	if _, err := io.Copy(destFile, fileInfo.File); err != nil {
-		destFile.Close()
-		os.Remove(destPath)
+	err = obs.uploadFileToDirectory(destPath, fileInfo.File)
+	if err != nil {
 		return err
 	}
 

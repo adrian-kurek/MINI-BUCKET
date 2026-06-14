@@ -31,6 +31,14 @@ func NewObjectRepository(loggerService commonInterfaces.Logger, authorizationSer
 	}
 }
 
+func (oc *ObjectController) handleTimeout(err error, URLPath string) error {
+	if errors.Is(err, context.DeadlineExceeded) {
+		oc.loggerService.Info("request timed out", URLPath)
+		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+	}
+	return err
+}
+
 func (oc *ObjectController) Upload(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Minute*1000)
 	defer cancel()
@@ -44,7 +52,7 @@ func (oc *ObjectController) Upload(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	bucketID ,err := strconv.Atoi(r.PathValue("bucketID"))
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
 		return err
 	}
@@ -53,10 +61,10 @@ func (oc *ObjectController) Upload(w http.ResponseWriter, r *http.Request) error
 	objectIDStr := r.PathValue("objectID")
 	if objectIDStr == "" {
 		objectID = 0
-	}else{
-		objectID ,err = strconv.Atoi(objectIDStr)
+	} else {
+		objectID, err = strconv.Atoi(objectIDStr)
 		if err != nil {
-		return err
+			return err
 		}
 	}
 
@@ -76,11 +84,7 @@ func (oc *ObjectController) Upload(w http.ResponseWriter, r *http.Request) error
 
 	err = oc.objectService.Create(ctx, objectID, bucketID, userID, incomingFile)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			oc.loggerService.Info("request timed out", r.URL.Path)
-			return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
-		}
-		return err
+		return oc.handleTimeout(err, r.URL.Path)
 	}
 	return nil
 }
