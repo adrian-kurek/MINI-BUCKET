@@ -19,29 +19,29 @@ type permissionService interface {
 	Update(ctx context.Context, permissionID, bucketID, userID, authorizedUserID, permission int) error
 	Delete(ctx context.Context, permissionID, bucketID, userID, authorizedUserID int) error
 }
-type PermissionController struct {
+type PermissionHandler struct {
 	permissionService permissionService
 	authorization     commonInterfaces.AuthenticationMiddleware
 	loggerService     commonInterfaces.Logger
 }
 
-func NewPermissionController(permissionService permissionService, authorizationService commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *PermissionController {
-	return &PermissionController{
+func NewPermissionHandler(permissionService permissionService, authorizationService commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *PermissionHandler {
+	return &PermissionHandler{
 		permissionService: permissionService,
 		authorization:     authorizationService,
 		loggerService:     loggerService,
 	}
 }
 
-func (pc *PermissionController) handleTimeout(err error, URLPath string) error {
+func (ph *PermissionHandler) handleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
-		pc.loggerService.Info("request timed out", URLPath)
+		ph.loggerService.Info("request timed out", URLPath)
 		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
 	}
 	return err
 }
 
-func (pc *PermissionController) Create(w http.ResponseWriter, r *http.Request) error {
+func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
@@ -65,15 +65,15 @@ func (pc *PermissionController) Create(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	err = pc.permissionService.Create(ctx, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
+	err = ph.permissionService.Create(ctx, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
 	if err != nil {
-		return pc.handleTimeout(err, r.URL.Path)
+		return ph.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
 }
 
-func (pc *PermissionController) Update(w http.ResponseWriter, r *http.Request) error {
+func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
@@ -102,15 +102,15 @@ func (pc *PermissionController) Update(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	err = pc.permissionService.Update(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
+	err = ph.permissionService.Update(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
 	if err != nil {
-		return pc.handleTimeout(err, r.URL.Path)
+		return ph.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
 }
 
-func (pc *PermissionController) Delete(w http.ResponseWriter, r *http.Request) error {
+func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
@@ -139,9 +139,9 @@ func (pc *PermissionController) Delete(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	err = pc.permissionService.Delete(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID)
+	err = ph.permissionService.Delete(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID)
 	if err != nil {
-		return pc.handleTimeout(err, r.URL.Path)
+		return ph.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
