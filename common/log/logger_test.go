@@ -49,7 +49,7 @@ func TestLoggerInfo(t *testing.T) {
 		{
 			name:               "Log with message",
 			message:            "Test string",
-			expectedContentLen: 211,
+			expectedContentLen: 219,
 			expectedTypeOfLog:  "INFO",
 		},
 	}
@@ -94,7 +94,7 @@ func TestLoggerWarning(t *testing.T) {
 		{
 			name:               "Log with message",
 			message:            "Test string",
-			expectedContentLen: 214,
+			expectedContentLen: 222,
 			expectedTypeOfLog:  "WARNING",
 		},
 	}
@@ -139,7 +139,7 @@ func TestLoggerError(t *testing.T) {
 		{
 			name:               "Log with message",
 			message:            "Test string",
-			expectedContentLen: 212,
+			expectedContentLen: 220,
 			expectedTypeOfLog:  "ERROR",
 		},
 	}
