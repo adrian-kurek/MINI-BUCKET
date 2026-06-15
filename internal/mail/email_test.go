@@ -34,7 +34,7 @@ func TestSendEmail(t *testing.T) {
 			mEmailService := new(mocks.MockEmailService)
 			mEmailService.On("SendEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-			err := config.SetupEnvVariables("../../../.env")
+			err := config.SetupEnvVariables("../../.env")
 			if err != nil {
 				panic(err)
 			}
@@ -50,4 +50,3 @@ func TestSendEmail(t *testing.T) {
 		})
 	}
 }
-
