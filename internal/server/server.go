@@ -8,6 +8,8 @@ import (
 
 	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/routes"
+	bucketHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/handler"
+	bucketRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/routes"
 	objectHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/handler"
 	objectRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/routes"
 	permissionHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/handler"
@@ -19,14 +21,16 @@ type DependencyConfig struct {
 	authController    authHandler.AuthHandler
 	objectController  objectHandler.ObjectHandler
 	permissionHandler permissionHandler.PermissionHandler
+	bucketHandler     bucketHandler.BucketHandler
 }
 
-func NewDependencyConfig(port string, authController authHandler.AuthHandler, objectController objectHandler.ObjectHandler, permissionHandler permissionHandler.PermissionHandler) *DependencyConfig {
+func NewDependencyConfig(port string, authController authHandler.AuthHandler, objectController objectHandler.ObjectHandler, permissionHandler permissionHandler.PermissionHandler, bucketHandler bucketHandler.BucketHandler) *DependencyConfig {
 	return &DependencyConfig{
 		port:              port,
 		authController:    authController,
 		objectController:  objectController,
 		permissionHandler: permissionHandler,
+		bucketHandler:     bucketHandler,
 	}
 }
 
@@ -62,6 +66,8 @@ func (s *Server) SetupRoutes() {
 	objectHandler.SetupObjectRoutes(s.router)
 	permissionRoutes := permissionRoutes.NewPermissionRoutes(&s.config.permissionHandler)
 	permissionRoutes.SetupPermissionRoutes(s.router)
+	bucketRoutes := bucketRoutes.NewBucketRoutes(&s.config.bucketHandler)
+	bucketRoutes.SetupBucketRoutes(s.router)
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {

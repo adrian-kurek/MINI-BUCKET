@@ -14,7 +14,9 @@ import (
 	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
+	bucketHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/handler"
 	bucketRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/repository"
+	bucketService "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/service"
 	mailService "github.com/slodkiadrianek/MINI-BUCKET/internal/mail"
 	objectHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/handler"
 	objectRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/repository"
@@ -133,11 +135,13 @@ func main() {
 	permissionService := permissionService.NewPermissionRepository(permissionRepository, loggerService)
 	permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorization, loggerService)
 	bucketRepository := bucketRepository.NewBucketRepository(loggerService, db.DBConnection)
+	bucketService := bucketService.NewBucketService(bucketRepository, permissionRepository, loggerService)
+	bucketHandler := bucketHandler.NewBucketHandler(bucketService, authorization, loggerService)
 	objectRepository := objectRepository.NewObjectRepository(db.DBConnection, loggerService)
 	objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db.DBConnection)
 	objectHandler := objectHandler.NewObjectRepository(loggerService, authorization, objectService)
 
-	dependenciesConfig := server.NewDependencyConfig(port, *authHandler, *objectHandler, *permissionHandler)
+	dependenciesConfig := server.NewDependencyConfig(port, *authHandler, *objectHandler, *permissionHandler, *bucketHandler)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)
 	go func() {
