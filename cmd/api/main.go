@@ -14,12 +14,16 @@ import (
 	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
+	bucketHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/handler"
 	bucketRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/repository"
+	bucketService "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/service"
 	mailService "github.com/slodkiadrianek/MINI-BUCKET/internal/mail"
 	objectHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/handler"
 	objectRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/repository"
 	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
+	permissionHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/handler"
 	permissionRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/repository"
+	permissionService "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
 	userRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
 )
@@ -128,12 +132,16 @@ func main() {
 	authHandler := authHandler.NewAuthHandler(loggerService, authService, authorization)
 
 	permissionRepository := permissionRepository.NewPermissionRepository(loggerService, db.DBConnection)
+	permissionService := permissionService.NewPermissionRepository(permissionRepository, loggerService)
+	permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorization, loggerService)
 	bucketRepository := bucketRepository.NewBucketRepository(loggerService, db.DBConnection)
+	bucketService := bucketService.NewBucketService(bucketRepository, permissionRepository, loggerService)
+	bucketHandler := bucketHandler.NewBucketHandler(bucketService, authorization, loggerService)
 	objectRepository := objectRepository.NewObjectRepository(db.DBConnection, loggerService)
 	objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db.DBConnection)
 	objectHandler := objectHandler.NewObjectRepository(loggerService, authorization, objectService)
 
-	dependenciesConfig := server.NewDependencyConfig(port, *authHandler, *objectHandler)
+	dependenciesConfig := server.NewDependencyConfig(port, *authHandler, *objectHandler, *permissionHandler, *bucketHandler)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)
 	go func() {

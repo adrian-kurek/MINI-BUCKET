@@ -8,21 +8,29 @@ import (
 
 	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/routes"
+	bucketHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/handler"
+	bucketRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/routes"
 	objectHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/handler"
 	objectRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/routes"
+	permissionHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/handler"
+	permissionRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/routes"
 )
 
 type DependencyConfig struct {
-	port             string
-	authController   authHandler.AuthHandler
-	objectController objectHandler.ObjectHandler
+	port              string
+	authHandler       authHandler.AuthHandler
+	objectHandler     objectHandler.ObjectHandler
+	permissionHandler permissionHandler.PermissionHandler
+	bucketHandler     bucketHandler.BucketHandler
 }
 
-func NewDependencyConfig(port string, authController authHandler.AuthHandler, objectController objectHandler.ObjectHandler) *DependencyConfig {
+func NewDependencyConfig(port string, authHandler authHandler.AuthHandler, objectHandler objectHandler.ObjectHandler, permissionHandler permissionHandler.PermissionHandler, bucketHandler bucketHandler.BucketHandler) *DependencyConfig {
 	return &DependencyConfig{
-		port:             port,
-		authController:   authController,
-		objectController: objectController,
+		port:              port,
+		authHandler:       authHandler,
+		objectHandler:     objectHandler,
+		permissionHandler: permissionHandler,
+		bucketHandler:     bucketHandler,
 	}
 }
 
@@ -52,10 +60,14 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) SetupRoutes() {
-	authHandler := authRoutes.NewAuthRoutes(&s.config.authController)
-	authHandler.SetupAuthRoutes(s.router)
-	objectHandler := objectRoutes.NewObjectRoutes(&s.config.objectController)
-	objectHandler.SetupObjectRoutes(s.router)
+	authRoutes := authRoutes.NewAuthRoutes(&s.config.authHandler)
+	authRoutes.SetupAuthRoutes(s.router)
+	objectRoutes := objectRoutes.NewObjectRoutes(&s.config.objectHandler)
+	objectRoutes.SetupObjectRoutes(s.router)
+	permissionRoutes := permissionRoutes.NewPermissionRoutes(&s.config.permissionHandler)
+	permissionRoutes.SetupPermissionRoutes(s.router)
+	bucketRoutes := bucketRoutes.NewBucketRoutes(&s.config.bucketHandler)
+	bucketRoutes.SetupBucketRoutes(s.router)
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
