@@ -18,17 +18,17 @@ import (
 
 type DependencyConfig struct {
 	port              string
-	authController    authHandler.AuthHandler
-	objectController  objectHandler.ObjectHandler
+	authHandler       authHandler.AuthHandler
+	objectHandler     objectHandler.ObjectHandler
 	permissionHandler permissionHandler.PermissionHandler
 	bucketHandler     bucketHandler.BucketHandler
 }
 
-func NewDependencyConfig(port string, authController authHandler.AuthHandler, objectController objectHandler.ObjectHandler, permissionHandler permissionHandler.PermissionHandler, bucketHandler bucketHandler.BucketHandler) *DependencyConfig {
+func NewDependencyConfig(port string, authHandler authHandler.AuthHandler, objectHandler objectHandler.ObjectHandler, permissionHandler permissionHandler.PermissionHandler, bucketHandler bucketHandler.BucketHandler) *DependencyConfig {
 	return &DependencyConfig{
 		port:              port,
-		authController:    authController,
-		objectController:  objectController,
+		authHandler:       authHandler,
+		objectHandler:     objectHandler,
 		permissionHandler: permissionHandler,
 		bucketHandler:     bucketHandler,
 	}
@@ -60,10 +60,10 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) SetupRoutes() {
-	authHandler := authRoutes.NewAuthRoutes(&s.config.authController)
-	authHandler.SetupAuthRoutes(s.router)
-	objectHandler := objectRoutes.NewObjectRoutes(&s.config.objectController)
-	objectHandler.SetupObjectRoutes(s.router)
+	authRoutes := authRoutes.NewAuthRoutes(&s.config.authHandler)
+	authRoutes.SetupAuthRoutes(s.router)
+	objectRoutes := objectRoutes.NewObjectRoutes(&s.config.objectHandler)
+	objectRoutes.SetupObjectRoutes(s.router)
 	permissionRoutes := permissionRoutes.NewPermissionRoutes(&s.config.permissionHandler)
 	permissionRoutes.SetupPermissionRoutes(s.router)
 	bucketRoutes := bucketRoutes.NewBucketRoutes(&s.config.bucketHandler)
