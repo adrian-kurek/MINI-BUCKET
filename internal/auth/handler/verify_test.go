@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-
-
 func TestVerify(t *testing.T) {
 	type args struct {
 		title      string
@@ -73,9 +71,9 @@ func TestVerify(t *testing.T) {
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupAuthControllerDependencies()
+			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthController(loggerService, authService, authorizationMiddleware)
+			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest("GET", "/auth/verify", nil)
 			if err != nil {
@@ -96,4 +94,3 @@ func TestVerify(t *testing.T) {
 		})
 	}
 }
-

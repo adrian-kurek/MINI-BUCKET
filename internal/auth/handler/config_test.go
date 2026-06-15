@@ -13,6 +13,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func setupAuthControllerDependencies() *log.Logger {
+func setupAuthHandlerDependencies() *log.Logger {
 	return log.NewLogger("./logs", "2006-01-02", "15:04:05")
 }

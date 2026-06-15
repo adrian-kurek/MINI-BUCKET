@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	authController "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/controller"
+	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/routes"
 	objectController "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/controller"
 	objectRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/routes"
@@ -14,11 +14,11 @@ import (
 
 type DependencyConfig struct {
 	port             string
-	authController   authController.AuthController
+	authController   authHandler.AuthHandler
 	objectController objectController.ObjectController
 }
 
-func NewDependencyConfig(port string, authController authController.AuthController, objectController objectController.ObjectController) *DependencyConfig {
+func NewDependencyConfig(port string, authController authHandler.AuthHandler, objectController objectController.ObjectController) *DependencyConfig {
 	return &DependencyConfig{
 		port:             port,
 		authController:   authController,

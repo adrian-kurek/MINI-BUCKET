@@ -1,4 +1,4 @@
-// Package controller hold whole logic associated with controller
+// Pahkage controller hold whole logic associated with controller
 package controller
 
 import (
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	commonInterfahes "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 
@@ -29,29 +30,29 @@ type authService interface {
 	ActivateAccount(ctx context.Context, userID int) error
 }
 
-type AuthController struct {
-	loggerService commonInterfaces.Logger
+type AuthHandler struct {
+	loggerService commonInterfahes.Logger
 	authService   authService
-	authorization commonInterfaces.AuthenticationMiddleware
+	authorization commonInterfahes.AuthenticationMiddleware
 }
 
-func NewAuthController(loggerService commonInterfaces.Logger, authService authService, authorization commonInterfaces.AuthenticationMiddleware) *AuthController {
-	return &AuthController{
+func NewAuthHandler(loggerService commonInterfahes.Logger, authService authService, authorization commonInterfaces.AuthenticationMiddleware) *AuthHandler {
+	return &AuthHandler{
 		loggerService: loggerService,
 		authService:   authService,
 		authorization: authorization,
 	}
 }
 
-func (ac *AuthController) handleTimeout(err error, path string) error {
+func (ah *AuthHandler) handleTimeout(err error, path string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
-		ac.loggerService.Info("request timed out", path)
+		ah.loggerService.Info("request timed out", path)
 		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
 	}
 	return err
 }
 
-func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) error {
+func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
@@ -65,16 +66,16 @@ func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	err = ac.authService.Register(ctx, *reqData)
+	err = ah.authService.Register(ctx, *reqData)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	response.Send(w, http.StatusOK, map[string]string{})
 	return nil
 }
 
-func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
+func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
@@ -91,9 +92,9 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 	ipAddress := r.RemoteAddr
 	deviceInfo := r.UserAgent()
 
-	accessToken, refreshToken, err := ac.authService.Login(ctx, *reqData, ipAddress, deviceInfo)
+	accessToken, refreshToken, err := ah.authService.Login(ctx, *reqData, ipAddress, deviceInfo)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	expiration := time.Now().Add(7 * 24 * time.Hour)
@@ -113,55 +114,55 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (ac *AuthController) readRefreshToken(r *http.Request) ([]byte, error) {
+func (ah *AuthHandler) readRefreshToken(r *http.Request) ([]byte, error) {
 	refreshToken, err := r.Cookie("refreshToken")
 	if err != nil {
-		ac.loggerService.Error("failed to read cookie from request", err.Error())
+		ah.loggerService.Error("failed to read cookie from request", err.Error())
 		return nil, err
 	}
 
 	tokenBytes, err := hex.DecodeString(refreshToken.Value)
 	if err != nil {
-		ac.loggerService.Error("failed to decode string into bytes", err.Error())
+		ah.loggerService.Error("failed to decode string into bytes", err.Error())
 		return nil, err
 	}
 	return tokenBytes, nil
 }
 
-func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) error {
+func (ah *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
-	refreshToken, err := ac.readRefreshToken(r)
+	refreshToken, err := ah.readRefreshToken(r)
 	if err != nil {
 		return err
 	}
 
-	newAccessToken, err := ac.authService.RefreshToken(ctx, refreshToken)
+	newaccessToken, err := ah.authService.RefreshToken(ctx, refreshToken)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
-	response.Send(w, http.StatusOK, map[string]string{"token": newAccessToken})
+	response.Send(w, http.StatusOK, map[string]string{"token": newaccessToken})
 
 	return nil
 }
 
-func (ac *AuthController) Verify(w http.ResponseWriter, r *http.Request) error {
+func (ah *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
 	r = r.WithContext(ctx)
 
-	r, err := ac.authorization.VerifyToken(r)
+	r, err := ah.authorization.VerifyToken(r)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
 }
 
-func (ac *AuthController) ActivateAccount(w http.ResponseWriter, r *http.Request) error {
+func (ah *AuthHandler) ActivateAccount(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
@@ -170,9 +171,9 @@ func (ac *AuthController) ActivateAccount(w http.ResponseWriter, r *http.Request
 	authToken := request.ReadQueryParam(r, "token")
 	r.Header.Set("Authorization", "Bearer "+authToken)
 
-	r, err := ac.authorization.VerifyToken(r)
+	r, err := ah.authorization.VerifyToken(r)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
@@ -180,43 +181,43 @@ func (ac *AuthController) ActivateAccount(w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	err = ac.authService.ActivateAccount(ctx, userID)
+	err = ah.authService.ActivateAccount(ctx, userID)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
 }
 
-func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) error {
+func (ah *AuthHandler) LogoutUser(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
-	err := ac.authorization.BlacklistUser(r)
+	err := ah.authorization.BlacklistUser(r)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
-	refreshToken, err := ac.readRefreshToken(r)
+	refreshToken, err := ah.readRefreshToken(r)
 	if err != nil {
 		return err
 	}
 
-	err = ac.authService.LogoutUser(ctx, refreshToken)
+	err = ah.authService.LogoutUser(ctx, refreshToken)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
 }
 
-func (ac *AuthController) LogoutUserFromAllDevices(w http.ResponseWriter, r *http.Request) error {
+func (ah *AuthHandler) LogoutUserFromAllDevices(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), authTimeout)
 	defer cancel()
 
-	r, err := ac.authorization.VerifyToken(r)
+	r, err := ah.authorization.VerifyToken(r)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
@@ -224,9 +225,9 @@ func (ac *AuthController) LogoutUserFromAllDevices(w http.ResponseWriter, r *htt
 		return err
 	}
 
-	err = ac.authService.LogoutUserFromAllDevices(ctx, userID)
+	err = ah.authService.LogoutUserFromAllDevices(ctx, userID)
 	if err != nil {
-		return ac.handleTimeout(err, r.URL.Path)
+		return ah.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil
