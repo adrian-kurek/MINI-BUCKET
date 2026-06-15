@@ -12,6 +12,7 @@ import (
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
+
 func TestRefreshToken(t *testing.T) {
 	type args struct {
 		title      string
@@ -75,9 +76,9 @@ func TestRefreshToken(t *testing.T) {
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupAuthControllerDependencies()
+			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthController(loggerService, authService, authorizationMiddleware)
+			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest("POST", "/auth/login", nil)
 			if err != nil {
@@ -105,3 +106,4 @@ func TestRefreshToken(t *testing.T) {
 		})
 	}
 }
+

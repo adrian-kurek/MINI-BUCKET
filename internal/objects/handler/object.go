@@ -17,33 +17,33 @@ type objectService interface {
 	Create(ctx context.Context, objectID, bucketID, userID int, fileInfo dto.IncomingFile) error
 }
 
-type ObjectController struct {
+type ObjectHandler struct {
 	loggerService        commonInterfaces.Logger
 	authorizationService commonInterfaces.AuthenticationMiddleware
 	objectService        objectService
 }
 
-func NewObjectRepository(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService objectService) *ObjectController {
-	return &ObjectController{
+func NewObjectRepository(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService objectService) *ObjectHandler {
+	return &ObjectHandler{
 		loggerService:        loggerService,
 		authorizationService: authorizationService,
 		objectService:        objectService,
 	}
 }
 
-func (oc *ObjectController) handleTimeout(err error, URLPath string) error {
+func (oh *ObjectHandler) handleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
-		oc.loggerService.Info("request timed out", URLPath)
+		oh.loggerService.Info("request timed out", URLPath)
 		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
 	}
 	return err
 }
 
-func (oc *ObjectController) Upload(w http.ResponseWriter, r *http.Request) error {
+func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Minute*1000)
 	defer cancel()
 
-	r, err := oc.authorizationService.VerifyToken(r)
+	r, err := oh.authorizationService.VerifyToken(r)
 	if err != nil {
 		return err
 	}
@@ -82,9 +82,9 @@ func (oc *ObjectController) Upload(w http.ResponseWriter, r *http.Request) error
 		File:        r.Body,
 	}
 
-	err = oc.objectService.Create(ctx, objectID, bucketID, userID, incomingFile)
+	err = oh.objectService.Create(ctx, objectID, bucketID, userID, incomingFile)
 	if err != nil {
-		return oc.handleTimeout(err, r.URL.Path)
+		return oh.handleTimeout(err, r.URL.Path)
 	}
 	return nil
 }

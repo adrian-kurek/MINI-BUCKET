@@ -89,9 +89,9 @@ func TestLogin(t *testing.T) {
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupAuthControllerDependencies()
+			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthController(loggerService, authService, authorizationMiddleware)
+			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
 			if err != nil {
@@ -118,4 +118,3 @@ func TestLogin(t *testing.T) {
 		})
 	}
 }
-

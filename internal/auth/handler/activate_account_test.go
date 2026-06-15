@@ -12,6 +12,7 @@ import (
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
+
 func TestActivateAccount(t *testing.T) {
 	type args struct {
 		title      string
@@ -121,9 +122,9 @@ func TestActivateAccount(t *testing.T) {
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupAuthControllerDependencies()
+			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthController(loggerService, authService, authorizationMiddleware)
+			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest("GET", "/auth/activate?token="+testScenario.token, nil)
 			if err != nil {
@@ -144,4 +145,3 @@ func TestActivateAccount(t *testing.T) {
 		})
 	}
 }
-

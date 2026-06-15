@@ -20,29 +20,29 @@ type bucketService interface {
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
 }
 
-type BucketController struct {
+type BucketHandler struct {
 	bucketService bucketService
 	authorization commonInterfaces.AuthenticationMiddleware
 	loggerService commonInterfaces.Logger
 }
 
-func NewBucketController(bucketService bucketService, authorization commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *BucketController {
-	return &BucketController{
+func NewBucketHandler(bucketService bucketService, authorization commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *BucketHandler {
+	return &BucketHandler{
 		bucketService: bucketService,
 		authorization: authorization,
 		loggerService: loggerService,
 	}
 }
 
-func (bc *BucketController) handleTimeout(err error, URLPath string) error {
+func (bh *BucketHandler) handleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
-		bc.loggerService.Info("request timed out", URLPath)
+		bh.loggerService.Info("request timed out", URLPath)
 		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
 	}
 	return err
 }
 
-func (bc *BucketController) Create(w http.ResponseWriter, r *http.Request) error {
+func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
@@ -61,15 +61,15 @@ func (bc *BucketController) Create(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	err = bc.bucketService.Create(ctx, userID, *reqData)
+	err = bh.bucketService.Create(ctx, userID, *reqData)
 	if err != nil {
-		return bc.handleTimeout(err, r.URL.Path)
+		return bh.handleTimeout(err, r.URL.Path)
 	}
 	response.Send(w, 201, nil)
 	return nil
 }
 
-func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error {
+func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
@@ -93,9 +93,9 @@ func (bc *BucketController) Update(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	err = bc.bucketService.Update(ctx, bucketID, userID, *reqData)
+	err = bh.bucketService.Update(ctx, bucketID, userID, *reqData)
 	if err != nil {
-		return bc.handleTimeout(err, r.URL.Path)
+		return bh.handleTimeout(err, r.URL.Path)
 	}
 
 	return nil

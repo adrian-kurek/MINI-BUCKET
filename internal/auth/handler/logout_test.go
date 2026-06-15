@@ -103,9 +103,9 @@ func TestLogoutUser(t *testing.T) {
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupAuthControllerDependencies()
+			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthController(loggerService, authService, authorizationMiddleware)
+			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest("DELETE", "/auth/logout", nil)
 			if err != nil {
@@ -279,9 +279,9 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupAuthControllerDependencies()
+			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks(testScenario.setIDInContext)
-			authController := NewAuthController(loggerService, authService, authorizationMiddleware)
+			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest("DELETE", "/auth/logoutAll", nil)
 			if err != nil {
