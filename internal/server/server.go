@@ -8,17 +8,17 @@ import (
 
 	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/routes"
-	objectController "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/controller"
+	objectHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/handler"
 	objectRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/routes"
 )
 
 type DependencyConfig struct {
 	port             string
 	authController   authHandler.AuthHandler
-	objectController objectController.ObjectController
+	objectController objectHandler.ObjectHandler
 }
 
-func NewDependencyConfig(port string, authController authHandler.AuthHandler, objectController objectController.ObjectController) *DependencyConfig {
+func NewDependencyConfig(port string, authController authHandler.AuthHandler, objectController objectHandler.ObjectHandler) *DependencyConfig {
 	return &DependencyConfig{
 		port:             port,
 		authController:   authController,
