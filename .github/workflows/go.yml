@@ -22,11 +22,11 @@ jobs:
       run: |
         echo "HOST_EMAIL=${{ secrets.HOST_EMAIL }}" >> .env
         echo "PASSWORD_EMAIL=${{ secrets.PASSWORD_EMAIL }}" >> .env
-        echo "PASSWORD_EMAIL=${{ secrets.ACCESS_TOKEN_SECRET }}" >> .env
-        echo "PASSWORD_EMAIL=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env
-        echo "PASSWORD_EMAIL=${{ secrets.CACHE_LINK }}" >> .env
-        echo "PASSWORD_EMAIL=${{ secrets.HOST_LINK }}" >> .env
-        echo "PASSWORD_EMAIL=${{ secrets.DB_LINK }}" >> .env
-        echo "PASSWORD_EMAIL=${{ secrets.PORT }}" >> .env
+        echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> .env
+        echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env
+        echo "CACHE_LINK=${{ secrets.CACHE_LINK }}" >> .env
+        echo "HOST_LINK=${{ secrets.HOST_LINK }}" >> .env
+        echo "DB_LINK=${{ secrets.DB_LINK }}" >> .env
+        echo "PORT=${{ secrets.PORT }}" >> .env
     - name: Test
       run: go test -v ./...
