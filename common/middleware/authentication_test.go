@@ -357,7 +357,7 @@ func TestBlacklistUser(t *testing.T) {
 				return mCacheService
 			},
 			wantErr: true,
-			err:     errors.New("api error: token already blacklisted"),
+			err:     errors.New("api error: token blacklisted"),
 		},
 		{
 			title: "Set Failed",
