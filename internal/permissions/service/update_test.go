@@ -43,7 +43,7 @@ func TestUpdate(t *testing.T) {
 		},
 
 		{
-			title: "failed to create new permission",
+			title: "failed to update permission",
 			setupMock: func() permissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
