@@ -42,7 +42,7 @@ func (pr *PermissionRepository) Create(ctx context.Context, bucketID, userID, pe
 	}()
 
 	var bucketPermissionID int
-	err = stmt.QueryRowContext(ctx, bucketID, userID, permission).Scan(bucketPermissionID)
+	err = stmt.QueryRowContext(ctx, bucketID, userID, permission).Scan(&bucketPermissionID)
 	if err != nil {
 		pr.logger.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
