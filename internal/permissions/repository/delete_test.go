@@ -67,11 +67,11 @@ func TestDelete(t *testing.T) {
 			err := permissionRepository.Delete(ctx, 0, 1, 1)
 
 			if (err != nil) != testScenario.wantErr {
-				t.Errorf("RemoveTokenFromDB() error = %v, wantErr = %v", err, testScenario.wantErr)
+				t.Errorf("Delete() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {
-					t.Errorf("RemoveTokenFromDB() error = %v, scenarioError = %v", err, testScenario.err)
+					t.Errorf("Delete() error = %v, scenarioError = %v", err, testScenario.err)
 				}
 			}
 		})
