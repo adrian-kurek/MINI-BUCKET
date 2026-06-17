@@ -43,7 +43,7 @@ func TestUpdate(t *testing.T) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("POST", "/buckets/1/permissions", nil)
+				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -64,7 +64,7 @@ func TestUpdate(t *testing.T) {
 			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions", nil)
+				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -86,7 +86,7 @@ func TestUpdate(t *testing.T) {
 			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions", nil)
+				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -108,7 +108,7 @@ func TestUpdate(t *testing.T) {
 			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions", nil)
+				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -154,7 +154,7 @@ func TestUpdate(t *testing.T) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to update new permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions", nil)
+				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
 				if err != nil {
 					panic(err)
 				}
