@@ -130,7 +130,7 @@ func (br *BucketRepository) Exists(ctx context.Context, bucketID int) (bool, err
 		return false, err
 	}
 
-	_, err = stmt.ExecContext(ctx, bucketID)
+	_, err = stmt.QueryContext(ctx, bucketID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
