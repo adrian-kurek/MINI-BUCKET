@@ -152,7 +152,7 @@ func TestUpdate(t *testing.T) {
 			withPermissionID: true,
 			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
-				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to update new permission"))
+				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to update  permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
 				if err != nil {
@@ -162,7 +162,7 @@ func TestUpdate(t *testing.T) {
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
-			err:     errors.New(`failed to update new permission`),
+			err:     errors.New(`failed to update  permission`),
 		},
 	}
 
