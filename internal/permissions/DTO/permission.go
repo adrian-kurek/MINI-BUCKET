@@ -6,5 +6,5 @@ type Upsert struct {
 }
 
 type Delete struct {
-	UserID int `json:"userID" validate:"required, number"`
+	UserID int `json:"userID" validate:"required,number"`
 }
