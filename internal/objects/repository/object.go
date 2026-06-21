@@ -162,7 +162,7 @@ func (or *ObjectRepository) CreateVersion(ctx context.Context, tx *sql.Tx, file 
 }
 
 func (or *ObjectRepository) GetObjectKey(ctx context.Context, tx *sql.Tx, objectID int) (bool, string, error) {
-	query := "SELECT object_key FROM objects WHERE id = $1 FOR UPDATE"
+	query := "SELECT object_key FROM objects WHERE id = $1 "
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
