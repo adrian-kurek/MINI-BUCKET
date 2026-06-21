@@ -105,3 +105,38 @@ func (or *ObjectRepository) GetObjectKey(ctx context.Context, tx *sql.Tx, object
 	}
 	return true, objectKey, nil
 }
+
+func (ob *ObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID int, versionID int) error {
+	query := `UPDATE objects SET current_version_id = $1 WHERE id = $2`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		ob.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_id":          objectID,
+				"current_version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ob.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+	_, err = stmt.ExecContext(ctx, versionID, objectID)
+	if err != nil {
+		ob.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_id":          objectID,
+				"current_version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
