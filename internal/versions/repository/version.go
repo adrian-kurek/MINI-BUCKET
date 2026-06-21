@@ -6,7 +6,7 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
 )
 
 type VersionRepository struct {
@@ -21,7 +21,7 @@ func NewVersionRepository(db *sql.DB, loggerService commonInterfaces.Logger) *Ve
 	}
 }
 
-func (ov *VersionRepository) CreateVersion(ctx context.Context, tx *sql.Tx, file dto.CreateVersion) (int, error) {
+func (ov *VersionRepository) Create(ctx context.Context, tx *sql.Tx, file dto.Create) (int, error) {
 	query := `INSERT INTO object_versions (
 		object_id,
 		version_number,
