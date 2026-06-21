@@ -1,12 +1,7 @@
-name: on push and after PR merge
+name: on push
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches:
-      - main
-    types:
-      - closed
 jobs:
   build:
     runs-on: ubuntu-latest
