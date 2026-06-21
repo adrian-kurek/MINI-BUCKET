@@ -73,43 +73,8 @@ func (ov *VersionRepository) Create(ctx context.Context, tx *sql.Tx, file dto.Cr
 	return newVersionID, nil
 }
 
-func (ov *VersionRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID int, versionID int) error {
-	query := `UPDATE objects SET current_version_id = $1 WHERE id = $2`
-	stmt, err := tx.PrepareContext(ctx, query)
-	if err != nil {
-		ov.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
-			"query": query,
-			"args": map[string]any{
-				"object_id":          objectID,
-				"current_version_id": versionID,
-			},
-			"error": err.Error(),
-		})
-		return err
-	}
-	defer func() {
-		if closeErr := stmt.Close(); closeErr != nil {
-			ov.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
-		}
-	}()
-	_, err = stmt.ExecContext(ctx, versionID, objectID)
-	if err != nil {
-		ov.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
-			"query": query,
-			"args": map[string]any{
-				"object_id":          objectID,
-				"current_version_id": versionID,
-			},
-			"error": err.Error(),
-		})
-		return err
-	}
-
-	return nil
-}
-
 func (ov *VersionRepository) GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error) {
-	query := `SELECT COALESCE(MAX(version_number), 0) + 1 FROM object_versions WHERE object_id = $1  `
+	query := `SELECT COALESCE(MAX(version_number), 0) + 1 as new_version_num FROM object_versions WHERE object_id = $1  `
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		ov.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
