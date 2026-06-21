@@ -11,7 +11,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 	"github.com/stretchr/testify/mock"
@@ -20,7 +20,7 @@ import (
 func TestCreate(t *testing.T) {
 	type args struct {
 		title           string
-		bodyRequestData dto.Upsert
+		bodyRequestData DTO.Upsert
 		verifiedUser    bool
 		withBucketID    bool
 		setupMock       func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
@@ -31,7 +31,7 @@ func TestCreate(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			bodyRequestData: dto.Upsert{
+			bodyRequestData: DTO.Upsert{
 				UserID:     1,
 				Permission: 7,
 			},
@@ -54,7 +54,7 @@ func TestCreate(t *testing.T) {
 
 		{
 			title: "lack of userID",
-			bodyRequestData: dto.Upsert{
+			bodyRequestData: DTO.Upsert{
 				Permission: 7,
 			},
 			verifiedUser: true,
@@ -75,7 +75,7 @@ func TestCreate(t *testing.T) {
 
 		{
 			title: "failed to read user id from context",
-			bodyRequestData: dto.Upsert{
+			bodyRequestData: DTO.Upsert{
 				UserID:     1,
 				Permission: 7,
 			},
@@ -97,7 +97,7 @@ func TestCreate(t *testing.T) {
 
 		{
 			title: "lack of bucketID",
-			bodyRequestData: dto.Upsert{
+			bodyRequestData: DTO.Upsert{
 				UserID:     1,
 				Permission: 7,
 			},
@@ -119,7 +119,7 @@ func TestCreate(t *testing.T) {
 
 		{
 			title: "failed to create permission",
-			bodyRequestData: dto.Upsert{
+			bodyRequestData: DTO.Upsert{
 				UserID:     1,
 				Permission: 7,
 			},

@@ -10,7 +10,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 	"github.com/stretchr/testify/mock"
@@ -19,7 +19,7 @@ import (
 func TestUpdate(t *testing.T) {
 	type args struct {
 		title           string
-		bodyRequestData dto.BucketInput
+		bodyRequestData DTO.BucketInput
 		verifiedUser    bool
 		withBucketID    bool
 		setupMock       func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
@@ -30,7 +30,7 @@ func TestUpdate(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "test",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,
@@ -55,7 +55,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			title: "failed to validate request data",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "te",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,
@@ -75,7 +75,7 @@ func TestUpdate(t *testing.T) {
 
 		{
 			title: "failed to read userID from token",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "test",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,
@@ -100,7 +100,7 @@ func TestUpdate(t *testing.T) {
 
 		{
 			title: "failed to create new bucket",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "test",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,
@@ -125,7 +125,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			title: "lack of bucketID",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "test",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,

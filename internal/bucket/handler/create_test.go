@@ -10,7 +10,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 	"github.com/stretchr/testify/mock"
@@ -19,7 +19,7 @@ import (
 func TestCreate(t *testing.T) {
 	type args struct {
 		title           string
-		bodyRequestData dto.BucketInput
+		bodyRequestData DTO.BucketInput
 		verifiedUser    bool
 		setupMock       func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
 		wantErr         bool
@@ -29,7 +29,7 @@ func TestCreate(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "test",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,
@@ -53,7 +53,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to validate request data",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "te",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,
@@ -72,7 +72,7 @@ func TestCreate(t *testing.T) {
 
 		{
 			title: "failed to read userID from token",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "test",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,
@@ -96,7 +96,7 @@ func TestCreate(t *testing.T) {
 
 		{
 			title: "failed to create new bucket",
-			bodyRequestData: dto.BucketInput{
+			bodyRequestData: DTO.BucketInput{
 				Name:              "test",
 				VersioningEnabled: true,
 				EncryptionEnabled: true,

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 	"github.com/stretchr/testify/mock"
@@ -67,7 +67,7 @@ func TestCreate(t *testing.T) {
 			loggerService := setupBucketServiceDependencies()
 			bucketService := NewBucketService(mBucketRepository, permissionRepository, loggerService)
 
-			err := bucketService.Create(ctx, 1, dto.BucketInput{})
+			err := bucketService.Create(ctx, 1, DTO.BucketInput{})
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

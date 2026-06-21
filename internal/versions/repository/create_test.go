@@ -8,7 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/lib/pq"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
 )
 
 func TestCreate(t *testing.T) {
@@ -95,7 +95,7 @@ func TestCreate(t *testing.T) {
 			}
 			defer tx.Rollback()
 
-			_, err = versionRepository.Create(ctx, tx, dto.Create{})
+			_, err = versionRepository.Create(ctx, tx, DTO.Create{})
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

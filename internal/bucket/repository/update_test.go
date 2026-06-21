@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 )
 
 func TestUpdate(t *testing.T) {
@@ -71,7 +71,7 @@ func TestUpdate(t *testing.T) {
 			db, ctx := testscenario.setupMock()
 			loggerservice := setupBucketRepositoryDependencies()
 			bucketRepository := NewBucketRepository(loggerservice, db)
-			bucketInput := dto.BucketInput{}
+			bucketInput := DTO.BucketInput{}
 			err := bucketRepository.Update(ctx, 1, 1, bucketInput)
 
 			if (err != nil) != testscenario.wantErr {

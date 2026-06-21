@@ -1,4 +1,4 @@
-package dto
+package DTO
 
 type Upsert struct {
 	UserID     int `json:"userID" validate:"required,number"`

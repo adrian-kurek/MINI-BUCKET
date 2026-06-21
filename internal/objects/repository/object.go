@@ -7,7 +7,7 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 )
 
 type ObjectRepository struct {
@@ -22,7 +22,7 @@ func NewObjectRepository(db *sql.DB, loggerService commonInterfaces.Logger) *Obj
 	}
 }
 
-func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file dto.Create) (int, error) {
+func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Create) (int, error) {
 	query := `INSERT INTO objects (
 		bucket_id,
 		object_key,

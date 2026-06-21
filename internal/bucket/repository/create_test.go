@@ -8,7 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/lib/pq"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 )
 
 func TestCreate(t *testing.T) {
@@ -81,7 +81,7 @@ func TestCreate(t *testing.T) {
 			loggerService := setupBucketRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
 			bucketRepository := NewBucketRepository(loggerService, db)
-			bucketInput := dto.BucketInput{}
+			bucketInput := DTO.BucketInput{}
 			_, err := bucketRepository.Create(ctx, 1, bucketInput)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)

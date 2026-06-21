@@ -1,4 +1,4 @@
-package dto
+package DTO
 
 import (
 	"io"

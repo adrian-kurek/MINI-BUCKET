@@ -10,11 +10,11 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 )
 
 type objectService interface {
-	Create(ctx context.Context, objectID, bucketID, userID int, fileInfo dto.IncomingFile) error
+	Create(ctx context.Context, objectID, bucketID, userID int, fileInfo DTO.IncomingFile) error
 }
 
 type ObjectHandler struct {
@@ -76,7 +76,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 	contentType := r.Header.Get("Content-Type")
 	sizeBytes := r.ContentLength
 
-	incomingFile := dto.IncomingFile{
+	incomingFile := DTO.IncomingFile{
 		ContentType: contentType,
 		SizeBytes:   int(sizeBytes),
 		File:        r.Body,

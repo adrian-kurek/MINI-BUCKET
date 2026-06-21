@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 	objectsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 	versionsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
 )
@@ -100,7 +100,7 @@ func (obs *ObjectService) createDestPath(bucketID, versionNumber int, objectKey 
 	return filepath.Join(uploadDir, objectKey+"-"+strconv.Itoa(versionNumber)), nil
 }
 
-func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo dto.IncomingFile) error {
+func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo DTO.IncomingFile) error {
 	err := obs.checkPermissions(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 	}
 
 	if !doesObjectExist {
-		object := dto.Create{
+		object := DTO.Create{
 			BucketID:    bucketID,
 			ObjectKey:   uuid.NewString(),
 			ContentType: fileInfo.ContentType,

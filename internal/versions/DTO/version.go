@@ -1,4 +1,4 @@
-package dto
+package DTO
 
 type Create struct {
 	ObjectID      int

@@ -11,7 +11,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 )
 
 type permissionService interface {
@@ -45,7 +45,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
-	reqData, err := request.ReadBody[dto.Upsert](r)
+	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}
@@ -77,7 +77,7 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
-	reqData, err := request.ReadBody[dto.Upsert](r)
+	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}
@@ -114,7 +114,7 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
-	reqData, err := request.ReadBody[dto.Delete](r)
+	reqData, err := request.ReadBody[DTO.Delete](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
 	}

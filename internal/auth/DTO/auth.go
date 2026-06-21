@@ -1,4 +1,4 @@
-package dto
+package DTO
 
 type CreateUser struct {
 	Username        string `json:"username" validate:"required,min=6"`

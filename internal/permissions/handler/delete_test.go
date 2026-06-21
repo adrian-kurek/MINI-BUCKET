@@ -11,7 +11,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
-	dto "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
+	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 	"github.com/stretchr/testify/mock"
@@ -20,7 +20,7 @@ import (
 func TestDelete(t *testing.T) {
 	type args struct {
 		title            string
-		bodyRequestData  dto.Delete
+		bodyRequestData  DTO.Delete
 		verifiedUser     bool
 		withBucketID     bool
 		withPermissionID bool
@@ -32,7 +32,7 @@ func TestDelete(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			bodyRequestData: dto.Delete{
+			bodyRequestData: DTO.Delete{
 				UserID: 1,
 			},
 			verifiedUser:     true,
@@ -55,7 +55,7 @@ func TestDelete(t *testing.T) {
 
 		{
 			title:           "lack of userID",
-			bodyRequestData: dto.Delete{},
+			bodyRequestData: DTO.Delete{},
 			verifiedUser:    true,
 			withBucketID:    false,
 			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
@@ -74,7 +74,7 @@ func TestDelete(t *testing.T) {
 
 		{
 			title: "failed to read user id from context",
-			bodyRequestData: dto.Delete{
+			bodyRequestData: DTO.Delete{
 				UserID: 1,
 			},
 			verifiedUser: false,
@@ -95,7 +95,7 @@ func TestDelete(t *testing.T) {
 
 		{
 			title: "lack of bucketID",
-			bodyRequestData: dto.Delete{
+			bodyRequestData: DTO.Delete{
 				UserID: 1,
 			},
 			verifiedUser: true,
@@ -115,7 +115,7 @@ func TestDelete(t *testing.T) {
 		},
 		{
 			title: "lack of permissionID",
-			bodyRequestData: dto.Delete{
+			bodyRequestData: DTO.Delete{
 				UserID: 1,
 			},
 			verifiedUser:     true,
@@ -137,7 +137,7 @@ func TestDelete(t *testing.T) {
 
 		{
 			title: "failed to delete permission",
-			bodyRequestData: dto.Delete{
+			bodyRequestData: DTO.Delete{
 				UserID: 1,
 			},
 			verifiedUser:     true,
