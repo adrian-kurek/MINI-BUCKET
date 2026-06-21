@@ -26,6 +26,7 @@ import (
 	permissionService "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/server"
 	userRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
+	versionRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/repository"
 )
 
 func main() {
@@ -138,7 +139,9 @@ func main() {
 	bucketService := bucketService.NewBucketService(bucketRepository, permissionRepository, loggerService)
 	bucketHandler := bucketHandler.NewBucketHandler(bucketService, authorization, loggerService)
 	objectRepository := objectRepository.NewObjectRepository(db.DBConnection, loggerService)
-	objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db.DBConnection)
+	versionRepository := versionRepository.NewVersionRepository(db.DBConnection, loggerService)
+	objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db.DBConnection, versionRepository)
+
 	objectHandler := objectHandler.NewObjectRepository(loggerService, authorization, objectService)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authHandler, *objectHandler, *permissionHandler, *bucketHandler)
