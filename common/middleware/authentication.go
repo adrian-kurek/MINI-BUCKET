@@ -90,7 +90,7 @@ func (am *AuthenticationMiddleware) parseClaimsFromToken(tokenString string) (*j
 func (am *AuthenticationMiddleware) readTokenFromRequest(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		am.loggerService.Info("token is missing", authHeader)
+		am.loggerService.Info("token is missing", nil)
 		return "", commonErrors.NewAPIError(http.StatusUnauthorized, "failed to authorize a user")
 	}
 
@@ -107,7 +107,7 @@ func (am *AuthenticationMiddleware) isTokenBlackListed(ctx context.Context, toke
 
 	if result > 0 {
 		err := errors.New("token blacklisted")
-		am.loggerService.Info(err.Error(), token)
+		am.loggerService.Info(err.Error(), nil)
 		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 	}
 	return nil
@@ -116,7 +116,7 @@ func (am *AuthenticationMiddleware) isTokenBlackListed(ctx context.Context, toke
 func (am *AuthenticationMiddleware) checkIsTokenValid(token *jwt.Token) error {
 	if !token.Valid {
 		err := errors.New("provided token is invalid")
-		am.loggerService.Info(err.Error(), token)
+		am.loggerService.Info(err.Error(), nil)
 		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 	}
 	return nil
@@ -173,7 +173,7 @@ func (am *AuthenticationMiddleware) BlacklistUser(r *http.Request) error {
 
 	tokenWithData, user, err := am.parseClaimsFromToken(token)
 	if err != nil {
-		am.loggerService.Info("failed to read data properly", token)
+		am.loggerService.Info("failed to read data properly", nil)
 		return commonErrors.NewAPIError(http.StatusUnauthorized, "failed to read token")
 	}
 
