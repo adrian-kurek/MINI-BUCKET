@@ -67,7 +67,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
 	}
 
 	err = ph.permissionService.Create(ctx, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
@@ -104,12 +104,12 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
 	}
 
 	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of permissionID or provided permissionID is malformed")
 	}
 
 	err = ph.permissionService.Update(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
@@ -146,12 +146,12 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
 	}
 
 	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of permissionID or provided permissionID is malformed")
 	}
 
 	err = ph.permissionService.Delete(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID)

@@ -47,6 +47,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+
 	userID, err := request.ReadUserIDFromToken(r)
 	if err != nil {
 		return err
@@ -54,7 +55,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
 	}
 
 	var objectID int

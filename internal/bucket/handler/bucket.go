@@ -95,7 +95,7 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return err
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
