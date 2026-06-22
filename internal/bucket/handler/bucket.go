@@ -46,6 +46,11 @@ func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
+	r, err := bh.authorization.VerifyToken(r)
+	if err != nil {
+		return err
+	}
+
 	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
@@ -72,6 +77,11 @@ func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
+
+	r, err := bh.authorization.VerifyToken(r)
+	if err != nil {
+		return err
+	}
 
 	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
 	if err != nil {

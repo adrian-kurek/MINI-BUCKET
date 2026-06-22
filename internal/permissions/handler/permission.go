@@ -45,6 +45,11 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
 
+	r, err := ph.authorization.VerifyToken(r)
+	if err != nil {
+		return err
+	}
+
 	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
@@ -76,6 +81,11 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
+
+	r, err := ph.authorization.VerifyToken(r)
+	if err != nil {
+		return err
+	}
 
 	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
@@ -113,6 +123,11 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
+
+	r, err := ph.authorization.VerifyToken(r)
+	if err != nil {
+		return err
+	}
 
 	reqData, err := request.ReadBody[DTO.Delete](r)
 	if err != nil {
