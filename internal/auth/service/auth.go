@@ -30,8 +30,7 @@ type emailService interface {
 }
 type userRepository interface {
 	FindByEmail(ctx context.Context, email string) (userModel.User, error)
-	Create(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error 
-
+	Create(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error
 }
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
@@ -80,6 +79,29 @@ func (as *AuthService) Register(ctx context.Context, user authDTO.CreateUser) er
 	return nil
 }
 
+func (as *AuthService) sendActivationLink(userID int, email, username string) error {
+	userAuthData := userModel.User{
+		ID:       userID,
+		Email:    email,
+		Username: username,
+	}
+
+	accessToken, err := as.authorization.GenerateAccessToken(userAuthData)
+	if err != nil {
+		return err
+	}
+
+	host := os.Getenv("HOST_LINK")
+	err = as.emailService.SendEmail(email, "activation link", host+"/auth/activateAccount?token="+accessToken)
+	if err != nil {
+		return err
+	}
+
+	err = errors.New("user with provided email is not verified, we sent to you mail with activation link")
+	as.loggerService.Info(err.Error(), email)
+	return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+}
+
 func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
 	userFromDB, err := as.userRepository.FindByEmail(ctx, loginData.Email)
 	if err != nil {
@@ -93,26 +115,7 @@ func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, i
 	}
 
 	if !userFromDB.EmailVerified {
-		userAuthData := userModel.User{
-			ID:       userFromDB.ID,
-			Email:    userFromDB.Email,
-			Username: userFromDB.Username,
-		}
-
-		accessToken, err := as.authorization.GenerateAccessToken(userAuthData)
-		if err != nil {
-			return "", nil, err
-		}
-
-		host := os.Getenv("HOST_LINK")
-		err = as.emailService.SendEmail(loginData.Email, "activation link", host+"/auth/activateAccount?token="+accessToken)
-		if err != nil {
-			return "", nil, err
-		}
-
-		err = errors.New("user with provided email is not verified, we sent to you mail with activation link")
-		as.loggerService.Info(err.Error(), loginData.Email)
-		return "", nil, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+		return "", nil, as.sendActivationLink(userFromDB.ID, userFromDB.Email, userFromDB.Username)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userFromDB.Password), []byte(loginData.Password))
@@ -160,6 +163,21 @@ func (as *AuthService) ActivateAccount(ctx context.Context, userID int) error {
 	return nil
 }
 
+func (as *AuthService) validateToken(userDataWithToken authModel.TokenWithUserEmailToRefreshToken) error {
+	if userDataWithToken.ID == 0 {
+		err := errors.New("token not found")
+		as.loggerService.Info(err.Error(), nil)
+		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	}
+
+	if userDataWithToken.ExpiresAt.Before(time.Now()) {
+		err := errors.New("refresh token expired")
+		as.loggerService.Info(err.Error(), nil)
+		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	}
+	return nil
+}
+
 func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (string, error) {
 	hashedRefreshToken := as.authorization.HashToken(refreshToken)
 
@@ -168,16 +186,9 @@ func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (s
 		return "", err
 	}
 
-	if tokenWithUserEmailToRefreshToken.ID == 0 {
-		err := errors.New("token not found")
-		as.loggerService.Info(err.Error(), nil)
-		return "", commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
-	}
-
-	if tokenWithUserEmailToRefreshToken.ExpiresAt.Before(time.Now()) {
-		err := errors.New("refresh token expired")
-		as.loggerService.Info(err.Error(), nil)
-		return "", commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	err = as.validateToken(tokenWithUserEmailToRefreshToken)
+	if err != nil {
+		return "", err
 	}
 
 	err = as.authRepository.UpdateLastTimeUsedToken(ctx, hashedRefreshToken)

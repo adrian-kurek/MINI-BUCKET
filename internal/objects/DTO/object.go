@@ -17,11 +17,3 @@ type IncomingFile struct {
 	ContentType string
 	SizeBytes   int
 }
-
-type CreateVersion struct {
-	ObjectID      int
-	VersionNumber int
-	SizeBytes     int
-	ETag          string
-	StorageClass  string
-}
