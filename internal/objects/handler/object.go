@@ -1,4 +1,4 @@
-package controller
+package handler
 
 import (
 	"context"
@@ -23,7 +23,7 @@ type ObjectHandler struct {
 	objectService        objectService
 }
 
-func NewObjectRepository(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService objectService) *ObjectHandler {
+func NewObjectHandler(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService objectService) *ObjectHandler {
 	return &ObjectHandler{
 		loggerService:        loggerService,
 		authorizationService: authorizationService,

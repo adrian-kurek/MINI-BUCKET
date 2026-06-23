@@ -66,7 +66,7 @@ func (obs *ObjectService) checkPermissions(ctx context.Context, bucketID, userID
 	return nil
 }
 
-func (obs *ObjectService) checkDoesBucketExists(ctx context.Context, bucketID int) error {
+func (obs *ObjectService) checkDoesBucketExist(ctx context.Context, bucketID int) error {
 	doesBucketExist, err := obs.bucketRepository.Exists(ctx, bucketID)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 	if err != nil {
 		return err
 	}
-	err = obs.checkDoesBucketExists(ctx, bucketID)
+	err = obs.checkDoesBucketExist(ctx, bucketID)
 	if err != nil {
 		return err
 	}

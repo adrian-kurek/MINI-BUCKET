@@ -20,3 +20,8 @@ func (m *MockBucketRepository) Update(ctx context.Context, bucketID, userID int,
 	args := m.Called(ctx, bucketID, userID, bucket)
 	return args.Error(0)
 }
+
+func (m *MockBucketRepository) Exists(ctx context.Context, bucketID int) (bool, error) {
+	args := m.Called(ctx, bucketID)
+	return args.Bool(0), args.Error(1)
+}
