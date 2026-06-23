@@ -142,7 +142,7 @@ func main() {
 	versionRepository := versionRepository.NewVersionRepository(db.DBConnection, loggerService)
 	objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db.DBConnection, versionRepository)
 
-	objectHandler := objectHandler.NewObjectRepository(loggerService, authorization, objectService)
+	objectHandler := objectHandler.NewObjectHandler(loggerService, authorization, objectService)
 
 	dependenciesConfig := server.NewDependencyConfig(port, *authHandler, *objectHandler, *permissionHandler, *bucketHandler)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
