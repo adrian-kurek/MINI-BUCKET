@@ -23,7 +23,7 @@ func TestUpdate(t *testing.T) {
 		verifiedUser     bool
 		withBucketID     bool
 		withPermissionID bool
-		setupMock        func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		setupMock        func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
 		wantErr          bool
 		err              error
 	}
@@ -38,15 +38,11 @@ func TestUpdate(t *testing.T) {
 			verifiedUser:     true,
 			withBucketID:     true,
 			withPermissionID: true,
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
-				if err != nil {
-					panic(err)
-				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil) // use the real r, not a fresh one
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: false,
@@ -60,13 +56,9 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: false,
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
@@ -82,13 +74,9 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: false,
 			withBucketID: false,
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
@@ -104,18 +92,14 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: false,
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
-			err:     errors.New(`strconv.Atoi: parsing "": invalid syntax`),
+			err:     errors.New(`api error: lack of bucketID or provided bucketID is malformed`),
 		},
 		{
 			title: "lack of permissionID",
@@ -126,18 +110,14 @@ func TestUpdate(t *testing.T) {
 			verifiedUser:     true,
 			withBucketID:     true,
 			withPermissionID: false,
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
-			err:     errors.New(`strconv.Atoi: parsing "": invalid syntax`),
+			err:     errors.New(`api error: lack of permissionID or provided permissionID is malformed`),
 		},
 
 		{
@@ -149,14 +129,10 @@ func TestUpdate(t *testing.T) {
 			verifiedUser:     true,
 			withBucketID:     true,
 			withPermissionID: true,
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to update  permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
@@ -167,10 +143,6 @@ func TestUpdate(t *testing.T) {
 
 	for _, testScenario := range testScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupPermissionsHandlerDependencies()
-			permissionService, authorizationMiddleware, w := testScenario.setupMock()
-			permissionHandler := NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
-
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
 			if err != nil {
 				panic(err)
@@ -190,6 +162,10 @@ func TestUpdate(t *testing.T) {
 			if testScenario.verifiedUser {
 				r = request.SetContext(r, "id", 1)
 			}
+
+			loggerService := setupPermissionsHandlerDependencies()
+			permissionService, authorizationMiddleware, w := testScenario.setupMock(r)
+			permissionHandler := NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
 
 			err = permissionHandler.Update(w, r)
 

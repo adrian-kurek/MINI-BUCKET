@@ -22,7 +22,7 @@ func TestUpdate(t *testing.T) {
 		bodyRequestData DTO.BucketInput
 		verifiedUser    bool
 		withBucketID    bool
-		setupMock       func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		setupMock       func(r *http.Request) (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
 		wantErr         bool
 		err             error
 	}
@@ -39,14 +39,10 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: true,
-			setupMock: func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mBucketService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
@@ -64,9 +60,10 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: true,
-			setupMock: func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -84,13 +81,9 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: false,
 			withBucketID: true,
-			setupMock: func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
@@ -109,14 +102,10 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: true,
-			setupMock: func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mBucketService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to create the new bucket"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
@@ -134,27 +123,19 @@ func TestUpdate(t *testing.T) {
 			},
 			verifiedUser: false,
 			withBucketID: false,
-			setupMock: func() (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				r, err := http.NewRequest("PUT", "/buckets/1", nil)
-				if err != nil {
-					panic(err)
-				}
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
-			err:     errors.New(`strconv.Atoi: parsing "": invalid syntax`),
+			err:     errors.New(`api error: lack of bucketID or provided bucketID is malformed`),
 		},
 	}
 
 	for _, testScenario := range testScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			loggerService := setupBucketHandlerDependencies()
-			bucketService, authorizationMiddleware, w := testScenario.setupMock()
-			permissionHandler := NewBucketHandler(bucketService, authorizationMiddleware, loggerService)
-
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
 			if err != nil {
 				panic(err)
@@ -172,6 +153,9 @@ func TestUpdate(t *testing.T) {
 			if testScenario.verifiedUser {
 				r = request.SetContext(r, "id", 1)
 			}
+			loggerService := setupBucketHandlerDependencies()
+			bucketService, authorizationMiddleware, w := testScenario.setupMock(r)
+			permissionHandler := NewBucketHandler(bucketService, authorizationMiddleware, loggerService)
 
 			err = permissionHandler.Update(w, r)
 
