@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -45,7 +44,7 @@ func TestCreate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: false,
@@ -66,7 +65,7 @@ func TestCreate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -88,7 +87,7 @@ func TestCreate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -110,7 +109,7 @@ func TestCreate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -133,7 +132,7 @@ func TestCreate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,

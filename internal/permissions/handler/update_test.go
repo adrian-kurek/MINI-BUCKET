@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -47,7 +46,7 @@ func TestUpdate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: false,
@@ -68,7 +67,7 @@ func TestUpdate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -90,7 +89,7 @@ func TestUpdate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -112,7 +111,7 @@ func TestUpdate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -134,7 +133,7 @@ func TestUpdate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -158,7 +157,7 @@ func TestUpdate(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,

@@ -46,7 +46,7 @@ func TestDelete(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: false,
@@ -65,7 +65,7 @@ func TestDelete(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -107,7 +107,7 @@ func TestDelete(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -128,7 +128,7 @@ func TestDelete(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -151,7 +151,7 @@ func TestDelete(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
