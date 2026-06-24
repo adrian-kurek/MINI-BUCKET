@@ -25,3 +25,13 @@ func (m *MockBucketRepository) Exists(ctx context.Context, bucketID int) (bool, 
 	args := m.Called(ctx, bucketID)
 	return args.Bool(0), args.Error(1)
 }
+
+func (m *MockBucketRepository) GetPrivacyInfo(ctx context.Context, bucketID int) (bool, error) {
+	args := m.Called(ctx, bucketID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockBucketRepository) IsVersioningEnabled(ctx context.Context, bucketID int) (bool, error) {
+	args := m.Called(ctx, bucketID)
+	return args.Bool(0), args.Error(1)
+}

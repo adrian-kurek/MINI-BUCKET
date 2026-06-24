@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -24,5 +25,30 @@ func (m *MockObjectRepository) GetObjectKey(ctx context.Context, tx *sql.Tx, obj
 
 func (m *MockObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID int, versionID int) error {
 	args := m.Called(ctx, tx, objectID, versionID)
+	return args.Error(0)
+}
+
+func (m *MockObjectRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionNumber int) (model.GetMetadata, error) {
+	args := m.Called(ctx, bucketID, objectKey, versionNumber)
+	return args.Get(0).(model.GetMetadata), args.Error(1)
+}
+
+func (m *MockObjectRepository) HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error {
+	args := m.Called(ctx, bucketID, objectKey, versionNumber)
+	return args.Error(0)
+}
+
+func (m *MockObjectRepository) SoftDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error {
+	args := m.Called(ctx, bucketID, objectKey, versionNumber)
+	return args.Error(0)
+}
+
+func (m *MockObjectRepository) HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error {
+	args := m.Called(ctx, bucketID, objectKey)
+	return args.Error(0)
+}
+
+func (m *MockObjectRepository) SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error {
+	args := m.Called(ctx, bucketID, objectKey)
 	return args.Error(0)
 }

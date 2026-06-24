@@ -9,6 +9,7 @@ import (
 
 type objectHandler interface {
 	Upload(w http.ResponseWriter, r *http.Request) error
+	GetMetadata(w http.ResponseWriter, r *http.Request) error
 }
 type ObjectRoutes struct {
 	objectHandler objectHandler
@@ -23,4 +24,5 @@ func NewObjectRoutes(objectHandler objectHandler) *ObjectRoutes {
 func (oh *ObjectRoutes) SetupObjectRoutes(router *http.ServeMux) {
 	prefix := "/buckets/{bucketID}"
 	router.Handle(fmt.Sprintf("PUT %s/objects/{objectID}", prefix), request.Make(oh.objectHandler.Upload))
+	router.Handle(fmt.Sprintf("GET %s/objects/{objectKeyWithVersionNumber}", prefix), request.Make(oh.objectHandler.GetMetadata))
 }

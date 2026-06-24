@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
 	"io"
 	"os"
 	"path/filepath"
@@ -13,12 +15,15 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 	objectsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 	versionsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
 )
 
 type (
 	bucketRepository interface {
 		Exists(ctx context.Context, bucketID int) (bool, error)
+		GetPrivacyInfo(ctx context.Context, bucketID int) (bool, error)
+		IsVersioningEnabled(ctx context.Context, bucketID int) (bool, error)
 	}
 	versionRepository interface {
 		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
@@ -28,6 +33,11 @@ type (
 		Create(ctx context.Context, tx *sql.Tx, file objectsDTO.Create) (int, error)
 		GetObjectKey(ctx context.Context, tx *sql.Tx, objectID int) (bool, string, error)
 		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
+		GetMetadata(ctx context.Context, bucketID int, objectKey string, versionNumber int) (model.GetMetadata, error)
+		SoftDeleteVersion(ctx context.Context, objectID int, objectKey string, versionNumber int) error
+		SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error
+		HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error
+		HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error
 	}
 	permissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
@@ -54,7 +64,7 @@ func NewObjectService(loggerService commonInterfaces.Logger, objectRepository ob
 	}
 }
 
-func (obs *ObjectService) checkPermissions(ctx context.Context, bucketID, userID int) error {
+func (obs *ObjectService) checkWritePermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -92,6 +102,19 @@ func (obs *ObjectService) uploadFileToDirectory(destPath string, file io.Reader)
 	return nil
 }
 
+func (obs *ObjectService) computeETAG(file io.Reader) (string, error) {
+	hash := md5.New()
+
+	_, err := io.Copy(hash, file)
+	if err != nil {
+		obs.loggerService.Error("failed to hash stream", err)
+		return "", err
+	}
+
+	etag := `"` + hex.EncodeToString(hash.Sum(nil)) + `"`
+	return etag, nil
+}
+
 func (obs *ObjectService) createDestPath(bucketID, versionNumber int, objectKey string) (string, error) {
 	uploadDir := "./uploads/" + strconv.Itoa(bucketID)
 	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
@@ -101,7 +124,7 @@ func (obs *ObjectService) createDestPath(bucketID, versionNumber int, objectKey 
 }
 
 func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo DTO.IncomingFile) error {
-	err := obs.checkPermissions(ctx, bucketID, userID)
+	err := obs.checkWritePermissions(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}
@@ -121,13 +144,18 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 		return err
 	}
 
+	etag, err := obs.computeETAG(fileInfo.File)
+	if err != nil {
+		return err
+	}
+
 	if !doesObjectExist {
 		object := DTO.Create{
 			BucketID:    bucketID,
 			ObjectKey:   uuid.NewString(),
 			ContentType: fileInfo.ContentType,
 			SizeBytes:   fileInfo.SizeBytes,
-			ETag:        "",
+			ETag:        etag,
 		}
 		objectKey = object.ObjectKey
 		objectID, err = obs.objectRepository.Create(ctx, tx, object)
@@ -155,7 +183,7 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 		ObjectID:      objectID,
 		VersionNumber: newVersionNumber,
 		SizeBytes:     fileInfo.SizeBytes,
-		ETag:          "",
+		ETag:          etag,
 		StorageClass:  "",
 	}
 	newVersionID, err := obs.versionRepository.Create(ctx, tx, newVersionInfo)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/http"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
@@ -145,4 +146,66 @@ func (br *BucketRepository) Exists(ctx context.Context, bucketID int) (bool, err
 		return false, err
 	}
 	return true, nil
+}
+
+func (br *BucketRepository) GetPrivacyInfo(ctx context.Context, bucketID int) (bool, error) {
+	query := "SELECT public_access FROM buckets WHERE id = $1"
+	stmt, err := br.db.PrepareContext(ctx, query)
+	if err != nil {
+		br.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return false, err
+	}
+	var hasPublicAccess bool
+	err = stmt.QueryRowContext(ctx, bucketID).Scan(&hasPublicAccess)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, commonErrors.NewAPIError(http.StatusNotFound, "")
+		}
+		br.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return false, err
+	}
+	return hasPublicAccess, nil
+}
+
+func (br *BucketRepository) IsVersioningEnabled(ctx context.Context, bucketID int) (bool, error) {
+	query := "SELECT versioning_enabled FROM buckets WHERE id = $1"
+	stmt, err := br.db.PrepareContext(ctx, query)
+	if err != nil {
+		br.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return false, err
+	}
+	var isVersioningEnabled bool
+	err = stmt.QueryRowContext(ctx, bucketID).Scan(&isVersioningEnabled)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, commonErrors.NewAPIError(http.StatusNotFound, "")
+		}
+		br.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return false, err
+	}
+	return isVersioningEnabled, nil
 }
