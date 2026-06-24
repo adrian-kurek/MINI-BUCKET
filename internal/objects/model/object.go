@@ -14,3 +14,9 @@ type Object struct {
 	createdAt        time.Time
 	updatedAt        time.Time
 }
+
+type GetMetadata struct {
+	ContentType string
+	ETAG        string
+	SizeBytes   int
+}
