@@ -23,6 +23,7 @@ type (
 	bucketRepository interface {
 		Exists(ctx context.Context, bucketID int) (bool, error)
 		GetPrivacyInfo(ctx context.Context, bucketID int) (bool, error)
+		IsVersioningEnabled(ctx context.Context, bucketID int) (bool, error)
 	}
 	versionRepository interface {
 		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
@@ -33,6 +34,10 @@ type (
 		GetObjectKey(ctx context.Context, tx *sql.Tx, objectID int) (bool, string, error)
 		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
 		GetMetadata(ctx context.Context, bucketID int, objectKey string, versionNumber int) (model.GetMetadata, error)
+		SoftDeleteVersion(ctx context.Context, objectID int, objectKey string, versionNumber int) error
+		SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error
+		HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error
+		HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error
 	}
 	permissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
@@ -59,7 +64,7 @@ func NewObjectService(loggerService commonInterfaces.Logger, objectRepository ob
 	}
 }
 
-func (obs *ObjectService) checkPermissions(ctx context.Context, bucketID, userID int) error {
+func (obs *ObjectService) checkWritePermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -119,7 +124,7 @@ func (obs *ObjectService) createDestPath(bucketID, versionNumber int, objectKey 
 }
 
 func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo DTO.IncomingFile) error {
-	err := obs.checkPermissions(ctx, bucketID, userID)
+	err := obs.checkWritePermissions(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}

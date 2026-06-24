@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,6 +20,7 @@ type objectService interface {
 	HasPublicAccess(ctx context.Context, bucketID int) (bool, error)
 	GetMetadata(ctx context.Context, bucketID int, objectKeyWithVersionNumber string) (model.GetMetadata, error)
 	CheckReadPermissions(ctx context.Context, bucketID int, userID int) error
+	Delete(ctx context.Context, bucketID, userID int, objectKey string, versionNumber int, isHardDelete bool) error
 }
 
 type ObjectHandler struct {
@@ -126,7 +126,6 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 	}
 
 	objectKeyWithVersionNumber := r.PathValue("objectKeyWithVersionNumber")
-	fmt.Println(objectKeyWithVersionNumber)
 	metadata, err := oh.objectService.GetMetadata(ctx, bucketID, objectKeyWithVersionNumber)
 	if err != nil {
 		return oh.handleTimeout(err, r.URL.Path)
@@ -135,6 +134,57 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 	response.Send(w, http.StatusOK, map[string]model.GetMetadata{
 		"metadata": metadata,
 	})
+
+	return nil
+}
+
+func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
+	defer cancel()
+
+	r, err := oh.authorizationService.VerifyToken(r)
+	if err != nil {
+		return err
+	}
+	userID, err := request.ReadUserIDFromToken(r)
+	if err != nil {
+		return err
+	}
+
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
+	if err != nil {
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
+	}
+
+	objectKey := r.PathValue("objectKey")
+
+	queryVersionNumber := request.ReadQueryParam(r, "versionNumber")
+	versionNumber := 0
+	if queryVersionNumber != "" {
+		versionNumber, err = strconv.Atoi(queryVersionNumber)
+		if err != nil {
+			return err
+		}
+	}
+
+	deleteMode := request.ReadQueryParam(r, "typeOfDelete")
+
+	var isHardDelete bool
+	switch deleteMode {
+	case "", "soft":
+		isHardDelete = false
+	case "hard":
+		isHardDelete = true
+	default:
+		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "typeOfDelete must be 'soft' or 'hard'")
+	}
+
+	err = oh.objectService.Delete(ctx, bucketID, userID, objectKey, versionNumber, isHardDelete)
+	if err != nil {
+		return oh.handleTimeout(err, r.URL.Path)
+	}
+
+	response.Send(w, http.StatusNoContent, nil)
 
 	return nil
 }

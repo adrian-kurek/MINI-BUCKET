@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCheckPermissions(t *testing.T) {
+func TestCheckWritePermissions(t *testing.T) {
 	type args struct {
 		title     string
 		setupMock func() (permissionRepository, objectRepository, versionRepository, bucketRepository)
@@ -75,7 +75,7 @@ func TestCheckPermissions(t *testing.T) {
 			loggerService := setupObjectServiceDependencies()
 			objectService := NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
 
-			err := objectService.checkPermissions(ctx, 1, 1)
+			err := objectService.checkWritePermissions(ctx, 1, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckPermissions() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

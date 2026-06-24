@@ -183,3 +183,147 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 	}
 	return objectMetadata, nil
 }
+
+func (or *ObjectRepository) SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error {
+	query := "UPDATE  objects  SET o.is_deleted = true WHERE bucket_id = $1 AND object_key = $2"
+	stmt, err := or.db.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+	_, err = stmt.ExecContext(ctx, bucketID, objectKey)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
+
+func (or *ObjectRepository) HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error {
+	query := "DELETE FROM objects  WHERE bucket_id = $1 AND object_key = $2"
+	stmt, err := or.db.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+	_, err = stmt.ExecContext(ctx, bucketID, objectKey)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteDeleteQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
+
+func (or *ObjectRepository) SoftDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error {
+	query := "UPDATE  object_versions ov USING objects o SET ov.is_deleted = true WHERE o.bucket_id = $1 AND o.object_key = $2 AND ov.version_number = $3 AND o.id = ov.object_id"
+	stmt, err := or.db.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":      bucketID,
+				"object_key":     objectKey,
+				"version_number": versionNumber,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+	_, err = stmt.ExecContext(ctx, bucketID, objectKey, versionNumber)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":      bucketID,
+				"object_key":     objectKey,
+				"version_number": versionNumber,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
+
+func (or *ObjectRepository) HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error {
+	query := "DELETE FROM object_versions ov USING objects o WHERE o.bucket_id = $1 AND o.object_key = $2 AND ov.version_number = $3 AND o.id = ov.object_id"
+	stmt, err := or.db.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":      bucketID,
+				"object_key":     objectKey,
+				"version_number": versionNumber,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+	_, err = stmt.ExecContext(ctx, bucketID, objectKey, versionNumber)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteDeleteQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":      bucketID,
+				"object_key":     objectKey,
+				"version_number": versionNumber,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
