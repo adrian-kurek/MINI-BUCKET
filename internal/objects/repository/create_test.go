@@ -28,7 +28,7 @@ func TestCreate(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectPrepare("INSERT INTO objects").
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 				mock.ExpectCommit()
 				return db, ctx
@@ -57,7 +57,7 @@ func TestCreate(t *testing.T) {
 				ctx := context.Background()
 				mock.ExpectBegin()
 				mock.ExpectPrepare("INSERT INTO objects").ExpectQuery().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnError(&pq.Error{Code: "23505", Message: "failed to execute sql query"})
 				mock.ExpectRollback()
 				return db, ctx
@@ -74,7 +74,7 @@ func TestCreate(t *testing.T) {
 				cancel()
 				mock.ExpectBegin()
 				mock.ExpectPrepare("INSERT INTO objects").ExpectQuery().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnError(context.Canceled)
 				mock.ExpectRollback()
 				return db, ctx

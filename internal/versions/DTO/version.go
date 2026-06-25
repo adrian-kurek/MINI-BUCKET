@@ -1,9 +1,9 @@
 package DTO
 
 type Create struct {
-	ObjectID      int
-	VersionNumber int
-	SizeBytes     int
-	ETag          string
-	StorageClass  string
+	ObjectID     int
+	SizeBytes    int
+	ETag         string
+	StorageClass string
+	UUID         string
 }

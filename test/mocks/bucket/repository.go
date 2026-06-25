@@ -35,3 +35,8 @@ func (m *MockBucketRepository) IsVersioningEnabled(ctx context.Context, bucketID
 	args := m.Called(ctx, bucketID)
 	return args.Bool(0), args.Error(1)
 }
+
+func (m *MockBucketRepository) UpdateTotalSize(ctx context.Context, bucketID, sizeBytes int) error {
+	args := m.Called(ctx, bucketID, sizeBytes)
+	return args.Error(0)
+}

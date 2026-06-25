@@ -18,9 +18,14 @@ func (m *MockObjectRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockObjectRepository) GetObjectKey(ctx context.Context, tx *sql.Tx, objectID int) (bool, string, error) {
-	args := m.Called(ctx, tx, objectID)
-	return args.Bool(0), args.String(1), args.Error(2)
+func (m *MockObjectRepository) GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool, int, error) {
+	args := m.Called(ctx, objectKey, bucketID)
+	return args.Bool(0), args.Int(1), args.Error(2)
+}
+
+func (m *MockObjectRepository) Update(ctx context.Context, tx *sql.Tx, file DTO.Update) error {
+	args := m.Called(ctx, tx, file)
+	return args.Error(0)
 }
 
 func (m *MockObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID int, versionID int) error {

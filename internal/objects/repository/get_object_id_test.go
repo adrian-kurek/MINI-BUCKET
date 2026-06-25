@@ -10,7 +10,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-func TestGetObjectKey(t *testing.T) {
+func TestGetObjectID(t *testing.T) {
 	type args struct {
 		title     string
 		setupMock func() (*sql.DB, context.Context)
@@ -24,14 +24,12 @@ func TestGetObjectKey(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectBegin()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT object_key FROM objects WHERE id = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2")).
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg()).
-					WillReturnRows(sqlmock.NewRows([]string{"object_key"}).AddRow(
-						"822a9393-9e17-40b9-b897-699c5c95c06b",
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(
+						1,
 					))
-				mock.ExpectCommit()
 				return db, ctx
 			},
 			wantErr: false,
@@ -42,9 +40,7 @@ func TestGetObjectKey(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectBegin()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT object_key FROM objects WHERE id = $1")).WillReturnError(errors.New("failed to prepare sql query"))
-				mock.ExpectRollback()
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2")).WillReturnError(errors.New("failed to prepare sql query"))
 				return db, ctx
 			},
 			wantErr: true,
@@ -55,11 +51,9 @@ func TestGetObjectKey(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectBegin()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT object_key FROM objects WHERE id = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2")).
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg()).WillReturnError(errors.New("failed to execute sql query"))
-				mock.ExpectRollback()
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(errors.New("failed to execute sql query"))
 				return db, ctx
 			},
 			wantErr: true,
@@ -70,11 +64,9 @@ func TestGetObjectKey(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectBegin()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT object_key FROM objects WHERE id = $1")).
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2")).
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg()).WillReturnError(sql.ErrNoRows)
-				mock.ExpectRollback()
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(sql.ErrNoRows)
 				return db, ctx
 			},
 			wantErr: false,
@@ -87,20 +79,15 @@ func TestGetObjectKey(t *testing.T) {
 			loggerService := setupObjectRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
 			objectRepository := NewObjectRepository(db, loggerService)
-			tx, err := db.BeginTx(context.Background(), nil)
-			if err != nil {
-				panic(err)
-			}
-			defer tx.Rollback()
 
-			_, _, err = objectRepository.GetObjectKey(ctx, tx, 1)
+			_, _, err := objectRepository.GetObjectID(ctx, "", 1)
 			if (err != nil) != testScenario.wantErr {
-				t.Errorf("GetObjectKey() error = %v, wantErr = %v", err, testScenario.wantErr)
+				t.Errorf("GetObjectID() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {
-					t.Errorf("GetObjectKey() error = %v, scenarioError = %v", err, testScenario.err)
+					t.Errorf("GetObjectID() error = %v, scenarioError = %v", err, testScenario.err)
 				}
 			}
 		})

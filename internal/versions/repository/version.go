@@ -24,7 +24,7 @@ func NewVersionRepository(db *sql.DB, loggerService commonInterfaces.Logger) *Ve
 func (ov *VersionRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Create) (int, error) {
 	query := `INSERT INTO object_versions (
 		object_id,
-		version_number,
+    object_uuid,
 		size_bytes,
 		etag,
 		storage_class,
@@ -37,11 +37,11 @@ func (ov *VersionRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Cr
 		ov.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"object_id":      file.ObjectID,
-				"version_number": file.VersionNumber,
-				"size_bytes":     file.SizeBytes,
-				"etag":           file.ETag,
-				"storage_class":  file.StorageClass,
+				"object_id":     file.ObjectID,
+				"size_bytes":    file.SizeBytes,
+				"etag":          file.ETag,
+				"storage_class": file.StorageClass,
+				"uuid":          file.UUID,
 			},
 			"error": err.Error(),
 		})
@@ -54,16 +54,16 @@ func (ov *VersionRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Cr
 	}()
 
 	var newVersionID int
-	err = stmt.QueryRowContext(ctx, file.ObjectID, file.VersionNumber, file.SizeBytes, file.ETag, file.StorageClass).Scan(&newVersionID)
+	err = stmt.QueryRowContext(ctx, file.ObjectID, file.UUID, file.SizeBytes, file.ETag, file.StorageClass).Scan(&newVersionID)
 	if err != nil {
 		ov.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"object_id":      file.ObjectID,
-				"version_number": file.VersionNumber,
-				"size_bytes":     file.SizeBytes,
-				"etag":           file.ETag,
-				"storage_class":  file.StorageClass,
+				"object_id":     file.ObjectID,
+				"size_bytes":    file.SizeBytes,
+				"etag":          file.ETag,
+				"storage_class": file.StorageClass,
+				"uuid":          file.UUID,
 			},
 			"error": err.Error(),
 		})

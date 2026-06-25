@@ -9,8 +9,8 @@ type Object struct {
 	ContentType      string
 	SizeBytes        int
 	ETag             string
+	StorageClass     string
 	CurrentVersionID int
-	IsDeleted        bool
 	createdAt        time.Time
 	updatedAt        time.Time
 }

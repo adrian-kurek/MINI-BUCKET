@@ -30,21 +30,24 @@ func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Cre
 		content_type,
 		size_bytes,
 		etag,
-		is_deleted,
+		storage_class,
+    object_uuid,
 		created_at,
 		updated_at
-	) VALUES ($1,$2,$3,$4,$5,false,NOW(), NOW()) RETURNING id`
+	) VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(), NOW()) RETURNING id`
 
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"bucket_id":    file.BucketID,
-				"object_key":   file.ObjectKey,
-				"content_type": file.ContentType,
-				"size_bytes":   file.SizeBytes,
-				"etag":         file.ETag,
+				"bucket_id":     file.BucketID,
+				"object_key":    file.ObjectKey,
+				"content_type":  file.ContentType,
+				"size_bytes":    file.SizeBytes,
+				"etag":          file.ETag,
+				"object_uuid":   file.UUID,
+				"storage_class": file.StorageClass,
 			},
 			"error": err.Error(),
 		})
@@ -57,16 +60,18 @@ func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Cre
 	}()
 
 	var ObjectID int
-	err = stmt.QueryRowContext(ctx, file.BucketID, file.ObjectKey, file.ContentType, file.SizeBytes, file.ETag).Scan(&ObjectID)
+	err = stmt.QueryRowContext(ctx, file.BucketID, file.ObjectKey, file.ContentType, file.SizeBytes, file.ETag, file.StorageClass, file.UUID).Scan(&ObjectID)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"bucket_id":    file.BucketID,
-				"object_key":   file.ObjectKey,
-				"content_type": file.ContentType,
-				"size_bytes":   file.SizeBytes,
-				"etag":         file.ETag,
+				"bucket_id":     file.BucketID,
+				"object_key":    file.ObjectKey,
+				"content_type":  file.ContentType,
+				"size_bytes":    file.SizeBytes,
+				"etag":          file.ETag,
+				"object_uuid":   file.UUID,
+				"storage_class": file.StorageClass,
 			},
 			"error": err.Error(),
 		})
@@ -76,35 +81,85 @@ func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Cre
 	return ObjectID, nil
 }
 
-func (or *ObjectRepository) GetObjectKey(ctx context.Context, tx *sql.Tx, objectID int) (bool, string, error) {
-	query := "SELECT object_key FROM objects WHERE id = $1 "
+func (or *ObjectRepository) Update(ctx context.Context, tx *sql.Tx, file DTO.Update) error {
+	query := `UPDATE objects SET 
+		size_bytes = $1,
+		etag = $2,
+		storage_class = $3,
+    object_uuid = $4,
+		updated_at = NOW() WHERE id = $5`
+
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"object_id": objectID,
+				"object_id":     file.ObjectID,
+				"size_bytes":    file.SizeBytes,
+				"etag":          file.ETag,
+				"object_uuid":   file.UUID,
+				"storage_class": file.StorageClass,
 			},
 			"error": err.Error(),
 		})
-		return false, "", err
+		return err
 	}
-	var objectKey string
-	err = stmt.QueryRowContext(ctx, objectID).Scan(&objectKey)
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	_, err = stmt.ExecContext(ctx, file.SizeBytes, file.ETag, file.StorageClass, file.UUID, file.ObjectID)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_id":     file.ObjectID,
+				"size_bytes":    file.SizeBytes,
+				"etag":          file.ETag,
+				"object_uuid":   file.UUID,
+				"storage_class": file.StorageClass,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
+
+func (or *ObjectRepository) GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool, int, error) {
+	query := "SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2"
+	stmt, err := or.db.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
+			},
+			"error": err.Error(),
+		})
+		return false, 0, err
+	}
+	var objectID int
+	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&objectID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, "", nil
+			return false, 0, nil
 		}
 		or.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"object_id": objectID,
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
 			},
 			"error": err.Error(),
 		})
-		return false, "", err
+		return false, 0, err
 	}
-	return true, objectKey, nil
+	return true, objectID, nil
 }
 
 func (ob *ObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID int, versionID int) error {
