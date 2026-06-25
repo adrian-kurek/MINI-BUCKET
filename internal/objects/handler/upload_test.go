@@ -18,14 +18,14 @@ import (
 
 func TestUpload(t *testing.T) {
 	type args struct {
-		title           string
-		bodyRequestData DTO.Upsert
-		verifiedUser    bool
-		withBucketID    bool
-		withObjectID    bool
-		setupMock       func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
-		wantErr         bool
-		err             error
+		title              string
+		bodyRequestData    DTO.Upsert
+		verifiedUser       bool
+		withProperFileName bool
+		withBucketID       bool
+		setupMock          func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		wantErr            bool
+		err                error
 	}
 
 	testScenarios := []args{
@@ -35,9 +35,9 @@ func TestUpload(t *testing.T) {
 				UserID:     1,
 				Permission: 7,
 			},
-			verifiedUser: true,
-			withBucketID: true,
-			withObjectID: false,
+			verifiedUser:       true,
+			withBucketID:       true,
+			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -49,14 +49,33 @@ func TestUpload(t *testing.T) {
 			err:     nil,
 		},
 		{
+			title: "invalid file name",
+			bodyRequestData: DTO.Upsert{
+				UserID:     1,
+				Permission: 7,
+			},
+			verifiedUser:       true,
+			withBucketID:       true,
+			withProperFileName: false,
+			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: true,
+			err:     errors.New("api error: invalid file name"),
+		},
+		{
 			title: "with proper data with objectID",
 			bodyRequestData: DTO.Upsert{
 				UserID:     1,
 				Permission: 7,
 			},
-			verifiedUser: true,
-			withBucketID: true,
-			withObjectID: true,
+			verifiedUser:       true,
+			withBucketID:       true,
+			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -73,9 +92,9 @@ func TestUpload(t *testing.T) {
 				UserID:     1,
 				Permission: 7,
 			},
-			verifiedUser: true,
-			withBucketID: true,
-			withObjectID: false,
+			verifiedUser:       true,
+			withBucketID:       true,
+			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -92,9 +111,9 @@ func TestUpload(t *testing.T) {
 			bodyRequestData: DTO.Upsert{
 				Permission: 7,
 			},
-			verifiedUser: false,
-			withBucketID: false,
-			withObjectID: false,
+			verifiedUser:       false,
+			withBucketID:       false,
+			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -111,9 +130,9 @@ func TestUpload(t *testing.T) {
 				UserID:     1,
 				Permission: 7,
 			},
-			verifiedUser: false,
-			withBucketID: false,
-			withObjectID: false,
+			verifiedUser:       false,
+			withBucketID:       false,
+			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -130,9 +149,9 @@ func TestUpload(t *testing.T) {
 				UserID:     1,
 				Permission: 7,
 			},
-			verifiedUser: true,
-			withBucketID: false,
-			withObjectID: false,
+			verifiedUser:       true,
+			withBucketID:       false,
+			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -149,9 +168,9 @@ func TestUpload(t *testing.T) {
 				UserID:     1,
 				Permission: 7,
 			},
-			verifiedUser: true,
-			withBucketID: true,
-			withObjectID: false,
+			verifiedUser:       true,
+			withBucketID:       true,
+			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to create new permission"))
@@ -176,15 +195,19 @@ func TestUpload(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			if testScenario.withObjectID {
-				r.SetPathValue("objectID", "1")
-			}
+
 			if testScenario.withBucketID {
 				r.SetPathValue("bucketID", "1")
 			}
+
 			if testScenario.verifiedUser {
 				r = request.SetContext(r, "id", 1)
 			}
+
+			if testScenario.withProperFileName {
+				r.Header.Set("X-Filename", "input.txt")
+			}
+
 			loggerService := setupObjectHandlerDependencies()
 			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
 			objectHandler := NewObjectHandler(loggerService, authorizationMiddleware, objectService)

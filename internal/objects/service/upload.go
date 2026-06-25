@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -110,6 +111,7 @@ func (obs *ObjectService) uploadFileAndComputeETag(destPath string, file io.Read
 
 func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (string, error) {
 	if objectKey == "" || strings.Contains(objectKey, "/") || strings.Contains(objectKey, "\\") || strings.Contains(objectKey, "..") {
+		fmt.Println(objectKey)
 		return "", commonErrors.NewAPIError(400, "invalid file name")
 	}
 

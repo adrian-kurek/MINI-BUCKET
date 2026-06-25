@@ -228,16 +228,17 @@ func TestCreate(t *testing.T) {
 				File:        strings.NewReader("test file content"),
 				ContentType: "text/plain",
 				SizeBytes:   18,
+				FileName:    "input",
 			}
 
 			err := objectService.Upload(ctx, 11, 1, fileInfo)
 			if (err != nil) != testScenario.wantErr {
-				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)
+				t.Errorf("Upload() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {
-					t.Errorf("Create() error = %v, scenarioError = %v", err, testScenario.err)
+					t.Errorf("Upload() error = %v, scenarioError = %v", err, testScenario.err)
 				}
 			}
 		})
