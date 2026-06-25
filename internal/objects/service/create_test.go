@@ -31,13 +31,15 @@ func TestCreate(t *testing.T) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetObjectKey", mock.Anything, mock.Anything, mock.Anything).Return(true, "822a9393-9e17-40b9-b897-699c5c95c06b", nil)
+				mObjectRepository.On("GetObjectID", mock.Anything, mock.Anything, mock.Anything).Return(true, 1, nil)
 				mObjectRepository.On("UpdateCurrentVersionIDOfObject", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mVersionRepository.On("GetNewVersionNumber", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mVersionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("UpdateTotalSize", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: false,
@@ -71,15 +73,16 @@ func TestCreate(t *testing.T) {
 			err:     errors.New("failed to perform the query"),
 		},
 		{
-			title: "failed to get object key",
+			title: "failed to get object id",
 			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetObjectKey", mock.Anything, mock.Anything, mock.Anything).Return(false, "", errors.New("failed to perform the query"))
+				mObjectRepository.On("GetObjectID", mock.Anything, mock.Anything, mock.Anything).Return(false, 0, errors.New("failed to perform the query"))
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: true,
@@ -92,7 +95,7 @@ func TestCreate(t *testing.T) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetObjectKey", mock.Anything, mock.Anything, mock.Anything).Return(false, "822a9393-9e17-40b9-b897-699c5c95c06b", nil)
+				mObjectRepository.On("GetObjectID", mock.Anything, mock.Anything, mock.Anything).Return(false, 0, nil)
 				mObjectRepository.On("UpdateCurrentVersionIDOfObject", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mObjectRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
@@ -100,6 +103,8 @@ func TestCreate(t *testing.T) {
 				mVersionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("UpdateTotalSize", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: false,
@@ -111,11 +116,13 @@ func TestCreate(t *testing.T) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetObjectKey", mock.Anything, mock.Anything, mock.Anything).Return(false, "822a9393-9e17-40b9-b897-699c5c95c06b", nil)
+				mObjectRepository.On("GetObjectID", mock.Anything, mock.Anything, mock.Anything).Return(false, 0, nil)
 				mObjectRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, errors.New("failed to perform the query"))
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("UpdateTotalSize", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: true,
@@ -127,12 +134,14 @@ func TestCreate(t *testing.T) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetObjectKey", mock.Anything, mock.Anything, mock.Anything).Return(true, "822a9393-9e17-40b9-b897-699c5c95c06b", nil)
+				mObjectRepository.On("GetObjectID", mock.Anything, mock.Anything, mock.Anything).Return(true, 1, nil)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mVersionRepository.On("GetNewVersionNumber", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mVersionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, errors.New("failed to perform the query"))
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("UpdateTotalSize", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: true,
@@ -144,11 +153,16 @@ func TestCreate(t *testing.T) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetObjectKey", mock.Anything, mock.Anything, mock.Anything).Return(true, "822a9393-9e17-40b9-b897-699c5c95c06b", nil)
+				mObjectRepository.On("GetObjectID", mock.Anything, mock.Anything, mock.Anything).Return(true, 1, nil)
+				mObjectRepository.On("UpdateCurrentVersionIDOfObject", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to perform the query"))
+				mObjectRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mVersionRepository.On("GetNewVersionNumber", mock.Anything, mock.Anything, mock.Anything).Return(1, errors.New("failed to perform the query"))
+				mVersionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("UpdateTotalSize", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: true,
@@ -160,13 +174,16 @@ func TestCreate(t *testing.T) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetObjectKey", mock.Anything, mock.Anything, mock.Anything).Return(true, "822a9393-9e17-40b9-b897-699c5c95c06b", nil)
+				mObjectRepository.On("GetObjectID", mock.Anything, mock.Anything, mock.Anything).Return(true, 1, nil)
 				mObjectRepository.On("UpdateCurrentVersionIDOfObject", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to perform the query"))
+				mObjectRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mVersionRepository.On("GetNewVersionNumber", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mVersionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
+				mBucketRepository.On("UpdateTotalSize", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: true,

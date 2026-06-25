@@ -209,3 +209,39 @@ func (br *BucketRepository) IsVersioningEnabled(ctx context.Context, bucketID in
 	}
 	return isVersioningEnabled, nil
 }
+
+func (br *BucketRepository) UpdateTotalSize(ctx context.Context, bucketID, sizeBytes int) error {
+	query := "UPDATE buckets SET total_size = total_size + $1 updated_at = NOW() WHERE id = $2 "
+
+	stmt, err := br.db.PrepareContext(ctx, query)
+	if err != nil {
+		br.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":  bucketID,
+				"size_bytes": sizeBytes,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			br.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	_, err = stmt.ExecContext(ctx, sizeBytes, bucketID)
+	if err != nil {
+		br.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":  bucketID,
+				"size_bytes": sizeBytes,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	return nil
+}
