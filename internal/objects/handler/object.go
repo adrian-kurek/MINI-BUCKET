@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -69,6 +70,10 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	fileName := r.Header.Get("X-Filename")
 	defer r.Body.Close()
+
+	if fileName == "" || strings.Contains(fileName, "/") || strings.Contains(fileName, "\\") || strings.Contains(fileName, "..") {
+		return commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
+	}
 
 	contentType := r.Header.Get("Content-Type")
 	sizeBytes := r.ContentLength
