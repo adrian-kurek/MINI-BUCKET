@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -108,11 +109,32 @@ func (obs *ObjectService) uploadFileAndComputeETag(destPath string, file io.Read
 }
 
 func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (string, error) {
+	if objectKey == "" || strings.Contains(objectKey, "/") || strings.Contains(objectKey, "\\") || strings.Contains(objectKey, "..") {
+		return "", commonErrors.NewAPIError(400, "invalid file name")
+	}
+
 	uploadDir := "./uploads/" + strconv.Itoa(bucketID)
 	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
 		return "", err
 	}
-	return filepath.Join(uploadDir, objectKey+"-"+uuid), nil
+
+	candidatePath := filepath.Join(uploadDir, objectKey+"-"+uuid)
+
+	absUploadDir, err := filepath.Abs(uploadDir)
+	if err != nil {
+		return "", err
+	}
+	absCandidatePath, err := filepath.Abs(candidatePath)
+	if err != nil {
+		return "", err
+	}
+
+	uploadDirWithSep := absUploadDir + string(os.PathSeparator)
+	if absCandidatePath != absUploadDir && !strings.HasPrefix(absCandidatePath, uploadDirWithSep) {
+		return "", commonErrors.NewAPIError(400, "invalid file name")
+	}
+
+	return candidatePath, nil
 }
 
 func (obs *ObjectService) upsertObjectMetadata(ctx context.Context, tx *sql.Tx, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string, versioningEnabled bool) error {
