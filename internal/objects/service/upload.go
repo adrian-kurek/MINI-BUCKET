@@ -89,32 +89,22 @@ func (obs *ObjectService) checkDoesBucketExist(ctx context.Context, bucketID int
 	return nil
 }
 
-func (obs *ObjectService) uploadFileToDirectory(destPath string, file io.Reader) error {
+func (obs *ObjectService) uploadFileAndComputeETag(destPath string, file io.Reader) (string, error) {
 	destFile, err := os.Create(destPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer destFile.Close()
 
-	if _, err := io.Copy(destFile, file); err != nil {
-		destFile.Close()
-		os.Remove(destPath)
-		return err
-	}
-	return nil
-}
-
-func (obs *ObjectService) computeETAG(file io.Reader) (string, error) {
 	hash := md5.New()
+	tee := io.TeeReader(file, hash)
 
-	_, err := io.Copy(hash, file)
-	if err != nil {
-		obs.loggerService.Error("failed to hash stream", err)
+	if _, err := io.Copy(destFile, tee); err != nil {
+		os.Remove(destPath)
 		return "", err
 	}
 
-	etag := `"` + hex.EncodeToString(hash.Sum(nil)) + `"`
-	return etag, nil
+	return `"` + hex.EncodeToString(hash.Sum(nil)) + `"`, nil
 }
 
 func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (string, error) {
@@ -125,42 +115,91 @@ func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (
 	return filepath.Join(uploadDir, objectKey+"-"+uuid), nil
 }
 
-func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID int, fileInfo DTO.IncomingFile) error {
-	err := obs.checkWritePermissions(ctx, bucketID, userID)
-	if err != nil {
-		return err
-	}
-
-	err = obs.checkDoesBucketExist(ctx, bucketID)
-	if err != nil {
-		return err
-	}
-
-	uuid := uuid.New().String()
-
-	destPath, err := obs.createDestPath(bucketID, uuid, fileInfo.FileName)
-	if err != nil {
-		return err
-	}
-
-	err = obs.uploadFileToDirectory(destPath, fileInfo.File)
-	if err != nil {
-		return err
-	}
-
-	etag, err := obs.computeETAG(fileInfo.File)
-	if err != nil {
-		os.Remove(destPath)
-		return err
-	}
-
-	isVersioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
-	if err != nil {
-		os.Remove(destPath)
-		return err
-	}
-
+func (obs *ObjectService) upsertObjectMetadata(ctx context.Context, tx *sql.Tx, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string, versioningEnabled bool) error {
 	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, fileInfo.FileName, bucketID)
+	if err != nil {
+		return err
+	}
+
+	if !versioningEnabled {
+		return obs.upsertNonVersionedObject(ctx, tx, doesObjectExist, objectID, bucketID, fileInfo, fileUUID, etag)
+	}
+	return obs.upsertVersionedObject(ctx, tx, doesObjectExist, objectID, bucketID, fileInfo, fileUUID, etag)
+}
+
+func (obs *ObjectService) upsertNonVersionedObject(ctx context.Context, tx *sql.Tx, exists bool, objectID, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string) error {
+	if !exists {
+		object := DTO.Create{
+			BucketID:    bucketID,
+			ObjectKey:   fileInfo.FileName,
+			ContentType: fileInfo.ContentType,
+			SizeBytes:   fileInfo.SizeBytes,
+			ETag:        etag,
+			UUID:        fileUUID,
+		}
+		_, err := obs.objectRepository.Create(ctx, tx, object)
+		return err
+	}
+
+	object := DTO.Update{
+		ObjectID:     objectID,
+		SizeBytes:    fileInfo.SizeBytes,
+		ETag:         etag,
+		StorageClass: fileInfo.StorageClass,
+		UUID:         fileUUID,
+	}
+	return obs.objectRepository.Update(ctx, tx, object)
+}
+
+func (obs *ObjectService) upsertVersionedObject(ctx context.Context, tx *sql.Tx, exists bool, objectID, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string) error {
+	if !exists {
+		object := DTO.Create{
+			BucketID:    bucketID,
+			ObjectKey:   fileInfo.FileName,
+			ContentType: fileInfo.ContentType,
+		}
+		newID, err := obs.objectRepository.Create(ctx, tx, object)
+		if err != nil {
+			return err
+		}
+		objectID = newID
+	}
+
+	newVersionInfo := versionsDTO.Create{
+		ObjectID:     objectID,
+		UUID:         fileUUID,
+		SizeBytes:    fileInfo.SizeBytes,
+		ETag:         etag,
+		StorageClass: fileInfo.StorageClass,
+	}
+
+	newVersionID, err := obs.versionRepository.Create(ctx, tx, newVersionInfo)
+	if err != nil {
+		return err
+	}
+	return obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx, tx, objectID, newVersionID)
+}
+
+func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, fileInfo DTO.IncomingFile) error {
+	if err := obs.checkWritePermissions(ctx, bucketID, userID); err != nil {
+		return err
+	}
+	if err := obs.checkDoesBucketExist(ctx, bucketID); err != nil {
+		return err
+	}
+
+	fileUUID := uuid.New().String()
+	destPath, err := obs.createDestPath(bucketID, fileUUID, fileInfo.FileName)
+	if err != nil {
+		return err
+	}
+
+	etag, err := obs.uploadFileAndComputeETag(destPath, fileInfo.File)
+	if err != nil {
+		return err
+	}
+
+	versioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
 	if err != nil {
 		os.Remove(destPath)
 		return err
@@ -173,79 +212,12 @@ func (obs *ObjectService) Create(ctx context.Context, objectID, bucketID, userID
 	}
 	defer tx.Rollback()
 
-	if !isVersioningEnabled {
-		if !doesObjectExist {
-			object := DTO.Create{
-				BucketID:    bucketID,
-				ObjectKey:   fileInfo.FileName,
-				ContentType: fileInfo.ContentType,
-				SizeBytes:   fileInfo.SizeBytes,
-				ETag:        etag,
-				UUID:        uuid,
-			}
-			_, err = obs.objectRepository.Create(ctx, tx, object)
-			if err != nil {
-				tx.Rollback()
-				os.Remove(destPath)
-				return err
-			}
-		} else {
-			object := DTO.Update{
-				ObjectID:     objectID,
-				SizeBytes:    fileInfo.SizeBytes,
-				ETag:         etag,
-				StorageClass: fileInfo.StorageClass,
-				UUID:         uuid,
-			}
-			err = obs.objectRepository.Update(ctx, tx, object)
-			if err != nil {
-				tx.Rollback()
-				os.Remove(destPath)
-				return err
-			}
-		}
-	} else {
-		if !doesObjectExist {
-			object := DTO.Create{
-				BucketID:    bucketID,
-				ObjectKey:   fileInfo.FileName,
-				ContentType: fileInfo.ContentType,
-				SizeBytes:   0,
-				ETag:        "",
-				UUID:        "",
-			}
-			_, err = obs.objectRepository.Create(ctx, tx, object)
-			if err != nil {
-				tx.Rollback()
-				os.Remove(destPath)
-				return err
-			}
-		}
-		newVersionInfo := versionsDTO.Create{
-			ObjectID:     objectID,
-			UUID:         uuid,
-			SizeBytes:    fileInfo.SizeBytes,
-			ETag:         etag,
-			StorageClass: "",
-		}
-		newVersionID, err := obs.versionRepository.Create(ctx, tx, newVersionInfo)
-		if err != nil {
-			tx.Rollback()
-			os.Remove(destPath)
-			return err
-		}
-
-		err = obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx, tx, objectID, newVersionID)
-		if err != nil {
-			tx.Rollback()
-			os.Remove(destPath)
-			return err
-		}
+	if err := obs.upsertObjectMetadata(ctx, tx, bucketID, fileInfo, fileUUID, etag, versioningEnabled); err != nil {
+		os.Remove(destPath)
+		return err
 	}
 
-	err = obs.bucketRepository.UpdateTotalSize(ctx, bucketID, fileInfo.SizeBytes)
-	if err != nil {
-		tx.Rollback()
+	if err := obs.bucketRepository.UpdateTotalSize(ctx, bucketID, fileInfo.SizeBytes); err != nil {
 		os.Remove(destPath)
 		return err
 	}

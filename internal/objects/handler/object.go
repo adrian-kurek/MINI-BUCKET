@@ -16,7 +16,7 @@ import (
 )
 
 type objectService interface {
-	Create(ctx context.Context, objectID, bucketID, userID int, fileInfo DTO.IncomingFile) error
+	Upload(ctx context.Context, bucketID, userID int, fileInfo DTO.IncomingFile) error
 	HasPublicAccess(ctx context.Context, bucketID int) (bool, error)
 	GetMetadata(ctx context.Context, bucketID int, objectKeyWithVersionNumber string) (model.GetMetadata, error)
 	CheckReadPermissions(ctx context.Context, bucketID int, userID int) error
@@ -64,32 +64,24 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
 	}
 
-	var objectID int
-	objectIDStr := r.PathValue("objectID")
-	if objectIDStr == "" {
-		objectID = 0
-	} else {
-		objectID, err = strconv.Atoi(objectIDStr)
-		if err != nil {
-			return err
-		}
-	}
-
 	const maxUploadSize int64 = 256 << 30 // 256 GB
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	fileName := r.Header.Get("X-Filename")
 	defer r.Body.Close()
 
 	contentType := r.Header.Get("Content-Type")
 	sizeBytes := r.ContentLength
 
 	incomingFile := DTO.IncomingFile{
-		ContentType: contentType,
-		SizeBytes:   int(sizeBytes),
-		File:        r.Body,
+		ContentType:  contentType,
+		SizeBytes:    int(sizeBytes),
+		File:         r.Body,
+		FileName:     fileName,
+		StorageClass: "STANDARD",
 	}
 
-	err = oh.objectService.Create(ctx, objectID, bucketID, userID, incomingFile)
+	err = oh.objectService.Upload(ctx, bucketID, userID, incomingFile)
 	if err != nil {
 		return oh.handleTimeout(err, r.URL.Path)
 	}
