@@ -6,6 +6,7 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
 )
 
@@ -105,4 +106,56 @@ func (ov *VersionRepository) GetNewVersionNumber(ctx context.Context, tx *sql.Tx
 	}
 
 	return newVersionNumber, nil
+}
+
+func (vr *VersionRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error) {
+	query := `
+	SELECT 
+		ov.size_bytes,
+		ov.etag,
+		ov.content_type
+	FROM object_versions ov
+	INNER JOIN objects o ON ov.object_id = o.id
+	WHERE o.bucket_id = $1
+		  AND o.object_key = $2
+		  AND (
+		        ($3 > 0 AND ov.version_id = $3)
+		     OR ($3 <= 0 AND ov.id = o.current_version_id)
+		      )
+	`
+	stmt, err := vr.db.PrepareContext(ctx, query)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_key": objectKey,
+				"bucket_id":  bucketID,
+				"version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return model.GetMetadata{}, err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	var metadata model.GetMetadata
+	err = stmt.QueryRowContext(ctx, bucketID, objectKey, versionID).Scan(&metadata.SizeBytes, &metadata.ETAG, &metadata.ContentType)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_key": objectKey,
+				"bucket_id":  bucketID,
+				"version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return model.GetMetadata{}, err
+	}
+
+	return metadata, nil
 }

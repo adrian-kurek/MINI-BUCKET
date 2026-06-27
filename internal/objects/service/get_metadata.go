@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"strconv"
-	"strings"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
@@ -21,13 +19,15 @@ func (obs *ObjectService) CheckReadPermissions(ctx context.Context, bucketID int
 	return nil
 }
 
-func (obs *ObjectService) GetMetadata(ctx context.Context, bucketID int, objectKeyWithVersionNumber string) (model.GetMetadata, error) {
-	objectKey := objectKeyWithVersionNumber[:strings.LastIndex(objectKeyWithVersionNumber, "-")]
-	versionNumber, err := strconv.Atoi(objectKeyWithVersionNumber[strings.LastIndex(objectKeyWithVersionNumber, "-")+1:])
+func (obs *ObjectService) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error) {
+	isVersioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
 	if err != nil {
 		return model.GetMetadata{}, err
 	}
-	return obs.objectRepository.GetMetadata(ctx, bucketID, objectKey, versionNumber)
+	if isVersioningEnabled {
+		return obs.versionRepository.GetMetadata(ctx, bucketID, objectKey, versionID)
+	}
+	return obs.objectRepository.GetMetadata(ctx, bucketID, objectKey)
 }
 
 func (obs *ObjectService) HasPublicAccess(ctx context.Context, bucketID int) (bool, error) {

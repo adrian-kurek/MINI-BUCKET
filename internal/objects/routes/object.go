@@ -23,6 +23,6 @@ func NewObjectRoutes(objectHandler objectHandler) *ObjectRoutes {
 
 func (oh *ObjectRoutes) SetupObjectRoutes(router *http.ServeMux) {
 	prefix := "/buckets/{bucketID}"
-	router.Handle(fmt.Sprintf("PUT %s/objects/{objectID}", prefix), request.Make(oh.objectHandler.Upload))
-	router.Handle(fmt.Sprintf("GET %s/objects/{objectKeyWithVersionNumber}", prefix), request.Make(oh.objectHandler.GetMetadata))
+	router.Handle(fmt.Sprintf("PUT %s/objects", prefix), request.Make(oh.objectHandler.Upload))
+	router.Handle(fmt.Sprintf("GET %s/objects/{objectKey}", prefix), request.Make(oh.objectHandler.GetMetadata))
 }
