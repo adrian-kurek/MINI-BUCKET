@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	permissionService "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/service"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 	"github.com/stretchr/testify/mock"
 )
@@ -13,7 +14,7 @@ import (
 func TestCheckPermissions(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() permissionRepository
+		setupMock func() permissionService.PermissionRepository
 		wantErr   bool
 		err       error
 	}
@@ -21,7 +22,7 @@ func TestCheckPermissions(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() permissionRepository {
+			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				return mPermissionRepository
@@ -31,7 +32,7 @@ func TestCheckPermissions(t *testing.T) {
 		},
 		{
 			title: "user is not allowed to perform an action",
-			setupMock: func() permissionRepository {
+			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(2, nil)
 				return mPermissionRepository
@@ -41,7 +42,7 @@ func TestCheckPermissions(t *testing.T) {
 		},
 		{
 			title: "GetPermissionValByUserID failed",
-			setupMock: func() permissionRepository {
+			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to get data from db"))
 				return mPermissionRepository
@@ -58,9 +59,9 @@ func TestCheckPermissions(t *testing.T) {
 
 			permissionRepository := testScenario.setupMock()
 			loggerService := setupPermissionsServiceDependencies()
-			permissionService := NewPermissionRepository(permissionRepository, loggerService)
+			permissionService := permissionService.NewPermissionRepository(permissionRepository, loggerService)
 
-			err := permissionService.checkPermissions(ctx, 1, 1)
+			err := permissionService.CheckPermissions(ctx, 1, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckPermissions() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

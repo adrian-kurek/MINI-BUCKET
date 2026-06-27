@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	permissionHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 )
@@ -13,7 +14,7 @@ import (
 func TestHandleTimeout(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (permissionService, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware)
 		inputErr  error
 		err       error
 	}
@@ -21,7 +22,7 @@ func TestHandleTimeout(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "context deadline exceeded",
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				return mPermissionService, mAuthenticationMiddleware
@@ -31,7 +32,7 @@ func TestHandleTimeout(t *testing.T) {
 		},
 		{
 			title: "operation err",
-			setupMock: func() (permissionService, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				return mPermissionService, mAuthenticationMiddleware
@@ -45,9 +46,9 @@ func TestHandleTimeout(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupPermissionsHandlerDependencies()
 			permissionService, authorizationMiddleware := testScenario.setupMock()
-			permissionHandler := NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
+			permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
 
-			err := permissionHandler.handleTimeout(testScenario.inputErr, "/")
+			err := permissionHandler.HandleTimeout(testScenario.inputErr, "/")
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {

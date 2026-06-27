@@ -14,18 +14,18 @@ import (
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 )
 
-type permissionService interface {
+type PermissionService interface {
 	Create(ctx context.Context, bucketID, userID, authorizedUserID, permission int) error
 	Update(ctx context.Context, permissionID, bucketID, userID, authorizedUserID, permission int) error
 	Delete(ctx context.Context, permissionID, bucketID, userID, authorizedUserID int) error
 }
 type PermissionHandler struct {
-	permissionService permissionService
+	permissionService PermissionService
 	authorization     commonInterfaces.AuthenticationMiddleware
 	loggerService     commonInterfaces.Logger
 }
 
-func NewPermissionHandler(permissionService permissionService, authorizationService commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *PermissionHandler {
+func NewPermissionHandler(permissionService PermissionService, authorizationService commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *PermissionHandler {
 	return &PermissionHandler{
 		permissionService: permissionService,
 		authorization:     authorizationService,
@@ -33,7 +33,7 @@ func NewPermissionHandler(permissionService permissionService, authorizationServ
 	}
 }
 
-func (ph *PermissionHandler) handleTimeout(err error, URLPath string) error {
+func (ph *PermissionHandler) HandleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		ph.loggerService.Info("request timed out", URLPath)
 		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
@@ -72,7 +72,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 
 	err = ph.permissionService.Create(ctx, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
 	if err != nil {
-		return ph.handleTimeout(err, r.URL.Path)
+		return ph.HandleTimeout(err, r.URL.Path)
 	}
 
 	return nil
@@ -114,7 +114,7 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 
 	err = ph.permissionService.Update(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
 	if err != nil {
-		return ph.handleTimeout(err, r.URL.Path)
+		return ph.HandleTimeout(err, r.URL.Path)
 	}
 
 	return nil
@@ -156,7 +156,7 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 
 	err = ph.permissionService.Delete(ctx, permissionID, bucketID, reqData.UserID, authorizedUserID)
 	if err != nil {
-		return ph.handleTimeout(err, r.URL.Path)
+		return ph.HandleTimeout(err, r.URL.Path)
 	}
 
 	return nil

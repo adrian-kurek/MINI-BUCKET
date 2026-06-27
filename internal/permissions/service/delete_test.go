@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	permissionService "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/service"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 	"github.com/stretchr/testify/mock"
 )
@@ -13,7 +14,7 @@ import (
 func TestDelete(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() permissionRepository
+		setupMock func() permissionService.PermissionRepository
 		wantErr   bool
 		err       error
 	}
@@ -21,7 +22,7 @@ func TestDelete(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() permissionRepository {
+			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mPermissionRepository.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -32,7 +33,7 @@ func TestDelete(t *testing.T) {
 		},
 		{
 			title: "user is not allowed to perform an action",
-			setupMock: func() permissionRepository {
+			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(2, nil)
 				mPermissionRepository.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -44,7 +45,7 @@ func TestDelete(t *testing.T) {
 
 		{
 			title: "failed to delete permission",
-			setupMock: func() permissionRepository {
+			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mPermissionRepository.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to create new permission"))
@@ -62,7 +63,7 @@ func TestDelete(t *testing.T) {
 
 			permissionRepository := testScenario.setupMock()
 			loggerService := setupPermissionsServiceDependencies()
-			permissionService := NewPermissionRepository(permissionRepository, loggerService)
+			permissionService := permissionService.NewPermissionRepository(permissionRepository, loggerService)
 
 			err := permissionService.Delete(ctx, 1, 1, 1, 7)
 			if (err != nil) != testScenario.wantErr {

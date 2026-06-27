@@ -7,7 +7,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 )
 
-type permissionRepository interface {
+type PermissionRepository interface {
 	Create(ctx context.Context, bucketID, userID, permission int) (int, error)
 	GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
 	Update(ctx context.Context, permissionID, bucketID, userID, permission int) error
@@ -15,18 +15,18 @@ type permissionRepository interface {
 }
 
 type PermissionService struct {
-	permissionRepository permissionRepository
+	permissionRepository PermissionRepository
 	logger               commonInterfaces.Logger
 }
 
-func NewPermissionRepository(permissionRepository permissionRepository, loggerService commonInterfaces.Logger) *PermissionService {
+func NewPermissionRepository(permissionRepository PermissionRepository, loggerService commonInterfaces.Logger) *PermissionService {
 	return &PermissionService{
 		permissionRepository: permissionRepository,
 		logger:               loggerService,
 	}
 }
 
-func (ps *PermissionService) checkPermissions(ctx context.Context, bucketID, userID int) error {
+func (ps *PermissionService) CheckPermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := ps.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (ps *PermissionService) checkPermissions(ctx context.Context, bucketID, use
 }
 
 func (ps *PermissionService) Create(ctx context.Context, bucketID, userID, authorizedUserID, permission int) error {
-	err := ps.checkPermissions(ctx, bucketID, authorizedUserID)
+	err := ps.CheckPermissions(ctx, bucketID, authorizedUserID)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (ps *PermissionService) Create(ctx context.Context, bucketID, userID, autho
 }
 
 func (ps *PermissionService) Update(ctx context.Context, permissionID, bucketID, userID, authorizedUserID, permission int) error {
-	err := ps.checkPermissions(ctx, bucketID, authorizedUserID)
+	err := ps.CheckPermissions(ctx, bucketID, authorizedUserID)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (ps *PermissionService) Update(ctx context.Context, permissionID, bucketID,
 }
 
 func (ps *PermissionService) Delete(ctx context.Context, permissionID, bucketID, userID, authorizedUserID int) error {
-	err := ps.checkPermissions(ctx, bucketID, authorizedUserID)
+	err := ps.CheckPermissions(ctx, bucketID, authorizedUserID)
 	if err != nil {
 		return err
 	}

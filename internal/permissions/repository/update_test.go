@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	permissionRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/repository"
 )
 
 func TestUpdate(t *testing.T) {
@@ -69,7 +70,7 @@ func TestUpdate(t *testing.T) {
 		t.Run(testscenario.title, func(t *testing.T) {
 			db, ctx := testscenario.setupMock()
 			loggerservice := setupPermissionsRepositoryDependencies()
-			permissionRepository := NewPermissionRepository(loggerservice, db)
+			permissionRepository := permissionRepository.NewPermissionRepository(loggerservice, db)
 			err := permissionRepository.Update(ctx, 1, 1, 1, 7)
 
 			if (err != nil) != testscenario.wantErr {

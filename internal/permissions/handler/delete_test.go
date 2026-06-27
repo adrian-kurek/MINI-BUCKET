@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
+	permissionHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 	"github.com/stretchr/testify/mock"
@@ -23,7 +24,7 @@ func TestDelete(t *testing.T) {
 		verifiedUser     bool
 		withBucketID     bool
 		withPermissionID bool
-		setupMock        func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		setupMock        func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
 		wantErr          bool
 		err              error
 	}
@@ -37,7 +38,7 @@ func TestDelete(t *testing.T) {
 			verifiedUser:     true,
 			withBucketID:     true,
 			withPermissionID: true,
-			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -53,7 +54,7 @@ func TestDelete(t *testing.T) {
 			bodyRequestData: DTO.Delete{},
 			verifiedUser:    true,
 			withBucketID:    false,
-			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
@@ -70,7 +71,7 @@ func TestDelete(t *testing.T) {
 			},
 			verifiedUser: false,
 			withBucketID: false,
-			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
@@ -87,7 +88,7 @@ func TestDelete(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: false,
-			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
@@ -104,7 +105,7 @@ func TestDelete(t *testing.T) {
 			verifiedUser:     true,
 			withBucketID:     true,
 			withPermissionID: false,
-			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
@@ -122,7 +123,7 @@ func TestDelete(t *testing.T) {
 			verifiedUser:     true,
 			withBucketID:     true,
 			withPermissionID: true,
-			setupMock: func(r *http.Request) (permissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to delete permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -158,7 +159,7 @@ func TestDelete(t *testing.T) {
 			}
 			loggerService := setupPermissionsHandlerDependencies()
 			permissionService, authorizationMiddleware, w := testScenario.setupMock(r)
-			permissionHandler := NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
+			permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
 
 			err = permissionHandler.Delete(w, r)
 
