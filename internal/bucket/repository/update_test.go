@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	bucketRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/repository"
 )
 
 func TestUpdate(t *testing.T) {
@@ -70,7 +71,7 @@ func TestUpdate(t *testing.T) {
 		t.Run(testscenario.title, func(t *testing.T) {
 			db, ctx := testscenario.setupMock()
 			loggerservice := setupBucketRepositoryDependencies()
-			bucketRepository := NewBucketRepository(loggerservice, db)
+			bucketRepository := bucketRepository.NewBucketRepository(loggerservice, db)
 			bucketInput := DTO.BucketInput{}
 			err := bucketRepository.Update(ctx, 1, 1, bucketInput)
 

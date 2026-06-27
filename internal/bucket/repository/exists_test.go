@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	bucketRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/repository"
 )
 
 func TestExists(t *testing.T) {
@@ -100,7 +101,7 @@ func TestExists(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupBucketRepositoryDependencies()
-			bucketRepository := NewBucketRepository(loggerService, db)
+			bucketRepository := bucketRepository.NewBucketRepository(loggerService, db)
 			_, err := bucketRepository.Exists(ctx, 1)
 
 			if (err != nil) != testScenario.wantErr {

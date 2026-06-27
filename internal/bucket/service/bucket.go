@@ -8,23 +8,23 @@ import (
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 )
 
-type bucketRepository interface {
+type BucketRepository interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) (int, error)
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
 }
 
-type permissionRepository interface {
+type PermissionRepository interface {
 	Create(ctx context.Context, bucketID, userID, permission int) (int, error)
 	GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
 }
 
 type BucketService struct {
-	bucketRepository     bucketRepository
-	permissionRepository permissionRepository
+	bucketRepository     BucketRepository
+	permissionRepository PermissionRepository
 	loggerService        commonInterfaces.Logger
 }
 
-func NewBucketService(bucketRepository bucketRepository, permissionRepository permissionRepository, loggerService commonInterfaces.Logger) *BucketService {
+func NewBucketService(bucketRepository BucketRepository, permissionRepository PermissionRepository, loggerService commonInterfaces.Logger) *BucketService {
 	return &BucketService{
 		bucketRepository:     bucketRepository,
 		permissionRepository: permissionRepository,
@@ -32,7 +32,7 @@ func NewBucketService(bucketRepository bucketRepository, permissionRepository pe
 	}
 }
 
-func (bs *BucketService) checkPermissions(ctx context.Context, bucketID, userID int) error {
+func (bs *BucketService) CheckPermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := bs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDT
 }
 
 func (bs *BucketService) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error {
-	err := bs.checkPermissions(ctx, bucketID, userID)
+	err := bs.CheckPermissions(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}

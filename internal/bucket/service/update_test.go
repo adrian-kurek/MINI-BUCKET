@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	bucketService "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/service"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
 	"github.com/stretchr/testify/mock"
@@ -15,14 +16,14 @@ import (
 func TestUpdate(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (permissionRepository, bucketRepository)
+		setupMock func() (bucketService.PermissionRepository, bucketService.BucketRepository)
 		wantErr   bool
 		err       error
 	}
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() (permissionRepository, bucketRepository) {
+			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
@@ -35,7 +36,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			title: "failed to check permissions",
-			setupMock: func() (permissionRepository, bucketRepository) {
+			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to check permissions"))
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
@@ -47,7 +48,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			title: "failed to update",
-			setupMock: func() (permissionRepository, bucketRepository) {
+			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
@@ -67,7 +68,7 @@ func TestUpdate(t *testing.T) {
 
 			permissionRepository, mBucketRepository := testScenario.setupMock()
 			loggerService := setupBucketServiceDependencies()
-			bucketService := NewBucketService(mBucketRepository, permissionRepository, loggerService)
+			bucketService := bucketService.NewBucketService(mBucketRepository, permissionRepository, loggerService)
 
 			err := bucketService.Update(ctx, 1, 1, DTO.BucketInput{})
 			if (err != nil) != testScenario.wantErr {
