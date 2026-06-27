@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
+	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
@@ -17,7 +18,7 @@ func TestRefreshToken(t *testing.T) {
 	type args struct {
 		title        string
 		refreshToken []byte
-		setupMock    func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
+		setupMock    func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr      bool
 		err          error
 	}
@@ -25,7 +26,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "with proper data",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -44,7 +45,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "GetRefreshTokenByTokenHash failed",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -58,7 +59,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "token not found",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -74,7 +75,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "refresh token expired",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -91,7 +92,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "UpdateLastTimeUsedToken failed",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -110,7 +111,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:        "GenerateAccessToken failed",
 			refreshToken: []byte("123456789"),
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -136,7 +137,7 @@ func TestRefreshToken(t *testing.T) {
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			_, err := authService.RefreshToken(ctx, testScenario.refreshToken)
 			if (err != nil) != testScenario.wantErr {
@@ -151,3 +152,4 @@ func TestRefreshToken(t *testing.T) {
 		})
 	}
 }
+

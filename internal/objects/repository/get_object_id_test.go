@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	objectRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/repository"
 )
 
 func TestGetObjectID(t *testing.T) {
@@ -78,7 +79,7 @@ func TestGetObjectID(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupObjectRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			objectRepository := NewObjectRepository(db, loggerService)
+			objectRepository := objectRepository.NewObjectRepository(db, loggerService)
 
 			_, _, err := objectRepository.GetObjectID(ctx, "", 1)
 			if (err != nil) != testScenario.wantErr {

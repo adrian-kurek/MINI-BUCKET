@@ -21,7 +21,7 @@ import (
 
 const authTimeout = 2 * time.Second
 
-type authService interface {
+type AuthService interface {
 	Register(ctx context.Context, user authDTO.CreateUser) error
 	Login(ctx context.Context, loginData authDTO.LoginUser, ipAddress, deviceInfo string) (string, []byte, error)
 	RefreshToken(ctx context.Context, token []byte) (string, error)
@@ -32,11 +32,11 @@ type authService interface {
 
 type AuthHandler struct {
 	loggerService commonInterfahes.Logger
-	authService   authService
+	authService   AuthService
 	authorization commonInterfahes.AuthenticationMiddleware
 }
 
-func NewAuthHandler(loggerService commonInterfahes.Logger, authService authService, authorization commonInterfaces.AuthenticationMiddleware) *AuthHandler {
+func NewAuthHandler(loggerService commonInterfahes.Logger, authService AuthService, authorization commonInterfaces.AuthenticationMiddleware) *AuthHandler {
 	return &AuthHandler{
 		loggerService: loggerService,
 		authService:   authService,

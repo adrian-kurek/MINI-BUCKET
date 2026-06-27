@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/lib/pq"
 	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	userRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
 )
 
 func TestCreate(t *testing.T) {
@@ -85,16 +86,16 @@ func TestCreate(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			}
 			db, ctx := testScenario.setupMock()
-			authRepository := NewUserRepository(loggerService, db)
-			err := authRepository.Create(ctx, user, []byte("test"))
+			userRepository := userRepository.NewUserRepository(loggerService, db)
+			err := userRepository.Create(ctx, user, []byte("test"))
 
 			if (err != nil) != testScenario.wantErr {
-				t.Errorf("Register() error = %v, wantErr = %v", err, testScenario.wantErr)
+				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {
-					t.Errorf("Register() error = %v, scenarioError = %v", err, testScenario.err)
+					t.Errorf("Create() error = %v, scenarioError = %v", err, testScenario.err)
 				}
 			}
 		})

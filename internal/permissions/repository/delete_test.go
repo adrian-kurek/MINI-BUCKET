@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	permissionRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/repository"
 )
 
 func TestDelete(t *testing.T) {
@@ -63,7 +64,7 @@ func TestDelete(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupPermissionsRepositoryDependencies()
-			permissionRepository := NewPermissionRepository(loggerService, db)
+			permissionRepository := permissionRepository.NewPermissionRepository(loggerService, db)
 			err := permissionRepository.Delete(ctx, 0, 1, 1)
 
 			if (err != nil) != testScenario.wantErr {

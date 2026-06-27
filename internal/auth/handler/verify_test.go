@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
@@ -15,7 +16,7 @@ import (
 func TestVerify(t *testing.T) {
 	type args struct {
 		title      string
-		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
+		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter)
 		wantErr    bool
 		err        error
 	}
@@ -23,7 +24,7 @@ func TestVerify(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
@@ -38,7 +39,7 @@ func TestVerify(t *testing.T) {
 		},
 		{
 			title: "authorization.VerifyToken failed",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
@@ -54,7 +55,7 @@ func TestVerify(t *testing.T) {
 
 		{
 			title: "context.DeadlineExceeded",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
@@ -73,7 +74,7 @@ func TestVerify(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
 			if err != nil {

@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	authRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/repository"
 )
 
 func TestActivateAccount(t *testing.T) {
@@ -68,7 +69,7 @@ func TestActivateAccount(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
-			authRepository := NewAuthRepository(loggerService, db)
+			authRepository := authRepository.NewAuthRepository(loggerService, db)
 			err := authRepository.ActivateAccount(ctx, 1)
 
 			if (err != nil) != testScenario.wantErr {

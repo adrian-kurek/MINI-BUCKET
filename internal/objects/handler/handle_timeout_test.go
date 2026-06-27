@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	objectHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	objectMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/objects"
 )
@@ -13,7 +14,7 @@ import (
 func TestHandleTimeout(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (objectService, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware)
 		inputErr  error
 		err       error
 	}
@@ -21,7 +22,7 @@ func TestHandleTimeout(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "context deadline exceeded",
-			setupMock: func() (objectService, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				return mObjectService, mAuthenticationMiddleware
@@ -31,7 +32,7 @@ func TestHandleTimeout(t *testing.T) {
 		},
 		{
 			title: "operation err",
-			setupMock: func() (objectService, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				return mObjectService, mAuthenticationMiddleware
@@ -45,9 +46,9 @@ func TestHandleTimeout(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupObjectHandlerDependencies()
 			objectService, authorizationMiddleware := testScenario.setupMock()
-			objectHandler := NewObjectHandler(loggerService, authorizationMiddleware, objectService)
+			objectHandler := objectHandler.NewObjectHandler(loggerService, authorizationMiddleware, objectService)
 
-			err := objectHandler.handleTimeout(testScenario.inputErr, "/")
+			err := objectHandler.HandleTimeout(testScenario.inputErr, "/")
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {

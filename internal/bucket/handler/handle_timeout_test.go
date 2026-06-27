@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	bucketHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 )
@@ -13,7 +14,7 @@ import (
 func TestHandleTimeout(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (bucketService, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware)
 		inputErr  error
 		err       error
 	}
@@ -21,7 +22,7 @@ func TestHandleTimeout(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "context deadline exceeded",
-			setupMock: func() (bucketService, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				return mBucketService, mAuthenticationMiddleware
@@ -31,7 +32,7 @@ func TestHandleTimeout(t *testing.T) {
 		},
 		{
 			title: "operation err",
-			setupMock: func() (bucketService, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				return mBucketService, mAuthenticationMiddleware
@@ -45,9 +46,9 @@ func TestHandleTimeout(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupBucketHandlerDependencies()
 			bucketService, authorizationMiddleware := testScenario.setupMock()
-			bucketHandler := NewBucketHandler(bucketService, authorizationMiddleware, loggerService)
+			bucketHandler := bucketHandler.NewBucketHandler(bucketService, authorizationMiddleware, loggerService)
 
-			err := bucketHandler.handleTimeout(testScenario.inputErr, "/")
+			err := bucketHandler.HandleTimeout(testScenario.inputErr, "/")
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {

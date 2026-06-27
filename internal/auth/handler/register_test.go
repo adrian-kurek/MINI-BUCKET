@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
@@ -19,7 +20,7 @@ func TestRegister(t *testing.T) {
 	type args struct {
 		title           string
 		bodyRequestData authDTO.CreateUser
-		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
+		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter)
 		wantErr         bool
 		err             error
 	}
@@ -33,7 +34,7 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
@@ -50,7 +51,7 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
@@ -67,7 +68,7 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
@@ -84,7 +85,7 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
@@ -101,7 +102,7 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joe",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(nil)
@@ -111,14 +112,14 @@ func TestRegister(t *testing.T) {
 			err:     errors.New("api error: the Username field must be at least 6 characters long"),
 		},
 		{
-			title: "authService.Register failed",
+			title: "authHandler.AuthService.Register failed",
 			bodyRequestData: authDTO.CreateUser{
 				Email:           "joeDoe1@gmail.com",
 				Password:        "zaq1@#$rfVaaa",
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(errors.New("failed to process data"))
@@ -135,7 +136,7 @@ func TestRegister(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfVaaa",
 				Username:        "joeDoe1",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Register", mock.Anything, mock.Anything).Return(context.DeadlineExceeded)
@@ -150,7 +151,7 @@ func TestRegister(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
 			if err != nil {

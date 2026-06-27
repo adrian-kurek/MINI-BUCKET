@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	versionRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/repository"
 )
 
-func TestGetObjectKey(t *testing.T) {
+func TestGetNewVersionNumber(t *testing.T) {
 	type args struct {
 		title     string
 		setupMock func() (*sql.DB, context.Context)
@@ -86,7 +87,7 @@ func TestGetObjectKey(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupVersionRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			versionRepository := NewVersionRepository(db, loggerService)
+			versionRepository := versionRepository.NewVersionRepository(db, loggerService)
 			tx, err := db.BeginTx(context.Background(), nil)
 			if err != nil {
 				panic(err)

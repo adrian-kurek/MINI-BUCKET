@@ -16,7 +16,7 @@ import (
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 )
 
-type objectService interface {
+type ObjectService interface {
 	Upload(ctx context.Context, bucketID, userID int, fileInfo DTO.IncomingFile) error
 	HasPublicAccess(ctx context.Context, bucketID int) (bool, error)
 	GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error)
@@ -27,10 +27,10 @@ type objectService interface {
 type ObjectHandler struct {
 	loggerService        commonInterfaces.Logger
 	authorizationService commonInterfaces.AuthenticationMiddleware
-	objectService        objectService
+	objectService        ObjectService
 }
 
-func NewObjectHandler(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService objectService) *ObjectHandler {
+func NewObjectHandler(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService ObjectService) *ObjectHandler {
 	return &ObjectHandler{
 		loggerService:        loggerService,
 		authorizationService: authorizationService,
@@ -38,7 +38,7 @@ func NewObjectHandler(loggerService commonInterfaces.Logger, authorizationServic
 	}
 }
 
-func (oh *ObjectHandler) handleTimeout(err error, URLPath string) error {
+func (oh *ObjectHandler) HandleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		oh.loggerService.Info("request timed out", URLPath)
 		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
@@ -88,7 +88,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 
 	err = oh.objectService.Upload(ctx, bucketID, userID, incomingFile)
 	if err != nil {
-		return oh.handleTimeout(err, r.URL.Path)
+		return oh.HandleTimeout(err, r.URL.Path)
 	}
 	return nil
 }
@@ -104,7 +104,7 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 
 	hasPublicAccess, err := oh.objectService.HasPublicAccess(ctx, bucketID)
 	if err != nil {
-		return oh.handleTimeout(err, r.URL.Path)
+		return oh.HandleTimeout(err, r.URL.Path)
 	}
 	userID := 0
 	if !hasPublicAccess {
@@ -118,20 +118,20 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 		}
 		err = oh.objectService.CheckReadPermissions(ctx, bucketID, userID)
 		if err != nil {
-			return oh.handleTimeout(err, r.URL.Path)
+			return oh.HandleTimeout(err, r.URL.Path)
 		}
 	}
 
-	objectKey:= r.PathValue("objectKey")
+	objectKey := r.PathValue("objectKey")
 	var versionID int
-	versionID,err = strconv.Atoi(request.ReadQueryParam(r,"versionID"))
+	versionID, err = strconv.Atoi(request.ReadQueryParam(r, "versionID"))
 	if err != nil {
 		versionID = 0
 	}
 
-	metadata, err := oh.objectService.GetMetadata(ctx, bucketID, objectKey,versionID)
+	metadata, err := oh.objectService.GetMetadata(ctx, bucketID, objectKey, versionID)
 	if err != nil {
-		return oh.handleTimeout(err, r.URL.Path)
+		return oh.HandleTimeout(err, r.URL.Path)
 	}
 
 	response.Send(w, http.StatusOK, map[string]model.GetMetadata{
@@ -184,7 +184,7 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 
 	err = oh.objectService.Delete(ctx, bucketID, userID, objectKey, versionNumber, isHardDelete)
 	if err != nil {
-		return oh.handleTimeout(err, r.URL.Path)
+		return oh.HandleTimeout(err, r.URL.Path)
 	}
 
 	response.Send(w, http.StatusNoContent, nil)

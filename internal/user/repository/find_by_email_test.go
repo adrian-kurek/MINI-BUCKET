@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/lib/pq"
+	userRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/user/repository"
 )
 
 func TestFindByEmail(t *testing.T) {
@@ -95,16 +96,16 @@ func TestFindByEmail(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupUserRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			authRepository := NewUserRepository(loggerService, db)
-			_, err := authRepository.FindByEmail(ctx, "joedoe@gmail.com")
+			userRepository := userRepository.NewUserRepository(loggerService, db)
+			_, err := userRepository.FindByEmail(ctx, "joedoe@gmail.com")
 
 			if (err != nil) != testScenario.wantErr {
-				t.Errorf("Register() error = %v, wantErr = %v", err, testScenario.wantErr)
+				t.Errorf("FindByEmail() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {
-					t.Errorf("Register() error = %v, scenarioError = %v", err, testScenario.err)
+					t.Errorf("FindByEmail() error = %v, scenarioError = %v", err, testScenario.err)
 				}
 			}
 		})

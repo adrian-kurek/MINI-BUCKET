@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 	objectMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/objects"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
@@ -19,7 +20,7 @@ import (
 func TestCreate(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (permissionRepository, objectRepository, versionRepository, bucketRepository)
+		setupMock func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository)
 		wantErr   bool
 		err       error
 	}
@@ -27,7 +28,7 @@ func TestCreate(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data and versioning disabled and object does exist",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -45,7 +46,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to create object when versioning disabled",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -62,7 +63,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to update total size of an bucket",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -82,7 +83,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to update current version id of an object",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -101,7 +102,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to create version",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -119,7 +120,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to create object when versioning enabled",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -136,7 +137,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to update object ",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -153,7 +154,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to check permissions",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to perform query"))
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -166,7 +167,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to check does bucket exists",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -180,7 +181,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to check is versioning enabled",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -195,7 +196,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			title: "failed to get object id",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -222,7 +223,7 @@ func TestCreate(t *testing.T) {
 
 			permissionRepository, objectRepository, versionRepository, bucketRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
-			objectService := NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
+			objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
 
 			fileInfo := DTO.IncomingFile{
 				File:        strings.NewReader("test file content"),

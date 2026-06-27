@@ -15,18 +15,18 @@ import (
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 )
 
-type bucketService interface {
+type BucketService interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
 }
 
 type BucketHandler struct {
-	bucketService bucketService
+	bucketService BucketService
 	authorization commonInterfaces.AuthenticationMiddleware
 	loggerService commonInterfaces.Logger
 }
 
-func NewBucketHandler(bucketService bucketService, authorization commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *BucketHandler {
+func NewBucketHandler(bucketService BucketService, authorization commonInterfaces.AuthenticationMiddleware, loggerService commonInterfaces.Logger) *BucketHandler {
 	return &BucketHandler{
 		bucketService: bucketService,
 		authorization: authorization,
@@ -34,7 +34,7 @@ func NewBucketHandler(bucketService bucketService, authorization commonInterface
 	}
 }
 
-func (bh *BucketHandler) handleTimeout(err error, URLPath string) error {
+func (bh *BucketHandler) HandleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		bh.loggerService.Info("request timed out", URLPath)
 		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
@@ -68,7 +68,7 @@ func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 
 	err = bh.bucketService.Create(ctx, userID, *reqData)
 	if err != nil {
-		return bh.handleTimeout(err, r.URL.Path)
+		return bh.HandleTimeout(err, r.URL.Path)
 	}
 	response.Send(w, 201, nil)
 	return nil
@@ -105,7 +105,7 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 
 	err = bh.bucketService.Update(ctx, bucketID, userID, *reqData)
 	if err != nil {
-		return bh.handleTimeout(err, r.URL.Path)
+		return bh.HandleTimeout(err, r.URL.Path)
 	}
 
 	return nil
