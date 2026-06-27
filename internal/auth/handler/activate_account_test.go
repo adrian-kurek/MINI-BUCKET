@@ -29,7 +29,7 @@ func TestActivateAccount(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -48,7 +48,7 @@ func TestActivateAccount(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -67,7 +67,7 @@ func TestActivateAccount(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -86,7 +86,7 @@ func TestActivateAccount(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -105,7 +105,7 @@ func TestActivateAccount(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/activate?token=123123123123123123123123123123", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -126,7 +126,7 @@ func TestActivateAccount(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
 			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest("GET", "/auth/activate?token="+testScenario.token, nil)
+			r, err := http.NewRequest(http.MethodGet, "/auth/activate?token="+testScenario.token, nil)
 			if err != nil {
 				panic(err)
 			}

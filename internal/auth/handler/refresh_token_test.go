@@ -80,7 +80,7 @@ func TestRefreshToken(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
 			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest("POST", "/auth/login", nil)
+			r, err := http.NewRequest(http.MethodPost, "/auth/login", nil)
 			if err != nil {
 				panic(err)
 			}
@@ -106,4 +106,3 @@ func TestRefreshToken(t *testing.T) {
 		})
 	}
 }
-

@@ -269,7 +269,7 @@ func TestVerifyToken(t *testing.T) {
 				panic(err)
 			}
 
-			r, err := http.NewRequest("POST", "/auth/verify", nil)
+			r, err := http.NewRequest(http.MethodPost, "/auth/verify", nil)
 			if err != nil {
 				panic(err)
 			}
@@ -388,7 +388,7 @@ func TestBlacklistUser(t *testing.T) {
 				panic(err)
 			}
 
-			r, err := http.NewRequest("POST", "/auth/verify", nil)
+			r, err := http.NewRequest(http.MethodPost, "/auth/verify", nil)
 			if err != nil {
 				panic(err)
 			}

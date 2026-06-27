@@ -149,7 +149,7 @@ func TestUpdate(t *testing.T) {
 			}
 
 			bodyReader := bytes.NewReader(bodyBytes)
-			r, err := http.NewRequest("PUT", "/buckets/1/permissions/1", bodyReader)
+			r, err := http.NewRequest(http.MethodPut, "/buckets/1/permissions/1", bodyReader)
 			if err != nil {
 				panic(err)
 			}
