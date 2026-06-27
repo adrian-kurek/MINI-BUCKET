@@ -151,7 +151,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			setupMocks: func(setInContext bool) (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("DELETE", "/auth/logoutAll", nil)
+				r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -173,7 +173,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			setupMocks: func(setInContext bool) (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/verify", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -194,7 +194,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			setupMocks: func(setInContext bool) (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("DELETE", "/auth/logoutAll", nil)
+				r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -215,7 +215,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			setupMocks: func(setInContext bool) (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("DELETE", "/auth/logoutAll", nil)
+				r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -237,7 +237,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			setupMocks: func(setInContext bool) (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("DELETE", "/auth/logoutAll", nil)
+				r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -259,7 +259,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			setupMocks: func(setInContext bool) (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("DELETE", "/auth/logoutAll", nil)
+				r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -283,7 +283,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks(testScenario.setIDInContext)
 			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest("DELETE", "/auth/logoutAll", nil)
+			r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 			if err != nil {
 				panic(err)
 			}
