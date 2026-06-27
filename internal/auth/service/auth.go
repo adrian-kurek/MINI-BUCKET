@@ -16,7 +16,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type authRepository interface {
+type AuthRepository interface {
 	InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error
 	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
@@ -25,22 +25,22 @@ type authRepository interface {
 	ActivateAccount(ctx context.Context, userID int) error
 }
 
-type emailService interface {
+type EmailService interface {
 	SendEmail(to, subject, body string) error
 }
-type userRepository interface {
+type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (userModel.User, error)
 	Create(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error
 }
 type AuthService struct {
 	loggerService  commonInterfaces.Logger
-	userRepository userRepository
-	authRepository authRepository
+	userRepository UserRepository
+	authRepository AuthRepository
 	authorization  commonInterfaces.AuthenticationMiddleware
-	emailService   emailService
+	emailService   EmailService
 }
 
-func NewAuthService(loggerService commonInterfaces.Logger, userRepository userRepository, authRepository authRepository, authorization commonInterfaces.AuthenticationMiddleware, emailService emailService) *AuthService {
+func NewAuthService(loggerService commonInterfaces.Logger, userRepository UserRepository, authRepository AuthRepository, authorization commonInterfaces.AuthenticationMiddleware, emailService EmailService) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,

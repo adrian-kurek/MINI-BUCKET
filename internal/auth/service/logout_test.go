@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -7,14 +7,16 @@ import (
 	"time"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
+
 func TestLogoutUser(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr   bool
 		err       error
 	}
@@ -23,7 +25,7 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title: "with proper data",
 
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -38,7 +40,7 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title: "RemoveTokenFromDB failed",
 
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -60,7 +62,7 @@ func TestLogoutUser(t *testing.T) {
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			err := authService.LogoutUser(ctx, []byte("123456"))
 			if (err != nil) != testScenario.wantErr {
@@ -79,7 +81,7 @@ func TestLogoutUser(t *testing.T) {
 func TestLogoutUserFromAllDevices(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware)
+		setupMock func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware)
 		wantErr   bool
 		err       error
 	}
@@ -87,7 +89,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 	testsScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -101,7 +103,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 		{
 			title: "RemoveTokenFromDB failed",
 
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
@@ -122,7 +124,7 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			err := authService.LogoutUserFromAllDevices(ctx, 2)
 			if (err != nil) != testScenario.wantErr {
@@ -137,3 +139,4 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 		})
 	}
 }
+

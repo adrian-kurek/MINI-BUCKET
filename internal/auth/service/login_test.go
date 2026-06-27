@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authService "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/service"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
@@ -18,7 +19,7 @@ func TestLogin(t *testing.T) {
 	type args struct {
 		title     string
 		user      authDTO.LoginUser
-		setupMock func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService)
+		setupMock func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService)
 		wantErr   bool
 		err       error
 	}
@@ -30,7 +31,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -57,7 +58,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mEmailService := new(authMocks.MockEmailService)
@@ -75,7 +76,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mEmailService := new(authMocks.MockEmailService)
@@ -96,7 +97,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mEmailService := new(authMocks.MockEmailService)
@@ -119,7 +120,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -143,7 +144,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -166,7 +167,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe37",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -189,7 +190,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -213,7 +214,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
@@ -238,7 +239,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joedoe@gmail.com",
 				Password: "zasfsafds@#!sdwe32",
 			},
-			setupMock: func() (authRepository, userRepository, commonInterfaces.AuthenticationMiddleware, emailService) {
+			setupMock: func() (authService.AuthRepository, authService.UserRepository, commonInterfaces.AuthenticationMiddleware, authService.EmailService) {
 				mAuthRepository := new(authMocks.MockAuthRepository)
 				mUserRepository := new(mocks.MockUserRepository)
 				mEmailService := new(authMocks.MockEmailService)
@@ -268,7 +269,7 @@ func TestLogin(t *testing.T) {
 
 			authRepository, userRepository, authorizationMiddleware, emailService := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
-			authService := NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
 
 			ipAddress := "127.0.0.1:2137"
 			deviceInfo := "Apple computer"
@@ -286,4 +287,3 @@ func TestLogin(t *testing.T) {
 		})
 	}
 }
-

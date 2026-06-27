@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	jsonutil "github.com/slodkiadrianek/MINI-BUCKET/common/json_util"
 	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
+	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
@@ -19,7 +20,7 @@ func TestLogin(t *testing.T) {
 	type args struct {
 		title           string
 		bodyRequestData authDTO.LoginUser
-		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
+		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter)
 		wantErr         bool
 		err             error
 	}
@@ -31,7 +32,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("12312", []byte("1233445"), nil)
@@ -46,7 +47,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("12312", []byte("1233445"), nil)
@@ -56,12 +57,12 @@ func TestLogin(t *testing.T) {
 			err:     errors.New("api error: the Email field must be a valid email address"),
 		},
 		{
-			title: "authService.Login failed",
+			title: "authHandler.AuthService.Login failed",
 			bodyRequestData: authDTO.LoginUser{
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", []byte(""), errors.New("failed to process the data"))
@@ -76,7 +77,7 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", []byte(""), context.DeadlineExceeded)
@@ -91,7 +92,7 @@ func TestLogin(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
 			if err != nil {

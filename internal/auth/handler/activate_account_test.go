@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
+	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,7 +18,7 @@ func TestActivateAccount(t *testing.T) {
 	type args struct {
 		title      string
 		token      string
-		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
+		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter)
 		wantErr    bool
 		err        error
 	}
@@ -26,7 +27,7 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "with proper data",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
@@ -45,7 +46,7 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "authorization.VerifyToken() context.DeadlineExceeded",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
@@ -64,7 +65,7 @@ func TestActivateAccount(t *testing.T) {
 		{
 			title: "authorization.VerifyToken() failed",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
@@ -81,9 +82,9 @@ func TestActivateAccount(t *testing.T) {
 			err:     errors.New("failed to process data"),
 		},
 		{
-			title: "authService.ActivateAccount() failed",
+			title: "authHandler.AuthService.ActivateAccount() failed",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
@@ -100,9 +101,9 @@ func TestActivateAccount(t *testing.T) {
 			err:     errors.New("failed to process data"),
 		},
 		{
-			title: "authService.ActivateAccount() context.DeadlineExceeded",
+			title: "authHandler.AuthService.ActivateAccount() context.DeadlineExceeded",
 			token: "123123123123123123123123123123",
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				r, err := http.NewRequest(http.MethodGet, "/auth/activate?token=123123123123123123123123123123", nil)
@@ -124,7 +125,7 @@ func TestActivateAccount(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodGet, "/auth/activate?token="+testScenario.token, nil)
 			if err != nil {

@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
 	authMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,7 +18,7 @@ func TestRefreshToken(t *testing.T) {
 	type args struct {
 		title      string
 		setCookie  bool
-		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter)
+		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter)
 		wantErr    bool
 		err        error
 	}
@@ -26,7 +27,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:     "with proper data",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("12323232", nil)
@@ -38,7 +39,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:     "failed to read cookied from request",
 			setCookie: false,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("12323232", nil)
@@ -49,9 +50,9 @@ func TestRefreshToken(t *testing.T) {
 		},
 
 		{
-			title:     "authService.RefreshToken failed",
+			title:     "authHandler.AuthService.RefreshToken failed",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("", errors.New("failed to process data"))
@@ -63,7 +64,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			title:     "context.DeadlineExceeded",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("", context.DeadlineExceeded)
@@ -78,7 +79,7 @@ func TestRefreshToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodPost, "/auth/login", nil)
 			if err != nil {
