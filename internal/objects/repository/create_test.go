@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/lib/pq"
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	objectRepository "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/repository"
 )
 
 func TestCreate(t *testing.T) {
@@ -88,7 +89,7 @@ func TestCreate(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupObjectRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			objectRepository := NewObjectRepository(db, loggerService)
+			objectRepository := objectRepository.NewObjectRepository(db, loggerService)
 			tx, err := db.BeginTx(context.Background(), nil)
 			if err != nil {
 				panic(err)

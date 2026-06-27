@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 	objectMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/objects"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
@@ -17,7 +18,7 @@ import (
 func TestCheckWritePermissions(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (permissionRepository, objectRepository, versionRepository, bucketRepository)
+		setupMock func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository)
 		wantErr   bool
 		err       error
 	}
@@ -25,7 +26,7 @@ func TestCheckWritePermissions(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
@@ -38,7 +39,7 @@ func TestCheckWritePermissions(t *testing.T) {
 		},
 		{
 			title: "user is not allowed to perform an action",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(4, nil)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -51,7 +52,7 @@ func TestCheckWritePermissions(t *testing.T) {
 		},
 		{
 			title: "GetPermissionValByUserID failed",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to get data from db"))
 				mObjectRepository := new(objectMocks.MockObjectRepository)
@@ -73,9 +74,9 @@ func TestCheckWritePermissions(t *testing.T) {
 
 			permissionRepository, objectRepository, versionRepository, bucketRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
-			objectService := NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
+			objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
 
-			err := objectService.checkWritePermissions(ctx, 1, 1)
+			err := objectService.CheckWritePermissions(ctx, 1, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckPermissions() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

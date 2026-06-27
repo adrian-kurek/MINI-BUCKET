@@ -22,18 +22,18 @@ import (
 )
 
 type (
-	bucketRepository interface {
+	BucketRepository interface {
 		Exists(ctx context.Context, bucketID int) (bool, error)
 		GetPrivacyInfo(ctx context.Context, bucketID int) (bool, error)
 		IsVersioningEnabled(ctx context.Context, bucketID int) (bool, error)
 		UpdateTotalSize(ctx context.Context, bucketID, sizeBytes int) error
 	}
-	versionRepository interface {
+	VersionRepository interface {
 		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
 		Create(ctx context.Context, tx *sql.Tx, file versionsDTO.Create) (int, error)
 		GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error)
 	}
-	objectRepository interface {
+	ObjectRepository interface {
 		Create(ctx context.Context, tx *sql.Tx, file objectsDTO.Create) (int, error)
 		GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool, int, error)
 		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
@@ -44,21 +44,21 @@ type (
 		HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error
 		Update(ctx context.Context, tx *sql.Tx, file DTO.Update) error
 	}
-	permissionRepository interface {
+	PermissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
 	}
 )
 
 type ObjectService struct {
 	loggerService        commonInterfaces.Logger
-	objectRepository     objectRepository
-	permissionRepository permissionRepository
-	bucketRepository     bucketRepository
-	versionRepository    versionRepository
+	objectRepository     ObjectRepository
+	permissionRepository PermissionRepository
+	bucketRepository     BucketRepository
+	versionRepository    VersionRepository
 	db                   *sql.DB
 }
 
-func NewObjectService(loggerService commonInterfaces.Logger, objectRepository objectRepository, permissionRepository permissionRepository, bucketRepository bucketRepository, db *sql.DB, versionRepository versionRepository) *ObjectService {
+func NewObjectService(loggerService commonInterfaces.Logger, objectRepository ObjectRepository, permissionRepository PermissionRepository, bucketRepository BucketRepository, db *sql.DB, versionRepository VersionRepository) *ObjectService {
 	return &ObjectService{
 		loggerService:        loggerService,
 		objectRepository:     objectRepository,
@@ -69,7 +69,7 @@ func NewObjectService(loggerService commonInterfaces.Logger, objectRepository ob
 	}
 }
 
-func (obs *ObjectService) checkWritePermissions(ctx context.Context, bucketID, userID int) error {
+func (obs *ObjectService) CheckWritePermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (obs *ObjectService) checkWritePermissions(ctx context.Context, bucketID, u
 	return nil
 }
 
-func (obs *ObjectService) checkDoesBucketExist(ctx context.Context, bucketID int) error {
+func (obs *ObjectService) CheckDoesBucketExist(ctx context.Context, bucketID int) error {
 	doesBucketExist, err := obs.bucketRepository.Exists(ctx, bucketID)
 	if err != nil {
 		return err
@@ -155,12 +155,12 @@ func (obs *ObjectService) upsertObjectMetadata(ctx context.Context, tx *sql.Tx, 
 func (obs *ObjectService) upsertNonVersionedObject(ctx context.Context, tx *sql.Tx, exists bool, objectID, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string) error {
 	if !exists {
 		object := DTO.Create{
-			BucketID:    bucketID,
-			ObjectKey:   fileInfo.FileName,
-			ContentType: fileInfo.ContentType,
-			SizeBytes:   fileInfo.SizeBytes,
-			ETag:        etag,
-			UUID:        fileUUID,
+			BucketID:     bucketID,
+			ObjectKey:    fileInfo.FileName,
+			ContentType:  fileInfo.ContentType,
+			SizeBytes:    fileInfo.SizeBytes,
+			ETag:         etag,
+			UUID:         fileUUID,
 			StorageClass: fileInfo.StorageClass,
 		}
 		_, err := obs.objectRepository.Create(ctx, tx, object)
@@ -207,10 +207,10 @@ func (obs *ObjectService) upsertVersionedObject(ctx context.Context, tx *sql.Tx,
 }
 
 func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, fileInfo DTO.IncomingFile) error {
-	if err := obs.checkWritePermissions(ctx, bucketID, userID); err != nil {
+	if err := obs.CheckWritePermissions(ctx, bucketID, userID); err != nil {
 		return err
 	}
-	if err := obs.checkDoesBucketExist(ctx, bucketID); err != nil {
+	if err := obs.CheckDoesBucketExist(ctx, bucketID); err != nil {
 		return err
 	}
 

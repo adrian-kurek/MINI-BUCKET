@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
 	objectMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/objects"
 	permissionMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/permissions"
@@ -17,7 +18,7 @@ import (
 func TestCheckDoesBucketExist(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (permissionRepository, objectRepository, versionRepository, bucketRepository)
+		setupMock func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository)
 		wantErr   bool
 		err       error
 	}
@@ -25,7 +26,7 @@ func TestCheckDoesBucketExist(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
@@ -38,7 +39,7 @@ func TestCheckDoesBucketExist(t *testing.T) {
 		},
 		{
 			title: "bucket does not exists",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
@@ -51,7 +52,7 @@ func TestCheckDoesBucketExist(t *testing.T) {
 		},
 		{
 			title: "failed db query Exists failed ",
-			setupMock: func() (permissionRepository, objectRepository, versionRepository, bucketRepository) {
+			setupMock: func() (objectService.PermissionRepository, objectService.ObjectRepository, objectService.VersionRepository, objectService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
@@ -73,9 +74,9 @@ func TestCheckDoesBucketExist(t *testing.T) {
 
 			permissionRepository, objectRepository, versionRepository, bucketRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
-			objectService := NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
+			objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
 
-			err := objectService.checkDoesBucketExist(ctx, 1)
+			err := objectService.CheckDoesBucketExist(ctx, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckDoesBucketExist() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
