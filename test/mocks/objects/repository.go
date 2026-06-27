@@ -33,8 +33,8 @@ func (m *MockObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Contex
 	return args.Error(0)
 }
 
-func (m *MockObjectRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionNumber int) (model.GetMetadata, error) {
-	args := m.Called(ctx, bucketID, objectKey, versionNumber)
+func (m *MockObjectRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error) {
+	args := m.Called(ctx, bucketID, objectKey)
 	return args.Get(0).(model.GetMetadata), args.Error(1)
 }
 

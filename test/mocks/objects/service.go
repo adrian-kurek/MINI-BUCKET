@@ -17,8 +17,8 @@ func (m *MockObjectService) Upload(ctx context.Context, bucketID, userID int, fi
 	return args.Error(0)
 }
 
-func (m *MockObjectService) GetMetadata(ctx context.Context, bucketID int, objectKeyWithVersionNumber string) (model.GetMetadata, error) {
-	args := m.Called(ctx, bucketID, objectKeyWithVersionNumber)
+func (m *MockObjectService) GetMetadata(ctx context.Context, bucketID int, objectKey string,versionID int) (model.GetMetadata, error) {
+	args := m.Called(ctx, bucketID, objectKey, versionID)
 	return args.Get(0).(model.GetMetadata), args.Error(1)
 }
 
