@@ -211,7 +211,7 @@ func (br *BucketRepository) IsVersioningEnabled(ctx context.Context, bucketID in
 }
 
 func (br *BucketRepository) UpdateTotalSize(ctx context.Context, bucketID, sizeBytes int) error {
-	query := "UPDATE buckets SET total_size = total_size + $1 updated_at = NOW() WHERE id = $2 "
+	query := "UPDATE buckets SET total_size = total_size + $1, updated_at = NOW() WHERE id = $2 "
 
 	stmt, err := br.db.PrepareContext(ctx, query)
 	if err != nil {

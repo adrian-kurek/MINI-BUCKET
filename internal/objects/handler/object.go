@@ -19,7 +19,7 @@ import (
 type objectService interface {
 	Upload(ctx context.Context, bucketID, userID int, fileInfo DTO.IncomingFile) error
 	HasPublicAccess(ctx context.Context, bucketID int) (bool, error)
-	GetMetadata(ctx context.Context, bucketID int, objectKeyWithVersionNumber string) (model.GetMetadata, error)
+	GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error)
 	CheckReadPermissions(ctx context.Context, bucketID int, userID int) error
 	Delete(ctx context.Context, bucketID, userID int, objectKey string, versionNumber int, isHardDelete bool) error
 }
@@ -122,8 +122,14 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 		}
 	}
 
-	objectKeyWithVersionNumber := r.PathValue("objectKeyWithVersionNumber")
-	metadata, err := oh.objectService.GetMetadata(ctx, bucketID, objectKeyWithVersionNumber)
+	objectKey:= r.PathValue("objectKey")
+	var versionID int
+	versionID,err = strconv.Atoi(request.ReadQueryParam(r,"versionID"))
+	if err != nil {
+		versionID = 0
+	}
+
+	metadata, err := oh.objectService.GetMetadata(ctx, bucketID, objectKey,versionID)
 	if err != nil {
 		return oh.handleTimeout(err, r.URL.Path)
 	}

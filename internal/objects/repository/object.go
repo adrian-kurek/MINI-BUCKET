@@ -197,19 +197,22 @@ func (ob *ObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, 
 	return nil
 }
 
-func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionNumber int) (model.GetMetadata, error) {
-	query := `SELECT o.content_type, ov.etag, ov.size_bytes FROM objects o
-  INNER JOIN object_versions ov ON o.id = ov.object_id AND ov.version_number = $1
-  WHERE o.object_key = $2 AND o.bucket_id = $3
-  `
+func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error) {
+	query := `
+	SELECT 
+		o.content_type,
+		o.etag,
+		o.size_bytes 
+	FROM objects o
+  	WHERE o.object_key = $1 AND o.bucket_id = $2`
+
 	stmt, err := ob.db.PrepareContext(ctx, query)
 	if err != nil {
 		ob.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"bucket_id":      bucketID,
-				"version_number": versionNumber,
-				"object_key":     objectKey,
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
 			},
 			"error": err.Error(),
 		})
@@ -223,14 +226,13 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 
 	var objectMetadata model.GetMetadata
 
-	err = stmt.QueryRowContext(ctx, versionNumber, objectKey, bucketID).Scan(&objectMetadata.ContentType, &objectMetadata.ETAG, &objectMetadata.SizeBytes)
+	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&objectMetadata.ContentType, &objectMetadata.ETAG, &objectMetadata.SizeBytes)
 	if err != nil {
 		ob.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"bucket_id":      bucketID,
-				"version_number": versionNumber,
-				"object_key":     objectKey,
+				"bucket_id":  bucketID,
+				"object_key": objectKey,
 			},
 			"error": err.Error(),
 		})

@@ -31,12 +31,13 @@ type (
 	versionRepository interface {
 		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
 		Create(ctx context.Context, tx *sql.Tx, file versionsDTO.Create) (int, error)
+		GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error)
 	}
 	objectRepository interface {
 		Create(ctx context.Context, tx *sql.Tx, file objectsDTO.Create) (int, error)
 		GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool, int, error)
 		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
-		GetMetadata(ctx context.Context, bucketID int, objectKey string, versionNumber int) (model.GetMetadata, error)
+		GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error)
 		SoftDeleteVersion(ctx context.Context, objectID int, objectKey string, versionNumber int) error
 		SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error
 		HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error
@@ -160,6 +161,7 @@ func (obs *ObjectService) upsertNonVersionedObject(ctx context.Context, tx *sql.
 			SizeBytes:   fileInfo.SizeBytes,
 			ETag:        etag,
 			UUID:        fileUUID,
+			StorageClass: fileInfo.StorageClass,
 		}
 		_, err := obs.objectRepository.Create(ctx, tx, object)
 		return err
