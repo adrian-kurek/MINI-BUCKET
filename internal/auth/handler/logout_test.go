@@ -107,7 +107,7 @@ func TestLogoutUser(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
 			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest("DELETE", "/auth/logout", nil)
+			r, err := http.NewRequest(http.MethodDelete, "/auth/logout", nil)
 			if err != nil {
 				panic(err)
 			}

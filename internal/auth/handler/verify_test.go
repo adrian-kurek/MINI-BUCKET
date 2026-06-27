@@ -26,7 +26,7 @@ func TestVerify(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/verify", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -41,7 +41,7 @@ func TestVerify(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/verify", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -57,7 +57,7 @@ func TestVerify(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				r, err := http.NewRequest("GET", "/auth/verify", nil)
+				r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
 				if err != nil {
 					panic(err)
 				}
@@ -75,7 +75,7 @@ func TestVerify(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
 			authController := NewAuthHandler(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest("GET", "/auth/verify", nil)
+			r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
 			if err != nil {
 				panic(err)
 			}
