@@ -117,7 +117,7 @@ func TestCreate(t *testing.T) {
 			}
 
 			bodyReader := bytes.NewReader(bodyBytes)
-			r, err := http.NewRequest("POST", "/buckets", bodyReader)
+			r, err := http.NewRequest(http.MethodPost, "/buckets", bodyReader)
 			if err != nil {
 				panic(err)
 			}
