@@ -110,5 +110,6 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 		return bh.HandleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }

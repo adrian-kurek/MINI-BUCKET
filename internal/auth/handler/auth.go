@@ -159,6 +159,8 @@ func (ah *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) error {
 		return ah.handleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusNoContent, nil)
+
 	return nil
 }
 
@@ -186,6 +188,8 @@ func (ah *AuthHandler) ActivateAccount(w http.ResponseWriter, r *http.Request) e
 		return ah.handleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusNoContent, nil)
+
 	return nil
 }
 
@@ -208,6 +212,7 @@ func (ah *AuthHandler) LogoutUser(w http.ResponseWriter, r *http.Request) error 
 		return ah.handleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }
 
@@ -230,5 +235,6 @@ func (ah *AuthHandler) LogoutUserFromAllDevices(w http.ResponseWriter, r *http.R
 		return ah.handleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }

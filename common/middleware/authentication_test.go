@@ -20,7 +20,7 @@ func setupAuthControllerDependencies() (*log.Logger, string, string) {
 	loggerService := log.NewLogger("./logs", "2006-01-02", "15:04:05")
 	defer func() {
 		if closeErr := loggerService.Close(); closeErr != nil {
-			fmt.Errorf("failed to properly close file with logs:%s", closeErr.Error())
+			panic(fmt.Sprintf("failed to properly close file with logs:%s", closeErr.Error()))
 		}
 	}()
 
