@@ -31,7 +31,7 @@ func Make(f HTTPFunc) http.HandlerFunc {
 				response.Send(w, apiErr.StatusCode, map[string]string{"message": apiErr.Message})
 			} else {
 				fmt.Println(err.Error())
-				response.Send(w, 500, map[string]string{"message": "Internal server error"})
+				response.Send(w, http.StatusInternalServerError, map[string]string{"message": "Internal server error"})
 			}
 		}
 		durationOfTheRoute := time.Since(start) / time.Millisecond
@@ -41,7 +41,6 @@ func Make(f HTTPFunc) http.HandlerFunc {
 			RemoteAddr + "-" + formattedDurationOfTheRoute + reset)
 	}
 }
-
 
 func ReadUserIDFromToken(r *http.Request) (int, error) {
 	userID, ok := r.Context().Value("id").(int)
@@ -74,7 +73,6 @@ func ReadQueryParam(r *http.Request, QueryName string) string {
 	name := r.URL.Query().Get(QueryName)
 	return name
 }
-
 
 func SetContext(r *http.Request, key, data any) *http.Request {
 	ctx := context.WithValue(r.Context(), key, data)

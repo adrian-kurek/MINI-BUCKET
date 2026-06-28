@@ -22,9 +22,11 @@ func SetupEnvVariables(pathToEnvFile string) error {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+		splitToNParts := 2
+		parts := strings.SplitN(line, "=", splitToNParts)
 
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) != 2 {
+		neededNumberOfParts := 2
+		if len(parts) != neededNumberOfParts {
 			return fmt.Errorf("invalid format at line %d: %s", lineNum, line)
 		}
 

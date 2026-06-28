@@ -17,6 +17,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	defaultMaxIdleConns = 20
+	defaultMaxOpenConns = 20
+	defaultMaxIdleTime  = 30 * time.Second
+	defaultDBTimeout    = 5 * time.Second
+)
+
 type DB struct {
 	DBConnection *sql.DB
 }
@@ -34,11 +41,11 @@ func NewDB(databaseLink, dbDriver string) (*DB, error) {
 		return nil, err
 	}
 
-	dbConnection.SetConnMaxIdleTime(30 * time.Second)
-	dbConnection.SetMaxOpenConns(20)
-	dbConnection.SetMaxIdleConns(20)
+	dbConnection.SetConnMaxIdleTime(defaultMaxIdleTime)
+	dbConnection.SetMaxOpenConns(defaultMaxOpenConns)
+	dbConnection.SetMaxIdleConns(defaultMaxIdleConns)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultDBTimeout)
 	defer cancel()
 
 	if err = dbConnection.PingContext(ctx); err != nil {

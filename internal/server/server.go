@@ -16,6 +16,12 @@ import (
 	permissionRoutes "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/routes"
 )
 
+const (
+	defaultReadTimeout  = 50 * time.Second
+	defaultWriteTimeout = 50 * time.Second
+	defaultIdleTimeout  = 30 * time.Second
+)
+
 type DependencyConfig struct {
 	port              string
 	authHandler       authHandler.AuthHandler
@@ -52,9 +58,9 @@ func (s *Server) Start() error {
 	s.server = &http.Server{
 		Addr:         ":" + s.config.port,
 		Handler:      s.router,
-		ReadTimeout:  50 * time.Second,
-		WriteTimeout: 50 * time.Second,
-		IdleTimeout:  30 * time.Second,
+		ReadTimeout:  defaultReadTimeout,
+		WriteTimeout: defaultWriteTimeout,
+		IdleTimeout:  defaultIdleTimeout,
 	}
 	return s.server.ListenAndServe()
 }

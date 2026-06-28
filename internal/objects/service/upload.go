@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -76,7 +77,7 @@ func (obs *ObjectService) CheckWritePermissions(ctx context.Context, bucketID, u
 	}
 	if permission != 2 && permission != 6 && permission != 3 && permission != 7 {
 		obs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
-		return commonErrors.NewAPIError(403, "you are not allowed to do this action")
+		return commonErrors.NewAPIError(http.StatusForbidden, "you are not allowed to do this action")
 	}
 	return nil
 }
@@ -87,7 +88,7 @@ func (obs *ObjectService) CheckDoesBucketExist(ctx context.Context, bucketID int
 		return err
 	}
 	if !doesBucketExist {
-		return commonErrors.NewAPIError(404, "bucket with provided id does not exist")
+		return commonErrors.NewAPIError(http.StatusNotFound, "bucket with provided id does not exist")
 	}
 	return nil
 }
@@ -113,7 +114,7 @@ func (obs *ObjectService) uploadFileAndComputeETag(destPath string, file io.Read
 func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (string, error) {
 	if objectKey == "" || strings.Contains(objectKey, "/") || strings.Contains(objectKey, "\\") || strings.Contains(objectKey, "..") {
 		fmt.Println(objectKey)
-		return "", commonErrors.NewAPIError(400, "invalid file name")
+		return "", commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
 	}
 
 	uploadDir := "./uploads/" + strconv.Itoa(bucketID)
@@ -134,7 +135,7 @@ func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (
 
 	uploadDirWithSep := absUploadDir + string(os.PathSeparator)
 	if absCandidatePath != absUploadDir && !strings.HasPrefix(absCandidatePath, uploadDirWithSep) {
-		return "", commonErrors.NewAPIError(400, "invalid file name")
+		return "", commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
 	}
 
 	return candidatePath, nil

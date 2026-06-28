@@ -26,7 +26,8 @@ func (es *EmailService) SendEmail(to, subject, body string) error {
 	message.SetHeader("Subject", subject)
 	message.SetBody("text/html", body)
 
-	dialer := gomail.NewDialer("smtp.gmail.com", 587, es.hostEmail, es.emailPassword)
+	port := 587
+	dialer := gomail.NewDialer("smtp.gmail.com", port, es.hostEmail, es.emailPassword)
 	if err := dialer.DialAndSend(message); err != nil {
 		es.loggerService.Error("failed to send email", err)
 		return err
