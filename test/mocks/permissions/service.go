@@ -21,6 +21,6 @@ func (m *MockPermissionService) Update(ctx context.Context, permissionID, bucket
 }
 
 func (m *MockPermissionService) Delete(ctx context.Context, permissionID, bucketID, userID, authorizedUserID int) error {
-	args := m.Called(ctx, bucketID, userID, authorizedUserID)
+	args := m.Called(ctx, permissionID, bucketID, userID, authorizedUserID)
 	return args.Error(0)
 }
