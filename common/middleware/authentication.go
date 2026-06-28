@@ -37,7 +37,8 @@ func NewAuthenticationMiddleware(accessTokenSecret string, refreshTokenSecret st
 }
 
 func (am *AuthenticationMiddleware) GenerateRefreshToken() ([]byte, error) {
-	bytes := make([]byte, 64)
+	lengthOfRefreshToken := 64
+	bytes := make([]byte, lengthOfRefreshToken)
 
 	_, err := rand.Read(bytes)
 	if err != nil {

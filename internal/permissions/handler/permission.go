@@ -14,6 +14,8 @@ import (
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 )
 
+const permissionTimeout = 2 * time.Second
+
 type PermissionService interface {
 	Create(ctx context.Context, bucketID, userID, authorizedUserID, permission int) error
 	Update(ctx context.Context, permissionID, bucketID, userID, authorizedUserID, permission int) error
@@ -42,7 +44,7 @@ func (ph *PermissionHandler) HandleTimeout(err error, URLPath string) error {
 }
 
 func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	ctx, cancel := context.WithTimeout(r.Context(), permissionTimeout)
 	defer cancel()
 
 	r, err := ph.authorization.VerifyToken(r)
@@ -79,7 +81,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	ctx, cancel := context.WithTimeout(r.Context(), permissionTimeout)
 	defer cancel()
 
 	r, err := ph.authorization.VerifyToken(r)
@@ -121,7 +123,7 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	ctx, cancel := context.WithTimeout(r.Context(), permissionTimeout)
 	defer cancel()
 
 	r, err := ph.authorization.VerifyToken(r)

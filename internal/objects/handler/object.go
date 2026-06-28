@@ -16,6 +16,8 @@ import (
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 )
 
+const objectTimeout = 2 * time.Second
+
 type ObjectService interface {
 	Upload(ctx context.Context, bucketID, userID int, fileInfo DTO.IncomingFile) error
 	HasPublicAccess(ctx context.Context, bucketID int) (bool, error)
@@ -47,7 +49,8 @@ func (oh *ObjectHandler) HandleTimeout(err error, URLPath string) error {
 }
 
 func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Minute*1000)
+	uploadTimeout := time.Second * 2000
+	ctx, cancel := context.WithTimeout(r.Context(), uploadTimeout)
 	defer cancel()
 
 	r, err := oh.authorizationService.VerifyToken(r)
@@ -94,7 +97,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	ctx, cancel := context.WithTimeout(r.Context(), objectTimeout)
 	defer cancel()
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
@@ -142,7 +145,8 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 }
 
 func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
+	deleteTimeout := time.Second * 5
+	ctx, cancel := context.WithTimeout(r.Context(), deleteTimeout)
 	defer cancel()
 
 	r, err := oh.authorizationService.VerifyToken(r)

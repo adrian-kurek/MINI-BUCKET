@@ -15,6 +15,8 @@ import (
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
 )
 
+const bucketTimeout = 2 * time.Second
+
 type BucketService interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
@@ -43,7 +45,7 @@ func (bh *BucketHandler) HandleTimeout(err error, URLPath string) error {
 }
 
 func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	ctx, cancel := context.WithTimeout(r.Context(), bucketTimeout)
 	defer cancel()
 
 	r, err := bh.authorization.VerifyToken(r)
@@ -70,12 +72,12 @@ func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return bh.HandleTimeout(err, r.URL.Path)
 	}
-	response.Send(w, 201, nil)
+	response.Send(w, http.StatusCreated, nil)
 	return nil
 }
 
 func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	ctx, cancel := context.WithTimeout(r.Context(), bucketTimeout)
 	defer cancel()
 
 	r, err := bh.authorization.VerifyToken(r)
