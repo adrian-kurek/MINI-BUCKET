@@ -107,7 +107,7 @@ func (am *AuthenticationMiddleware) isTokenBlackListed(ctx context.Context, toke
 	}
 
 	if result > 0 {
-		err := errors.New("token blacklisted")
+		err = errors.New("token blacklisted")
 		am.loggerService.Info(err.Error(), nil)
 		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 	}
@@ -139,7 +139,7 @@ func (am *AuthenticationMiddleware) VerifyToken(r *http.Request) (*http.Request,
 		return r, err
 	}
 
-	if err := ctx.Err(); err != nil {
+	if err = ctx.Err(); err != nil {
 		return r, err
 	}
 
@@ -149,7 +149,7 @@ func (am *AuthenticationMiddleware) VerifyToken(r *http.Request) (*http.Request,
 		return r, commonErrors.NewAPIError(http.StatusUnauthorized, "provided token is invalid")
 	}
 
-	if err := ctx.Err(); err != nil {
+	if err = ctx.Err(); err != nil {
 		return r, err
 	}
 

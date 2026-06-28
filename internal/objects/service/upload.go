@@ -103,7 +103,7 @@ func (obs *ObjectService) uploadFileAndComputeETag(destPath string, file io.Read
 	hash := md5.New()
 	tee := io.TeeReader(file, hash)
 
-	if _, err := io.Copy(destFile, tee); err != nil {
+	if _, err = io.Copy(destFile, tee); err != nil {
 		os.Remove(destPath)
 		return "", err
 	}
@@ -239,17 +239,17 @@ func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, file
 	}
 	defer tx.Rollback()
 
-	if err := obs.upsertObjectMetadata(ctx, tx, bucketID, fileInfo, fileUUID, etag, versioningEnabled); err != nil {
+	if err = obs.upsertObjectMetadata(ctx, tx, bucketID, fileInfo, fileUUID, etag, versioningEnabled); err != nil {
 		os.Remove(destPath)
 		return err
 	}
 
-	if err := obs.bucketRepository.UpdateTotalSize(ctx, bucketID, fileInfo.SizeBytes); err != nil {
+	if err = obs.bucketRepository.UpdateTotalSize(ctx, bucketID, fileInfo.SizeBytes); err != nil {
 		os.Remove(destPath)
 		return err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		os.Remove(destPath)
 		return err
 	}

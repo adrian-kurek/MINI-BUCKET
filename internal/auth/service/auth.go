@@ -57,7 +57,7 @@ func (as *AuthService) Register(ctx context.Context, user authDTO.CreateUser) er
 	}
 
 	if userFromDB.ID != 0 {
-		err := errors.New("user with provided email already exists")
+		err = errors.New("user with provided email already exists")
 		as.loggerService.Info(err.Error(), user.Email)
 		return commonErrors.NewAPIError(http.StatusBadRequest, err.Error())
 	}
@@ -67,7 +67,7 @@ func (as *AuthService) Register(ctx context.Context, user authDTO.CreateUser) er
 		return err
 	}
 
-	if err := ctx.Err(); err != nil {
+	if err = ctx.Err(); err != nil {
 		return err
 	}
 
@@ -109,7 +109,7 @@ func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, i
 	}
 
 	if userFromDB.ID == 0 {
-		err := errors.New("user with provided email not found")
+		err = errors.New("user with provided email not found")
 		as.loggerService.Info(err.Error(), loginData.Email)
 		return "", nil, commonErrors.NewAPIError(http.StatusNotFound, err.Error())
 	}
@@ -120,13 +120,13 @@ func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, i
 
 	err = bcrypt.CompareHashAndPassword([]byte(userFromDB.Password), []byte(loginData.Password))
 	if err != nil {
-		err := errors.New("provided incorrect password")
+		err = errors.New("provided incorrect password")
 		as.loggerService.Info(err.Error(), loginData.Email)
 		return "", nil, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 
 	}
 
-	if err := ctx.Err(); err != nil {
+	if err = ctx.Err(); err != nil {
 		return "", nil, err
 	}
 
@@ -142,7 +142,7 @@ func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, i
 
 	hashedRefreshToken := as.authorization.HashToken(refreshToken)
 
-	if err := ctx.Err(); err != nil {
+	if err = ctx.Err(); err != nil {
 		return "", nil, err
 	}
 
