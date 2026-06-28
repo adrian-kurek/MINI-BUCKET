@@ -11,6 +11,7 @@ import (
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/response"
 	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/permissions/DTO"
 )
 
@@ -77,6 +78,8 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 		return ph.HandleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusCreated, nil)
+
 	return nil
 }
 
@@ -119,6 +122,7 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 		return ph.HandleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }
 
@@ -161,5 +165,6 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 		return ph.HandleTimeout(err, r.URL.Path)
 	}
 
+	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }
