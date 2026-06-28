@@ -31,7 +31,7 @@ func setupAuthControllerDependencies() (*log.Logger, string, string) {
 
 	accessTokenSecret, ok := os.LookupEnv("ACCESS_TOKEN_SECRET")
 	if !ok {
-		err := errors.New("ACCESS_TOKEN_SECRET variable has not been initialized")
+		err = errors.New("ACCESS_TOKEN_SECRET variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "ACCESS_TOKEN_SECRET",
 		})
@@ -40,7 +40,7 @@ func setupAuthControllerDependencies() (*log.Logger, string, string) {
 
 	refreshTokenSecret, ok := os.LookupEnv("REFRESH_TOKEN_SECRET")
 	if !ok {
-		err := errors.New("REFRESH_TOKEN_SECRET variable has not been initialized")
+		err = errors.New("REFRESH_TOKEN_SECRET variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "REFRESH_TOKEN_SECRET",
 		})

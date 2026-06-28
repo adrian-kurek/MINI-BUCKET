@@ -35,7 +35,7 @@ func SetupEnvVariables(pathToEnvFile string) error {
 		if key == "" {
 			return fmt.Errorf("empty key at line %d", lineNum)
 		}
-		err := os.Setenv(key, value)
+		err = os.Setenv(key, value)
 		if err != nil {
 			return err
 		}

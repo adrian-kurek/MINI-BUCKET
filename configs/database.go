@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
@@ -62,12 +63,13 @@ func NewDB(databaseLink, dbDriver string) (*DB, error) {
 	for _, dirName := range migrationDirs {
 		migrationsPath := filepath.Join(wd, "migrations", dirName)
 
-		if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
+		if _, err = os.Stat(migrationsPath); os.IsNotExist(err) {
 			log.Printf("migrations directory not found, skipping: %s", migrationsPath)
 			continue
 		}
 
-		migrateDriver, err := postgres.WithInstance(dbConnection, &postgres.Config{
+		var migrateDriver database.Driver
+		migrateDriver, err = postgres.WithInstance(dbConnection, &postgres.Config{
 			MigrationsTable: fmt.Sprintf("%s_migrations", dirName),
 		})
 		if err != nil {
@@ -85,12 +87,12 @@ func NewDB(databaseLink, dbDriver string) (*DB, error) {
 
 		switch cmd {
 		case "up":
-			if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 				return nil, fmt.Errorf("migration up failed for %s: %w", dirName, err)
 			}
 			fmt.Printf("Migration up completed for %s\n", dirName)
 		case "down":
-			if err := m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			if err = m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 				return nil, fmt.Errorf("migration down failed for %s: %w", dirName, err)
 			}
 			fmt.Printf("Migration down completed for %s\n", dirName)

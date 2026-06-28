@@ -115,7 +115,8 @@ func (l *Logger) initializeLogger() {
 	}
 
 	if stats.Size() > 0 {
-		content, err := os.ReadFile(l.logDir + "/" + filename + ".json")
+		var content []byte
+		content, err = os.ReadFile(l.logDir + "/" + filename + ".json")
 		if err != nil {
 			panic(err)
 		}

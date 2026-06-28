@@ -43,7 +43,7 @@ func main() {
 
 	_, ok := os.LookupEnv("HOST_LINK")
 	if !ok {
-		err := errors.New("HOST_LINK variable has not been initialized")
+		err = errors.New("HOST_LINK variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "HOST_LINK",
 		})
@@ -52,7 +52,7 @@ func main() {
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
-		err := errors.New("PORT variable has not been initialized")
+		err = errors.New("PORT variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "PORT",
 		})
@@ -61,7 +61,7 @@ func main() {
 
 	dbLink, ok := os.LookupEnv("DB_LINK")
 	if !ok {
-		err := errors.New("DB_LINK variable has not been initialized")
+		err = errors.New("DB_LINK variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "DB_LINK",
 		})
@@ -76,7 +76,7 @@ func main() {
 
 	cacheConnectionLink, ok := os.LookupEnv("CACHE_LINK")
 	if !ok {
-		err := errors.New("CACHE_LINK variable has not been initialized")
+		err = errors.New("CACHE_LINK variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "CACHE_LINK",
 		})
@@ -91,7 +91,7 @@ func main() {
 
 	accessTokenSecret, ok := os.LookupEnv("ACCESS_TOKEN_SECRET")
 	if !ok {
-		err := errors.New("ACCESS_TOKEN_SECRET variable has not been initialized")
+		err = errors.New("ACCESS_TOKEN_SECRET variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "ACCESS_TOKEN_SECRET",
 		})
@@ -100,7 +100,7 @@ func main() {
 
 	refreshTokenSecret, ok := os.LookupEnv("REFRESH_TOKEN_SECRET")
 	if !ok {
-		err := errors.New("REFRESH_TOKEN_SECRET variable has not been initialized")
+		err = errors.New("REFRESH_TOKEN_SECRET variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "REFRESH_TOKEN_SECRET",
 		})
@@ -109,7 +109,7 @@ func main() {
 
 	hostEmail, ok := os.LookupEnv("HOST_EMAIL")
 	if !ok {
-		err := errors.New("HOST_EMAIL variable has not been initialized")
+		err = errors.New("HOST_EMAIL variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "HOST_EMAIL",
 		})
@@ -118,7 +118,7 @@ func main() {
 
 	passwordEmail, ok := os.LookupEnv("PASSWORD_EMAIL")
 	if !ok {
-		err := errors.New("PASSWORD_EMAIL variable has not been initialized")
+		err = errors.New("PASSWORD_EMAIL variable has not been initialized")
 		loggerService.Error(err.Error(), map[string]string{
 			"variable": "PASSWORD_EMAIL",
 		})
@@ -149,7 +149,7 @@ func main() {
 	httpServer := server.NewServer(dependenciesConfig)
 	go func() {
 		loggerService.Info(fmt.Sprintf("server started at port:%s", port), nil)
-		if err := httpServer.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err = httpServer.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			loggerService.Error("Failed to start server", err)
 		}
 	}()
@@ -159,9 +159,9 @@ func main() {
 	<-quit
 	defer apiCtxCancel()
 
-	if err := httpServer.Shutdown(apiCtx); err != nil {
+	if err = httpServer.Shutdown(apiCtx); err != nil {
 		loggerService.Error("Server forced to shutdown:", err)
-		err := loggerService.Close()
+		err = loggerService.Close()
 		if err != nil {
 			panic(err)
 		}
