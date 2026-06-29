@@ -83,8 +83,10 @@ func TestGetPermissionValByUserID(t *testing.T) {
 						FROM bucket_permissions 
 						WHERE bucket_id = $1 AND user_id = $2`,
 					),
-				).ExpectQuery().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(errors.New("failed to execute sql query"))
+				).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnError(errors.New("failed to execute sql query"))
 
 				return db, ctx
 			},

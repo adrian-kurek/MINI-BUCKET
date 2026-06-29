@@ -25,7 +25,8 @@ func TestUpdate(t *testing.T) {
 			title: "with proper data",
 			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(7, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
@@ -38,7 +39,8 @@ func TestUpdate(t *testing.T) {
 			title: "failed to check permissions",
 			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to check permissions"))
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(0, errors.New("failed to check permissions"))
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 
 				return mPermissionRepository, mBucketRepository
@@ -50,9 +52,11 @@ func TestUpdate(t *testing.T) {
 			title: "failed to update",
 			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(7, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to update"))
+				mBucketRepository.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to update"))
 
 				return mPermissionRepository, mBucketRepository
 			},

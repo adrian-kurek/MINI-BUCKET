@@ -39,7 +39,8 @@ func TestCreate(t *testing.T) {
 			withBucketID: true,
 			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
-				mPermissionService.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mPermissionService.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -111,7 +112,8 @@ func TestCreate(t *testing.T) {
 			withBucketID: true,
 			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
-				mPermissionService.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to create new permission"))
+				mPermissionService.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to create new permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -141,7 +143,11 @@ func TestCreate(t *testing.T) {
 			}
 			loggerService := setupPermissionsHandlerDependencies()
 			permissionService, authorizationMiddleware, w := testScenario.setupMock(r)
-			permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
+			permissionHandler := permissionHandler.NewPermissionHandler(
+				permissionService,
+				authorizationMiddleware,
+				loggerService,
+			)
 
 			err = permissionHandler.Create(w, r)
 

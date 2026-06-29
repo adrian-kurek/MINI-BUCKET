@@ -31,10 +31,11 @@ func TestRefreshToken(t *testing.T) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
-				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
-					ID:        1,
-					ExpiresAt: time.Now().Add(10 * time.Minute),
-				}, nil)
+				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).
+					Return(authModel.TokenWithUserEmailToRefreshToken{
+						ID:        1,
+						ExpiresAt: time.Now().Add(10 * time.Minute),
+					}, nil)
 				mAuthRepository.On("UpdateLastTimeUsedToken", mock.Anything, mock.Anything).Return(nil)
 				mAuthenticationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123456", nil)
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
@@ -50,7 +51,8 @@ func TestRefreshToken(t *testing.T) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
-				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{}, errors.New("failed to get token from DB"))
+				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).
+					Return(authModel.TokenWithUserEmailToRefreshToken{}, errors.New("failed to get token from DB"))
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
@@ -64,9 +66,10 @@ func TestRefreshToken(t *testing.T) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
-				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
-					ID: 0,
-				}, nil)
+				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).
+					Return(authModel.TokenWithUserEmailToRefreshToken{
+						ID: 0,
+					}, nil)
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
@@ -80,10 +83,11 @@ func TestRefreshToken(t *testing.T) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
-				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
-					ID:        1,
-					ExpiresAt: time.Now().Add(-2 * time.Minute),
-				}, nil)
+				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).
+					Return(authModel.TokenWithUserEmailToRefreshToken{
+						ID:        1,
+						ExpiresAt: time.Now().Add(-2 * time.Minute),
+					}, nil)
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
@@ -97,12 +101,13 @@ func TestRefreshToken(t *testing.T) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
-				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
-					ID:        1,
-					ExpiresAt: time.Now().Add(10 * time.Minute),
-				}, nil)
-				mAuthRepository.On("UpdateLastTimeUsedToken", mock.Anything, mock.Anything).Return(errors.New("failed to update last time used token"))
-				// mAuthenticationMiddleware.On("GenerateAccessToken", mock.Anything).Return("123456", nil)
+				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).
+					Return(authModel.TokenWithUserEmailToRefreshToken{
+						ID:        1,
+						ExpiresAt: time.Now().Add(10 * time.Minute),
+					}, nil)
+				mAuthRepository.On("UpdateLastTimeUsedToken", mock.Anything, mock.Anything).
+					Return(errors.New("failed to update last time used token"))
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
@@ -116,12 +121,14 @@ func TestRefreshToken(t *testing.T) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("abcdef")
-				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).Return(authModel.TokenWithUserEmailToRefreshToken{
-					ID:        1,
-					ExpiresAt: time.Now().Add(10 * time.Minute),
-				}, nil)
+				mAuthRepository.On("GetRefreshTokenByTokenHash", mock.Anything, mock.Anything).
+					Return(authModel.TokenWithUserEmailToRefreshToken{
+						ID:        1,
+						ExpiresAt: time.Now().Add(10 * time.Minute),
+					}, nil)
 				mAuthRepository.On("UpdateLastTimeUsedToken", mock.Anything, mock.Anything).Return(nil)
-				mAuthenticationMiddleware.On("GenerateAccessToken", mock.Anything).Return("", errors.New("failed to generate new access token"))
+				mAuthenticationMiddleware.On("GenerateAccessToken", mock.Anything).
+					Return("", errors.New("failed to generate new access token"))
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
@@ -137,7 +144,13 @@ func TestRefreshToken(t *testing.T) {
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
-			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(
+				loggerService,
+				userRepository,
+				authRepository,
+				authorizationMiddleware,
+				emailService,
+			)
 
 			_, err := authService.RefreshToken(ctx, testScenario.refreshToken)
 			if (err != nil) != testScenario.wantErr {
@@ -152,4 +165,3 @@ func TestRefreshToken(t *testing.T) {
 		})
 	}
 }
-

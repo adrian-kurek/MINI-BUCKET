@@ -55,7 +55,14 @@ func (ov *VersionRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Cr
 	}()
 
 	var newVersionID int
-	err = stmt.QueryRowContext(ctx, file.ObjectID, file.UUID, file.SizeBytes, file.ETag, file.StorageClass).Scan(&newVersionID)
+	err = stmt.QueryRowContext(
+		ctx,
+		file.ObjectID,
+		file.UUID,
+		file.SizeBytes,
+		file.ETag,
+		file.StorageClass,
+	).Scan(&newVersionID)
 	if err != nil {
 		ov.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
@@ -143,7 +150,12 @@ func (vr *VersionRepository) GetMetadata(ctx context.Context, bucketID int, obje
 	}()
 
 	var metadata model.GetMetadata
-	err = stmt.QueryRowContext(ctx, bucketID, objectKey, versionID).Scan(&metadata.SizeBytes, &metadata.ETAG, &metadata.ContentType)
+	err = stmt.QueryRowContext(
+		ctx,
+		bucketID,
+		objectKey,
+		versionID,
+	).Scan(&metadata.SizeBytes, &metadata.ETAG, &metadata.ContentType)
 	if err != nil {
 		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,

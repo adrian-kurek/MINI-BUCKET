@@ -20,7 +20,12 @@ func (obs *ObjectService) CheckReadPermissions(ctx context.Context, bucketID int
 	return nil
 }
 
-func (obs *ObjectService) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error) {
+func (obs *ObjectService) GetMetadata(
+	ctx context.Context,
+	bucketID int,
+	objectKey string,
+	versionID int,
+) (model.GetMetadata, error) {
 	isVersioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
 	if err != nil {
 		return model.GetMetadata{}, err

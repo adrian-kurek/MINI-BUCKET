@@ -14,7 +14,6 @@ type User struct {
 	EmailVerified bool
 	CreatedAt     time.Time
 }
-
 type UserClaims struct {
 	ID       int    `json:"id" example:"11"`
 	Email    string `json:"email" example:"joedoe@email.com"`

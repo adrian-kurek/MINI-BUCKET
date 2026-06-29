@@ -57,7 +57,8 @@ func TestCheckDoesBucketExist(t *testing.T) {
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("Exists", mock.Anything, mock.Anything).Return(false, errors.New("failed to perform query"))
+				mBucketRepository.On("Exists", mock.Anything, mock.Anything).
+					Return(false, errors.New("failed to perform query"))
 				return mPermissionRepository, mObjectRepository, mVersionRepository, mBucketRepository
 			},
 			wantErr: true,
@@ -74,7 +75,14 @@ func TestCheckDoesBucketExist(t *testing.T) {
 
 			permissionRepository, objectRepository, versionRepository, bucketRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
-			objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db, versionRepository)
+			objectService := objectService.NewObjectService(
+				loggerService,
+				objectRepository,
+				permissionRepository,
+				bucketRepository,
+				db,
+				versionRepository,
+			)
 
 			err := objectService.CheckDoesBucketExist(ctx, 1)
 			if (err != nil) != testScenario.wantErr {

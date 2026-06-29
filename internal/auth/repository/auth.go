@@ -8,6 +8,7 @@ import (
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
+
 	// authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 )
@@ -26,7 +27,13 @@ func NewAuthRepository(loggerService commonInterfaces.Logger, db *sql.DB) *AuthR
 	}
 }
 
-func (ar *AuthRepository) InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error {
+func (ar *AuthRepository) InsertRefreshToken(
+	ctx context.Context,
+	ipAddress string,
+	deviceInfo string,
+	refreshToken string,
+	userID int,
+) error {
 	query := `INSERT INTO refresh_tokens(user_id,token_hash,device_info,ip_address, expires_at, last_used_at) VALUES($1,$2,$3,$4,$5,$6)`
 
 	stmt, err := ar.db.PrepareContext(ctx, query)
@@ -63,7 +70,10 @@ func (ar *AuthRepository) InsertRefreshToken(ctx context.Context, ipAddress, dev
 	return nil
 }
 
-func (ar *AuthRepository) GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error) {
+func (ar *AuthRepository) GetRefreshTokenByTokenHash(
+	ctx context.Context,
+	refreshToken string,
+) (authModel.TokenWithUserEmailToRefreshToken, error) {
 	query := `
 	SELECT 
 		rt.id,
@@ -95,7 +105,14 @@ func (ar *AuthRepository) GetRefreshTokenByTokenHash(ctx context.Context, refres
 
 	var tokenWithUserEmailToRefreshToken authModel.TokenWithUserEmailToRefreshToken
 
-	err = row.Scan(&tokenWithUserEmailToRefreshToken.ID, &tokenWithUserEmailToRefreshToken.UserID, &tokenWithUserEmailToRefreshToken.Email, &tokenWithUserEmailToRefreshToken.Username, &tokenWithUserEmailToRefreshToken.TokenHash, &tokenWithUserEmailToRefreshToken.ExpiresAt)
+	err = row.Scan(
+		&tokenWithUserEmailToRefreshToken.ID,
+		&tokenWithUserEmailToRefreshToken.UserID,
+		&tokenWithUserEmailToRefreshToken.Email,
+		&tokenWithUserEmailToRefreshToken.Username,
+		&tokenWithUserEmailToRefreshToken.TokenHash,
+		&tokenWithUserEmailToRefreshToken.ExpiresAt,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ar.loggerService.Info("token not found", nil)

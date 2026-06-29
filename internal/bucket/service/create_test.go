@@ -26,7 +26,8 @@ func TestCreate(t *testing.T) {
 			title: "with proper data",
 			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
+				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(1, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				return mPermissionRepository, mBucketRepository
@@ -39,7 +40,8 @@ func TestCreate(t *testing.T) {
 			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to create the new bucket"))
+				mBucketRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).
+					Return(0, errors.New("failed to create the new bucket"))
 				return mPermissionRepository, mBucketRepository
 			},
 			wantErr: true,
@@ -49,7 +51,8 @@ func TestCreate(t *testing.T) {
 			title: "failed to create new permission",
 			setupMock: func() (bucketService.PermissionRepository, bucketService.BucketRepository) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to create the new permission"))
+				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(0, errors.New("failed to create the new permission"))
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
 				mBucketRepository.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(1, nil)
 				return mPermissionRepository, mBucketRepository

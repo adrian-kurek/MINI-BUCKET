@@ -41,9 +41,11 @@ func TestUpdate(t *testing.T) {
 			withPermissionID: true,
 			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
-				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil) // use the real r, not a fresh one
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).
+					Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: false,
@@ -132,7 +134,8 @@ func TestUpdate(t *testing.T) {
 			withPermissionID: true,
 			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
-				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to update  permission"))
+				mPermissionService.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to update  permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -166,7 +169,11 @@ func TestUpdate(t *testing.T) {
 
 			loggerService := setupPermissionsHandlerDependencies()
 			permissionService, authorizationMiddleware, w := testScenario.setupMock(r)
-			permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
+			permissionHandler := permissionHandler.NewPermissionHandler(
+				permissionService,
+				authorizationMiddleware,
+				loggerService,
+			)
 
 			err = permissionHandler.Update(w, r)
 

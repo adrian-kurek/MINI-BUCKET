@@ -46,7 +46,11 @@ func TestHandleTimeout(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupPermissionsHandlerDependencies()
 			permissionService, authorizationMiddleware := testScenario.setupMock()
-			permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
+			permissionHandler := permissionHandler.NewPermissionHandler(
+				permissionService,
+				authorizationMiddleware,
+				loggerService,
+			)
 
 			err := permissionHandler.HandleTimeout(testScenario.inputErr, "/")
 

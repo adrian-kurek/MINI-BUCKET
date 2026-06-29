@@ -50,7 +50,16 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 	}()
 
 	var bucketID int
-	err = stmt.QueryRowContext(ctx, bucket.Name, userID, "", bucket.VersioningEnabled, bucket.PublicAccess, bucket.StorageClass, bucket.EncryptionEnabled).Scan(&bucketID)
+	err = stmt.QueryRowContext(
+		ctx,
+		bucket.Name,
+		userID,
+		"",
+		bucket.VersioningEnabled,
+		bucket.PublicAccess,
+		bucket.StorageClass,
+		bucket.EncryptionEnabled,
+	).Scan(&bucketID)
 	if err != nil {
 		br.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
@@ -97,7 +106,16 @@ func (br *BucketRepository) Update(ctx context.Context, bucketID, userID int, bu
 		}
 	}()
 
-	_, err = stmt.ExecContext(ctx, bucket.Name, bucket.VersioningEnabled, bucket.PublicAccess, bucket.StorageClass, bucket.EncryptionEnabled, bucketID, userID)
+	_, err = stmt.ExecContext(
+		ctx,
+		bucket.Name,
+		bucket.VersioningEnabled,
+		bucket.PublicAccess,
+		bucket.StorageClass,
+		bucket.EncryptionEnabled,
+		bucketID,
+		userID,
+	)
 	if err != nil {
 		br.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,

@@ -73,7 +73,14 @@ func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (model.
 	}()
 
 	var user model.User
-	err = stmt.QueryRowContext(ctx, email).Scan(&user.ID, &user.Email, &user.Username, &user.Password, &user.EmailVerified, &user.CreatedAt)
+	err = stmt.QueryRowContext(ctx, email).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Username,
+		&user.Password,
+		&user.EmailVerified,
+		&user.CreatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ur.loggerService.Info("user not found", map[string]any{

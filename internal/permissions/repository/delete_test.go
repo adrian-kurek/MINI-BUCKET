@@ -26,7 +26,9 @@ func TestDelete(t *testing.T) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
 				mock.ExpectPrepare(regexp.QuoteMeta("DELETE FROM bucket_permissions  WHERE id = $1 AND bucket_id = $2 AND user_id = $3")).
-					ExpectExec().WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(1, 1))
+					ExpectExec().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnResult(sqlmock.NewResult(1, 1))
 				return db, ctx
 			},
 			wantErr: false,
@@ -51,7 +53,9 @@ func TestDelete(t *testing.T) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
 				mock.ExpectPrepare(regexp.QuoteMeta("DELETE FROM bucket_permissions  WHERE id = $1 AND bucket_id = $2 AND user_id = $3")).
-					ExpectExec().WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(errors.New("failed to execute sql query"))
+					ExpectExec().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnError(errors.New("failed to execute sql query"))
 
 				return db, ctx
 			},

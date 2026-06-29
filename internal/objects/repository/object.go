@@ -60,7 +60,16 @@ func (or *ObjectRepository) Create(ctx context.Context, tx *sql.Tx, file DTO.Cre
 	}()
 
 	var ObjectID int
-	err = stmt.QueryRowContext(ctx, file.BucketID, file.ObjectKey, file.ContentType, file.SizeBytes, file.ETag, file.StorageClass, file.UUID).Scan(&ObjectID)
+	err = stmt.QueryRowContext(
+		ctx,
+		file.BucketID,
+		file.ObjectKey,
+		file.ContentType,
+		file.SizeBytes,
+		file.ETag,
+		file.StorageClass,
+		file.UUID,
+	).Scan(&ObjectID)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
@@ -226,7 +235,11 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 
 	var objectMetadata model.GetMetadata
 
-	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&objectMetadata.ContentType, &objectMetadata.ETAG, &objectMetadata.SizeBytes)
+	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(
+		&objectMetadata.ContentType,
+		&objectMetadata.ETAG,
+		&objectMetadata.SizeBytes,
+	)
 	if err != nil {
 		ob.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,

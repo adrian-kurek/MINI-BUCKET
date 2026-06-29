@@ -24,8 +24,10 @@ func TestCreate(t *testing.T) {
 			title: "with proper data",
 			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
-				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(7, nil)
+				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(7, nil)
 				return mPermissionRepository
 			},
 			wantErr: false,
@@ -35,8 +37,10 @@ func TestCreate(t *testing.T) {
 			title: "user is not allowed to perform an action",
 			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(2, nil)
-				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(2, nil)
+				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(7, nil)
 				return mPermissionRepository
 			},
 			wantErr: true,
@@ -47,8 +51,10 @@ func TestCreate(t *testing.T) {
 			title: "failed to create new permission",
 			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
-				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(7, errors.New("failed to create new permission"))
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(7, nil)
+				mPermissionRepository.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(7, errors.New("failed to create new permission"))
 				return mPermissionRepository
 			},
 			wantErr: true,

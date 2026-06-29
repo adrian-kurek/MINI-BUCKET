@@ -23,7 +23,12 @@ func (m *MockVersionRepository) GetNewVersionNumber(ctx context.Context, tx *sql
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockVersionRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error) {
+func (m *MockVersionRepository) GetMetadata(
+	ctx context.Context,
+	bucketID int,
+	objectKey string,
+	versionID int,
+) (model.GetMetadata, error) {
 	args := m.Called(ctx, bucketID, objectKey, versionID)
 	return args.Get(0).(model.GetMetadata), args.Error(1)
 }

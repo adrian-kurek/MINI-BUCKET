@@ -35,7 +35,8 @@ func TestActivateAccount(t *testing.T) {
 			title: "ActivateAccount failed",
 			setupMock: func() authService.AuthRepository {
 				mAuthRepository := new(authMocks.MockAuthRepository)
-				mAuthRepository.On("ActivateAccount", mock.Anything, mock.Anything).Return(errors.New("failed to activate account"))
+				mAuthRepository.On("ActivateAccount", mock.Anything, mock.Anything).
+					Return(errors.New("failed to activate account"))
 				return mAuthRepository
 			},
 			wantErr: true,
@@ -53,7 +54,13 @@ func TestActivateAccount(t *testing.T) {
 			emailService := new(authMocks.MockEmailService)
 			userRepository := new(mocks.MockUserRepository)
 			authorizationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(
+				loggerService,
+				userRepository,
+				authRepository,
+				authorizationMiddleware,
+				emailService,
+			)
 
 			err := authService.ActivateAccount(ctx, 1)
 			if (err != nil) != testScenario.wantErr {
@@ -68,4 +75,3 @@ func TestActivateAccount(t *testing.T) {
 		})
 	}
 }
-

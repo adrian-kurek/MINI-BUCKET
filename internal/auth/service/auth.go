@@ -18,7 +18,10 @@ import (
 
 type AuthRepository interface {
 	InsertRefreshToken(ctx context.Context, ipAddress, deviceInfo, refreshToken string, userID int) error
-	GetRefreshTokenByTokenHash(ctx context.Context, refreshToken string) (authModel.TokenWithUserEmailToRefreshToken, error)
+	GetRefreshTokenByTokenHash(
+		ctx context.Context,
+		refreshToken string,
+	) (authModel.TokenWithUserEmailToRefreshToken, error)
 	UpdateLastTimeUsedToken(ctx context.Context, refreshToken string) error
 	RemoveTokenFromDB(ctx context.Context, refreshToken string) error
 	RemoveTokensFromDBByUserID(ctx context.Context, userID int) error
@@ -40,7 +43,13 @@ type AuthService struct {
 	emailService   EmailService
 }
 
-func NewAuthService(loggerService commonInterfaces.Logger, userRepository UserRepository, authRepository AuthRepository, authorization commonInterfaces.AuthenticationMiddleware, emailService EmailService) *AuthService {
+func NewAuthService(
+	loggerService commonInterfaces.Logger,
+	userRepository UserRepository,
+	authRepository AuthRepository,
+	authorization commonInterfaces.AuthenticationMiddleware,
+	emailService EmailService,
+) *AuthService {
 	return &AuthService{
 		loggerService:  loggerService,
 		userRepository: userRepository,
@@ -102,7 +111,12 @@ func (as *AuthService) sendActivationLink(userID int, email, username string) er
 	return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
 }
 
-func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
+func (as *AuthService) Login(
+	ctx context.Context,
+	loginData authDTO.LoginUser,
+	ipAddress string,
+	deviceInfo string,
+) (string, []byte, error) {
 	userFromDB, err := as.userRepository.FindByEmail(ctx, loginData.Email)
 	if err != nil {
 		return "", nil, err
@@ -123,7 +137,6 @@ func (as *AuthService) Login(ctx context.Context, loginData authDTO.LoginUser, i
 		err = errors.New("provided incorrect password")
 		as.loggerService.Info(err.Error(), loginData.Email)
 		return "", nil, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
-
 	}
 
 	if err = ctx.Err(); err != nil {
@@ -196,7 +209,11 @@ func (as *AuthService) RefreshToken(ctx context.Context, refreshToken []byte) (s
 		return "", err
 	}
 
-	user := userModel.User{ID: tokenWithUserEmailToRefreshToken.ID, Email: tokenWithUserEmailToRefreshToken.Email, Username: tokenWithUserEmailToRefreshToken.Username}
+	user := userModel.User{
+		ID:       tokenWithUserEmailToRefreshToken.ID,
+		Email:    tokenWithUserEmailToRefreshToken.Email,
+		Username: tokenWithUserEmailToRefreshToken.Username,
+	}
 
 	accessToken, err := as.authorization.GenerateAccessToken(user)
 	if err != nil {

@@ -46,7 +46,8 @@ func TestVerify(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to process the data"))
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).
+					Return(r, errors.New("failed to process the data"))
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,

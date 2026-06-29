@@ -41,7 +41,8 @@ func TestUpload(t *testing.T) {
 			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
-				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -60,7 +61,13 @@ func TestUpload(t *testing.T) {
 			withProperFileName: false,
 			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
-				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mObjectService.On("Upload",
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+				).Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -79,7 +86,8 @@ func TestUpload(t *testing.T) {
 			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
-				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -98,9 +106,11 @@ func TestUpload(t *testing.T) {
 			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
-				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to auhthorize the user"))
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).
+					Return(r, errors.New("failed to auhthorize the user"))
 				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -174,7 +184,8 @@ func TestUpload(t *testing.T) {
 			withProperFileName: true,
 			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
-				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to create new permission"))
+				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to create new permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()

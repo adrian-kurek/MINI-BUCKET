@@ -17,7 +17,12 @@ func (m *MockObjectService) Upload(ctx context.Context, bucketID, userID int, fi
 	return args.Error(0)
 }
 
-func (m *MockObjectService) GetMetadata(ctx context.Context, bucketID int, objectKey string,versionID int) (model.GetMetadata, error) {
+func (m *MockObjectService) GetMetadata(
+	ctx context.Context,
+	bucketID int,
+	objectKey string,
+	versionID int,
+) (model.GetMetadata, error) {
 	args := m.Called(ctx, bucketID, objectKey, versionID)
 	return args.Get(0).(model.GetMetadata), args.Error(1)
 }
@@ -32,17 +37,34 @@ func (m *MockObjectService) CheckReadPermissions(ctx context.Context, bucketID i
 	return args.Error(0)
 }
 
-func (m *MockObjectService) Delete(ctx context.Context, bucketID, userID int, objectKey string, versionNumber int, isHardDelete bool) error {
+func (m *MockObjectService) Delete(
+	ctx context.Context,
+	bucketID,
+	userID int,
+	objectKey string,
+	versionNumber int,
+	isHardDelete bool,
+) error {
 	args := m.Called(ctx, bucketID, userID, objectKey, versionNumber, isHardDelete)
 	return args.Error(0)
 }
 
-func (m *MockObjectService) HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error {
+func (m *MockObjectService) HardDeleteVersion(
+	ctx context.Context,
+	bucketID int,
+	objectKey string,
+	versionNumber int,
+) error {
 	args := m.Called(ctx, bucketID, objectKey, versionNumber)
 	return args.Error(0)
 }
 
-func (m *MockObjectService) HardDeleteObject(ctx context.Context, bucketID int, objectKey string, versionNumber int) error {
+func (m *MockObjectService) HardDeleteObject(
+	ctx context.Context,
+	bucketID int,
+	objectKey string,
+	versionNumber int,
+) error {
 	args := m.Called(ctx, bucketID, objectKey, versionNumber)
 	return args.Error(0)
 }

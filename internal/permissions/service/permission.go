@@ -20,7 +20,10 @@ type PermissionService struct {
 	logger               commonInterfaces.Logger
 }
 
-func NewPermissionRepository(permissionRepository PermissionRepository, loggerService commonInterfaces.Logger) *PermissionService {
+func NewPermissionRepository(
+	permissionRepository PermissionRepository,
+	loggerService commonInterfaces.Logger,
+) *PermissionService {
 	return &PermissionService{
 		permissionRepository: permissionRepository,
 		logger:               loggerService,
@@ -49,7 +52,14 @@ func (ps *PermissionService) Create(ctx context.Context, bucketID, userID, autho
 	return err
 }
 
-func (ps *PermissionService) Update(ctx context.Context, permissionID, bucketID, userID, authorizedUserID, permission int) error {
+func (ps *PermissionService) Update(
+	ctx context.Context,
+	permissionID int,
+	bucketID int,
+	userID int,
+	authorizedUserID int,
+	permission int,
+) error {
 	err := ps.CheckPermissions(ctx, bucketID, authorizedUserID)
 	if err != nil {
 		return err

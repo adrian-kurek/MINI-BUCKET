@@ -30,7 +30,13 @@ type DependencyConfig struct {
 	bucketHandler     bucketHandler.BucketHandler
 }
 
-func NewDependencyConfig(port string, authHandler authHandler.AuthHandler, objectHandler objectHandler.ObjectHandler, permissionHandler permissionHandler.PermissionHandler, bucketHandler bucketHandler.BucketHandler) *DependencyConfig {
+func NewDependencyConfig(
+	port string,
+	authHandler authHandler.AuthHandler,
+	objectHandler objectHandler.ObjectHandler,
+	permissionHandler permissionHandler.PermissionHandler,
+	bucketHandler bucketHandler.BucketHandler,
+) *DependencyConfig {
 	return &DependencyConfig{
 		port:              port,
 		authHandler:       authHandler,

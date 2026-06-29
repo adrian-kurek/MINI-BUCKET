@@ -46,7 +46,8 @@ func TestLogoutUser(t *testing.T) {
 				mUserRepository := new(mocks.MockUserRepository)
 
 				mAuthenticationMiddleware.On("HashToken", mock.Anything).Return("12345")
-				mAuthRepository.On("RemoveTokenFromDB", mock.Anything, mock.Anything).Return(errors.New("failed to remove token from DB"))
+				mAuthRepository.On("RemoveTokenFromDB", mock.Anything, mock.Anything).
+					Return(errors.New("failed to remove token from DB"))
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
@@ -62,7 +63,13 @@ func TestLogoutUser(t *testing.T) {
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
-			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(
+				loggerService,
+				userRepository,
+				authRepository,
+				authorizationMiddleware,
+				emailService,
+			)
 
 			err := authService.LogoutUser(ctx, []byte("123456"))
 			if (err != nil) != testScenario.wantErr {
@@ -108,7 +115,8 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mUserRepository := new(mocks.MockUserRepository)
 
-				mAuthRepository.On("RemoveTokensFromDBByUserID", mock.Anything, mock.Anything).Return(errors.New("failed to remove token from DB"))
+				mAuthRepository.On("RemoveTokensFromDBByUserID", mock.Anything, mock.Anything).
+					Return(errors.New("failed to remove token from DB"))
 				return mAuthRepository, mUserRepository, mAuthenticationMiddleware
 			},
 			wantErr: true,
@@ -124,7 +132,13 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			authRepository, userRepository, authorizationMiddleware := testScenario.setupMock()
 			loggerService := setupAuthServiceDependencies()
 			emailService := new(authMocks.MockEmailService)
-			authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorizationMiddleware, emailService)
+			authService := authService.NewAuthService(
+				loggerService,
+				userRepository,
+				authRepository,
+				authorizationMiddleware,
+				emailService,
+			)
 
 			err := authService.LogoutUserFromAllDevices(ctx, 2)
 			if (err != nil) != testScenario.wantErr {
@@ -139,4 +153,3 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 		})
 	}
 }
-

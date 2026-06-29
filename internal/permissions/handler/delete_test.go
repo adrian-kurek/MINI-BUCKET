@@ -40,7 +40,8 @@ func TestDelete(t *testing.T) {
 			withPermissionID: true,
 			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
-				mPermissionService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mPermissionService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -125,7 +126,8 @@ func TestDelete(t *testing.T) {
 			withPermissionID: true,
 			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
-				mPermissionService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to delete permission"))
+				mPermissionService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to delete permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
@@ -159,7 +161,11 @@ func TestDelete(t *testing.T) {
 			}
 			loggerService := setupPermissionsHandlerDependencies()
 			permissionService, authorizationMiddleware, w := testScenario.setupMock(r)
-			permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorizationMiddleware, loggerService)
+			permissionHandler := permissionHandler.NewPermissionHandler(
+				permissionService,
+				authorizationMiddleware,
+				loggerService,
+			)
 
 			err = permissionHandler.Delete(w, r)
 

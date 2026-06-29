@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -59,7 +58,14 @@ type ObjectService struct {
 	db                   *sql.DB
 }
 
-func NewObjectService(loggerService commonInterfaces.Logger, objectRepository ObjectRepository, permissionRepository PermissionRepository, bucketRepository BucketRepository, db *sql.DB, versionRepository VersionRepository) *ObjectService {
+func NewObjectService(
+	loggerService commonInterfaces.Logger,
+	objectRepository ObjectRepository,
+	permissionRepository PermissionRepository,
+	bucketRepository BucketRepository,
+	db *sql.DB,
+	versionRepository VersionRepository,
+) *ObjectService {
 	return &ObjectService{
 		loggerService:        loggerService,
 		objectRepository:     objectRepository,
@@ -116,8 +122,16 @@ func (obs *ObjectService) uploadFileAndComputeETag(destPath string, file io.Read
 }
 
 func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (string, error) {
-	if objectKey == "" || strings.Contains(objectKey, "/") || strings.Contains(objectKey, "\\") || strings.Contains(objectKey, "..") {
-		fmt.Println(objectKey)
+	if objectKey == "" || strings.Contains(
+		objectKey,
+		"/",
+	) || strings.Contains(
+		objectKey,
+		"\\",
+	) || strings.Contains(
+		objectKey,
+		"..",
+	) {
 		return "", commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
 	}
 
@@ -145,7 +159,15 @@ func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (
 	return candidatePath, nil
 }
 
-func (obs *ObjectService) upsertObjectMetadata(ctx context.Context, tx *sql.Tx, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string, versioningEnabled bool) error {
+func (obs *ObjectService) upsertObjectMetadata(
+	ctx context.Context,
+	tx *sql.Tx,
+	bucketID int,
+	fileInfo DTO.IncomingFile,
+	fileUUID,
+	etag string,
+	versioningEnabled bool,
+) error {
 	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, fileInfo.FileName, bucketID)
 	if err != nil {
 		return err
@@ -157,7 +179,16 @@ func (obs *ObjectService) upsertObjectMetadata(ctx context.Context, tx *sql.Tx, 
 	return obs.upsertVersionedObject(ctx, tx, doesObjectExist, objectID, bucketID, fileInfo, fileUUID, etag)
 }
 
-func (obs *ObjectService) upsertNonVersionedObject(ctx context.Context, tx *sql.Tx, exists bool, objectID, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string) error {
+func (obs *ObjectService) upsertNonVersionedObject(
+	ctx context.Context,
+	tx *sql.Tx,
+	exists bool,
+	objectID int,
+	bucketID int,
+	fileInfo DTO.IncomingFile,
+	fileUUID string,
+	etag string,
+) error {
 	if !exists {
 		object := DTO.Create{
 			BucketID:     bucketID,
@@ -182,7 +213,16 @@ func (obs *ObjectService) upsertNonVersionedObject(ctx context.Context, tx *sql.
 	return obs.objectRepository.Update(ctx, tx, object)
 }
 
-func (obs *ObjectService) upsertVersionedObject(ctx context.Context, tx *sql.Tx, exists bool, objectID, bucketID int, fileInfo DTO.IncomingFile, fileUUID, etag string) error {
+func (obs *ObjectService) upsertVersionedObject(
+	ctx context.Context,
+	tx *sql.Tx,
+	exists bool,
+	objectID int,
+	bucketID int,
+	fileInfo DTO.IncomingFile,
+	fileUUID string,
+	etag string,
+) error {
 	if !exists {
 		object := DTO.Create{
 			BucketID:    bucketID,

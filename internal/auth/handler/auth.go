@@ -36,7 +36,11 @@ type AuthHandler struct {
 	authorization commonInterfahes.AuthenticationMiddleware
 }
 
-func NewAuthHandler(loggerService commonInterfahes.Logger, authService AuthService, authorization commonInterfaces.AuthenticationMiddleware) *AuthHandler {
+func NewAuthHandler(
+	loggerService commonInterfahes.Logger,
+	authService AuthService,
+	authorization commonInterfaces.AuthenticationMiddleware,
+) *AuthHandler {
 	return &AuthHandler{
 		loggerService: loggerService,
 		authService:   authService,

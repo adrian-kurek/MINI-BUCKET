@@ -25,7 +25,11 @@ type BucketService struct {
 	loggerService        commonInterfaces.Logger
 }
 
-func NewBucketService(bucketRepository BucketRepository, permissionRepository PermissionRepository, loggerService commonInterfaces.Logger) *BucketService {
+func NewBucketService(
+	bucketRepository BucketRepository,
+	permissionRepository PermissionRepository,
+	loggerService commonInterfaces.Logger,
+) *BucketService {
 	return &BucketService{
 		bucketRepository:     bucketRepository,
 		permissionRepository: permissionRepository,

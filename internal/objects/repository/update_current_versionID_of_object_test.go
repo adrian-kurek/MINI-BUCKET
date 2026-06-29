@@ -43,7 +43,8 @@ func TestUpdateCurrentVersionOfObject(t *testing.T) {
 				ctx := context.Background()
 				mock.ExpectBegin()
 
-				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE objects SET current_version_id = $1 WHERE id = $2")).WillReturnError(errors.New("failed to prepare sql query"))
+				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE objects SET current_version_id = $1 WHERE id = $2")).
+					WillReturnError(errors.New("failed to prepare sql query"))
 				mock.ExpectRollback()
 				return db, ctx
 			},
@@ -58,7 +59,8 @@ func TestUpdateCurrentVersionOfObject(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE objects SET current_version_id = $1 WHERE id = $2")).
 					ExpectExec().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(errors.New("failed to execute sql query"))
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnError(errors.New("failed to execute sql query"))
 				mock.ExpectRollback()
 				return db, ctx
 			},

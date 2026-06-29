@@ -44,7 +44,8 @@ func TestLogoutUser(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).Return(errors.New("failed to process data"))
+				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).
+					Return(errors.New("failed to process data"))
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -56,7 +57,8 @@ func TestLogoutUser(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).Return(context.DeadlineExceeded)
+				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).
+					Return(context.DeadlineExceeded)
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -183,7 +185,8 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 					r = request.SetContext(r, "id", 12)
 				}
 
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to process data"))
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).
+					Return(r, errors.New("failed to process data"))
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -248,7 +251,8 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 				}
 
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				mAuthService.On("LogoutUserFromAllDevices", mock.Anything, mock.Anything).Return(errors.New("failed to process data"))
+				mAuthService.On("LogoutUserFromAllDevices", mock.Anything, mock.Anything).
+					Return(errors.New("failed to process data"))
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -270,7 +274,8 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 				}
 
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				mAuthService.On("LogoutUserFromAllDevices", mock.Anything, mock.Anything).Return(context.DeadlineExceeded)
+				mAuthService.On("LogoutUserFromAllDevices", mock.Anything, mock.Anything).
+					Return(context.DeadlineExceeded)
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,

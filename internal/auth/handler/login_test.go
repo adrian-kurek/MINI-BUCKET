@@ -35,7 +35,8 @@ func TestLogin(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("12312", []byte("1233445"), nil)
+				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return("12312", []byte("1233445"), nil)
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: false,
@@ -50,7 +51,8 @@ func TestLogin(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("12312", []byte("1233445"), nil)
+				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return("12312", []byte("1233445"), nil)
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -65,7 +67,8 @@ func TestLogin(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", []byte(""), errors.New("failed to process the data"))
+				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return("", []byte(""), errors.New("failed to process the data"))
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,
@@ -80,7 +83,8 @@ func TestLogin(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", []byte(""), context.DeadlineExceeded)
+				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return("", []byte(""), context.DeadlineExceeded)
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,

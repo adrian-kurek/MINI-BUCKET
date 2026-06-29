@@ -72,7 +72,13 @@ func TestInsertRefreshToken(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
 			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			err := authRepository.InsertRefreshToken(ctx, "192.168.0.1", "chrome", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68", 1)
+			err := authRepository.InsertRefreshToken(
+				ctx,
+				"192.168.0.1",
+				"chrome",
+				"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68",
+				1,
+			)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("InsertRefreshToken() error = %v, wantErr = %v", err, testScenario.wantErr)
@@ -223,7 +229,10 @@ func TestGetRefreshTokenByTokenHash(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
 			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			_, err := authRepository.GetRefreshTokenByTokenHash(ctx, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68")
+			_, err := authRepository.GetRefreshTokenByTokenHash(
+				ctx,
+				"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68",
+			)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GetRefreshTokenByTokenHash() error = %v, wantErr = %v", err, testScenario.wantErr)
@@ -297,7 +306,10 @@ func TestUpdateLastTimeUsedToken(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
 			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			err := authRepository.UpdateLastTimeUsedToken(ctx, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68")
+			err := authRepository.UpdateLastTimeUsedToken(
+				ctx,
+				"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68",
+			)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("UpdateLastTimeUsedToken() error = %v, wantErr = %v", err, testScenario.wantErr)

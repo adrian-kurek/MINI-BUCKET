@@ -74,7 +74,8 @@ func TestActivateAccount(t *testing.T) {
 				}
 
 				r = request.SetContext(r, "id", 1)
-				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to process data"))
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).
+					Return(r, errors.New("failed to process data"))
 				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).Return(nil)
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
@@ -94,7 +95,8 @@ func TestActivateAccount(t *testing.T) {
 
 				r = request.SetContext(r, "id", 1)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).Return(errors.New("failed to process data"))
+				mAuthService.On("ActivateAccount", mock.Anything, mock.Anything).
+					Return(errors.New("failed to process data"))
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,

@@ -55,7 +55,8 @@ func TestRefreshToken(t *testing.T) {
 			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
-				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).Return("", errors.New("failed to process data"))
+				mAuthService.On("RefreshToken", mock.Anything, mock.Anything).
+					Return("", errors.New("failed to process data"))
 				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
 			},
 			wantErr: true,

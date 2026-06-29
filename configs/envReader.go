@@ -39,7 +39,6 @@ func SetupEnvVariables(pathToEnvFile string) error {
 		if err != nil {
 			return err
 		}
-
 	}
 	return nil
 }

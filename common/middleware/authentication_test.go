@@ -69,7 +69,12 @@ func TestGenerateRefreshToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(
+				accessTokenSecret,
+				refreshTokenSecret,
+				loggerService,
+				cacheService,
+			)
 
 			token, err := authorizationMiddleware.GenerateRefreshToken()
 
@@ -104,7 +109,12 @@ func TestHashToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(
+				accessTokenSecret,
+				refreshTokenSecret,
+				loggerService,
+				cacheService,
+			)
 
 			if got := authorizationMiddleware.HashToken(testScenario.token); got != testScenario.want {
 				t.Errorf("HashToken() = %v, want %v", got, testScenario.want)
@@ -130,9 +140,16 @@ func TestGenerateAccessToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(
+				accessTokenSecret,
+				refreshTokenSecret,
+				loggerService,
+				cacheService,
+			)
 
-			_, err := authorizationMiddleware.GenerateAccessToken(model.User{ID: 1, Email: "jode@gmail.com", Username: "jode1"})
+			_, err := authorizationMiddleware.GenerateAccessToken(
+				model.User{ID: 1, Email: "jode@gmail.com", Username: "jode1"},
+			)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GenerateAccessToken() err = %v, wantErr = %v", err, testScenario.wantErr)
 			}
@@ -163,7 +180,12 @@ func TestParseClaimsToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(
+				accessTokenSecret,
+				refreshTokenSecret,
+				loggerService,
+				cacheService,
+			)
 
 			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
 				ID:       1,
@@ -180,7 +202,9 @@ func TestParseClaimsToken(t *testing.T) {
 				t.Errorf("parseClaimsFromToken() err = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 
-			if user.ID != testScenario.expectedUserData.ID || user.Email != testScenario.expectedUserData.Email || user.Username != testScenario.expectedUserData.Username {
+			if user.ID != testScenario.expectedUserData.ID ||
+				user.Email != testScenario.expectedUserData.Email ||
+				user.Username != testScenario.expectedUserData.Username {
 				t.Errorf("parseClaimsFromToken() err = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 		})
@@ -235,7 +259,8 @@ func TestVerifyToken(t *testing.T) {
 			token: "",
 			setupMock: func() interfaces.CacheService {
 				mCacheService := new(mocks.MockCacheService)
-				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(0), errors.New("failed to check existance data in cache"))
+				mCacheService.On("Exists", mock.Anything, mock.Anything).
+					Return(int64(0), errors.New("failed to check existance data in cache"))
 				return mCacheService
 			},
 			wantErr: true,
@@ -258,7 +283,12 @@ func TestVerifyToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := testScenario.setupMock()
-			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(
+				accessTokenSecret,
+				refreshTokenSecret,
+				loggerService,
+				cacheService,
+			)
 
 			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
 				ID:       1,
@@ -342,7 +372,8 @@ func TestBlacklistUser(t *testing.T) {
 			token: "",
 			setupMock: func() interfaces.CacheService {
 				mCacheService := new(mocks.MockCacheService)
-				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(0), errors.New("failed to check data in cache"))
+				mCacheService.On("Exists", mock.Anything, mock.Anything).
+					Return(int64(0), errors.New("failed to check data in cache"))
 				return mCacheService
 			},
 			wantErr: true,
@@ -365,7 +396,8 @@ func TestBlacklistUser(t *testing.T) {
 			setupMock: func() interfaces.CacheService {
 				mCacheService := new(mocks.MockCacheService)
 				mCacheService.On("Exists", mock.Anything, mock.Anything).Return(int64(0), nil)
-				mCacheService.On("Set", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to set data in cache"))
+				mCacheService.On("Set", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to set data in cache"))
 				return mCacheService
 			},
 			wantErr: true,
@@ -377,7 +409,12 @@ func TestBlacklistUser(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := testScenario.setupMock()
-			authorizationMiddleware := NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+			authorizationMiddleware := NewAuthenticationMiddleware(
+				accessTokenSecret,
+				refreshTokenSecret,
+				loggerService,
+				cacheService,
+			)
 
 			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
 				ID:       1,

@@ -44,7 +44,12 @@ func TestGetNewVersionNumber(t *testing.T) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
 				mock.ExpectBegin()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT COALESCE(MAX(version_number), 0) + 1 as new_version_num FROM object_versions WHERE object_id = $1")).WillReturnError(errors.New("failed to prepare sql query"))
+				mock.ExpectPrepare(
+					regexp.QuoteMeta(`
+						SELECT COALESCE(MAX(version_number), 0) + 1 as new_version_num 
+						FROM object_versions 
+						WHERE object_id = $1`)).
+					WillReturnError(errors.New("failed to prepare sql query"))
 				mock.ExpectRollback()
 				return db, ctx
 			},
@@ -59,7 +64,8 @@ func TestGetNewVersionNumber(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectPrepare(regexp.QuoteMeta("SELECT COALESCE(MAX(version_number), 0) + 1 as new_version_num FROM object_versions WHERE object_id = $1")).
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg()).WillReturnError(errors.New("failed to execute sql query"))
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnError(errors.New("failed to execute sql query"))
 				mock.ExpectRollback()
 				return db, ctx
 			},
@@ -74,7 +80,8 @@ func TestGetNewVersionNumber(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectPrepare(regexp.QuoteMeta("SELECT COALESCE(MAX(version_number), 0) + 1 as new_version_num FROM object_versions WHERE object_id = $1")).
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg()).WillReturnError(sql.ErrNoRows)
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnError(sql.ErrNoRows)
 				mock.ExpectRollback()
 				return db, ctx
 			},

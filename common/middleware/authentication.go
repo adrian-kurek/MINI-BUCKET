@@ -27,7 +27,12 @@ type AuthenticationMiddleware struct {
 	cacheService       commonInterfaces.CacheService
 }
 
-func NewAuthenticationMiddleware(accessTokenSecret string, refreshTokenSecret string, loggerService commonInterfaces.Logger, cacheService commonInterfaces.CacheService) *AuthenticationMiddleware {
+func NewAuthenticationMiddleware(
+	accessTokenSecret string,
+	refreshTokenSecret string,
+	loggerService commonInterfaces.Logger,
+	cacheService commonInterfaces.CacheService,
+) *AuthenticationMiddleware {
 	return &AuthenticationMiddleware{
 		accessTokenSecret:  accessTokenSecret,
 		refreshTokenSecret: refreshTokenSecret,

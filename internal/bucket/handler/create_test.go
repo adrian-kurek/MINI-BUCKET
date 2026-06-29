@@ -100,7 +100,8 @@ func TestCreate(t *testing.T) {
 			verifiedUser: true,
 			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mBucketService := new(bucketMocks.MockBucketService)
-				mBucketService.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed to create the new bucket"))
+				mBucketService.On("Create", mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to create the new bucket"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
 				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()

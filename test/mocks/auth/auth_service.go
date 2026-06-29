@@ -16,7 +16,12 @@ func (m *MockAuthService) Register(ctx context.Context, user authDto.CreateUser)
 	return args.Error(0)
 }
 
-func (m *MockAuthService) Login(ctx context.Context, loginData authDto.LoginUser, ipAddress, deviceInfo string) (string, []byte, error) {
+func (m *MockAuthService) Login(
+	ctx context.Context,
+	loginData authDto.LoginUser,
+	ipAddress string,
+	deviceInfo string,
+) (string, []byte, error) {
 	args := m.Called(ctx, loginData, ipAddress, deviceInfo)
 	return args.Get(0).(string), args.Get(1).([]byte), args.Error(2)
 }

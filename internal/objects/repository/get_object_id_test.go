@@ -41,7 +41,8 @@ func TestGetObjectID(t *testing.T) {
 			setupMock: func() (*sql.DB, context.Context) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2")).WillReturnError(errors.New("failed to prepare sql query"))
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2")).
+					WillReturnError(errors.New("failed to prepare sql query"))
 				return db, ctx
 			},
 			wantErr: true,
@@ -54,7 +55,8 @@ func TestGetObjectID(t *testing.T) {
 				ctx := context.Background()
 				mock.ExpectPrepare(regexp.QuoteMeta("SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2")).
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(errors.New("failed to execute sql query"))
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnError(errors.New("failed to execute sql query"))
 				return db, ctx
 			},
 			wantErr: true,

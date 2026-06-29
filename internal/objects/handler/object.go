@@ -32,7 +32,11 @@ type ObjectHandler struct {
 	objectService        ObjectService
 }
 
-func NewObjectHandler(loggerService commonInterfaces.Logger, authorizationService commonInterfaces.AuthenticationMiddleware, objectService ObjectService) *ObjectHandler {
+func NewObjectHandler(
+	loggerService commonInterfaces.Logger,
+	authorizationService commonInterfaces.AuthenticationMiddleware,
+	objectService ObjectService,
+) *ObjectHandler {
 	return &ObjectHandler{
 		loggerService:        loggerService,
 		authorizationService: authorizationService,
@@ -65,7 +69,10 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
+		return commonErrors.NewAPIError(
+			http.StatusUnprocessableEntity,
+			"lack of bucketID or provided bucketID is malformed",
+		)
 	}
 
 	const maxUploadSize int64 = 256 << 30 // 256 GB
@@ -74,7 +81,16 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 	fileName := r.Header.Get("X-Filename")
 	defer r.Body.Close()
 
-	if fileName == "" || strings.Contains(fileName, "/") || strings.Contains(fileName, "\\") || strings.Contains(fileName, "..") {
+	if fileName == "" || strings.Contains(
+		fileName,
+		"/",
+	) || strings.Contains(
+		fileName,
+		"\\",
+	) || strings.Contains(
+		fileName,
+		"..",
+	) {
 		return commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
 	}
 
@@ -102,7 +118,10 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
+		return commonErrors.NewAPIError(
+			http.StatusUnprocessableEntity,
+			"lack of bucketID or provided bucketID is malformed",
+		)
 	}
 
 	hasPublicAccess, err := oh.objectService.HasPublicAccess(ctx, bucketID)
@@ -160,7 +179,10 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "lack of bucketID or provided bucketID is malformed")
+		return commonErrors.NewAPIError(
+			http.StatusUnprocessableEntity,
+			"lack of bucketID or provided bucketID is malformed",
+		)
 	}
 
 	objectKey := r.PathValue("objectKey")

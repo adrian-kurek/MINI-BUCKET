@@ -125,7 +125,12 @@ func main() {
 		panic(err)
 	}
 
-	authorization := middleware.NewAuthenticationMiddleware(accessTokenSecret, refreshTokenSecret, loggerService, cacheService)
+	authorization := middleware.NewAuthenticationMiddleware(
+		accessTokenSecret,
+		refreshTokenSecret,
+		loggerService,
+		cacheService,
+	)
 	mailService := mailService.NewEmailService(hostEmail, passwordEmail, loggerService)
 	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
 	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
@@ -140,11 +145,24 @@ func main() {
 	bucketHandler := bucketHandler.NewBucketHandler(bucketService, authorization, loggerService)
 	objectRepository := objectRepository.NewObjectRepository(db.DBConnection, loggerService)
 	versionRepository := versionRepository.NewVersionRepository(db.DBConnection, loggerService)
-	objectService := objectService.NewObjectService(loggerService, objectRepository, permissionRepository, bucketRepository, db.DBConnection, versionRepository)
+	objectService := objectService.NewObjectService(
+		loggerService,
+		objectRepository,
+		permissionRepository,
+		bucketRepository,
+		db.DBConnection,
+		versionRepository,
+	)
 
 	objectHandler := objectHandler.NewObjectHandler(loggerService, authorization, objectService)
 
-	dependenciesConfig := server.NewDependencyConfig(port, *authHandler, *objectHandler, *permissionHandler, *bucketHandler)
+	dependenciesConfig := server.NewDependencyConfig(
+		port,
+		*authHandler,
+		*objectHandler,
+		*permissionHandler,
+		*bucketHandler,
+	)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)
 	go func() {

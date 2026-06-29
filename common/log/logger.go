@@ -80,7 +80,8 @@ func (l *Logger) emit(message, typeOfLog string, data any) {
 
 	l.printLogToTheConsole(message, typeOfLog, logTime, data)
 
-	fileContentToAdd := fmt.Sprintf(",{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
+	fileContentToAdd := fmt.Sprintf(
+		",{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
 		logTime,
 		typeOfLog,
 		message,
@@ -143,7 +144,8 @@ func (l *Logger) initializeLogger() {
 		}
 	}
 
-	fileContentToAdd := fmt.Sprintf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
+	fileContentToAdd := fmt.Sprintf(
+		"{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
 		l.getLogTime(), "INFO", "successfully initialized new logger", []byte("{}"))
 
 	_, err = l.file.WriteString(fileContentToAdd)
@@ -183,7 +185,8 @@ func (l *Logger) validate() {
 			fmt.Println("something went wrong during writing  data to the file")
 		}
 
-		fileContentToAdd := fmt.Sprintf("{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
+		fileContentToAdd := fmt.Sprintf(
+			"{\n\t\"date\": \"%s\",\n\t\"typeOfLog\": \"%s\",\n\t\"message\": \"%s\",\n\t\"data\": %s\n}",
 			l.getLogTime(), "INFO", "successfully created new file", []byte("{}"))
 
 		_, err = l.file.WriteString(fileContentToAdd)

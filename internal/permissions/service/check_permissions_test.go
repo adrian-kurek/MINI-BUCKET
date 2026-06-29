@@ -24,7 +24,8 @@ func TestCheckPermissions(t *testing.T) {
 			title: "with proper data",
 			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(7, nil)
 				return mPermissionRepository
 			},
 			wantErr: false,
@@ -34,7 +35,8 @@ func TestCheckPermissions(t *testing.T) {
 			title: "user is not allowed to perform an action",
 			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(2, nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(2, nil)
 				return mPermissionRepository
 			},
 			wantErr: true,
@@ -44,7 +46,8 @@ func TestCheckPermissions(t *testing.T) {
 			title: "GetPermissionValByUserID failed",
 			setupMock: func() permissionService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to get data from db"))
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).
+					Return(0, errors.New("failed to get data from db"))
 				return mPermissionRepository
 			},
 			wantErr: true,
