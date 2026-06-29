@@ -1,10 +1,11 @@
 // Package log holds whole loggic assosiated with logger and test to it
-package log
+package logger
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"time"
 )
@@ -42,9 +43,9 @@ func (l *Logger) getLogTime() string {
 
 func (l *Logger) printDataToTheConsole(data ...any) {
 	if len(data) > 0 {
-		fmt.Print(" ")
+		log.Print(" s")
 		for _, d := range data {
-			fmt.Print(d, " ")
+			log.Print(d, " ")
 		}
 	}
 }
@@ -59,15 +60,18 @@ func (l *Logger) printHeaderToTheConsole(message, typeOfLog, logTime string) {
 	case "ERROR":
 		color = red
 	}
-	fmt.Println(color + "[" + typeOfLog + ": " + logTime + "] " + message)
+	log.Println(color + "[" + typeOfLog + ": " + logTime + "] " + message)
 }
 
 func (l *Logger) printLogToTheConsole(message, typeOfLog, logTime string, data any) {
+	log.SetFlags(0)
+
 	l.printHeaderToTheConsole(message, typeOfLog, logTime)
 
 	l.printDataToTheConsole(data)
 
-	fmt.Println(reset)
+	log.Println(reset)
+	log.SetFlags(1)
 }
 
 func (l *Logger) emit(message, typeOfLog string, data any) {
@@ -90,7 +94,7 @@ func (l *Logger) emit(message, typeOfLog string, data any) {
 
 	_, err = l.file.WriteString(fileContentToAdd)
 	if err != nil {
-		fmt.Println("something went wrong during writing to data to the file")
+		log.Println("something went wrong during writing to data to the file")
 	}
 }
 
@@ -134,13 +138,13 @@ func (l *Logger) initializeLogger() {
 			}
 			_, err = l.file.WriteString(",")
 			if err != nil {
-				fmt.Println("something went wrong during writing to data to the file")
+				log.Println("something went wrong during writing to data to the file")
 			}
 		}
 	} else {
 		_, err = l.file.WriteString("[")
 		if err != nil {
-			fmt.Println("something went wrong during writing to data to the file")
+			log.Println("something went wrong during writing to data to the file")
 		}
 	}
 
@@ -150,7 +154,7 @@ func (l *Logger) initializeLogger() {
 
 	_, err = l.file.WriteString(fileContentToAdd)
 	if err != nil {
-		fmt.Println("something went wrong during writing to data to the file")
+		log.Println("something went wrong during writing to data to the file")
 	}
 }
 
@@ -159,16 +163,16 @@ func (l *Logger) validate() {
 
 	if actualDate != l.startTime {
 
-		fmt.Println("closing old file and creating the new one for new date")
+		log.Println("closing old file and creating the new one for new date")
 
 		_, err := l.file.WriteString("]")
 		if err != nil {
-			fmt.Println("something went wrong during writing  data to the file")
+			log.Println("something went wrong during writing  data to the file")
 		}
 
 		err = l.file.Close()
 		if err != nil {
-			fmt.Println("something went wrong during writing  data to the file")
+			log.Println("something went wrong during writing  data to the file")
 		}
 
 		l.startTime = actualDate
@@ -182,7 +186,7 @@ func (l *Logger) validate() {
 		l.file = file
 		_, err = l.file.WriteString("[")
 		if err != nil {
-			fmt.Println("something went wrong during writing  data to the file")
+			log.Println("something went wrong during writing  data to the file")
 		}
 
 		fileContentToAdd := fmt.Sprintf(
@@ -191,7 +195,7 @@ func (l *Logger) validate() {
 
 		_, err = l.file.WriteString(fileContentToAdd)
 		if err != nil {
-			fmt.Println("something went wrong during writing  data to the file")
+			log.Println("something went wrong during writing  data to the file")
 		}
 	}
 }
@@ -206,6 +210,14 @@ func (l *Logger) Error(message string, data any) {
 	l.emit(message, "ERROR", data)
 }
 
+func (l *Logger) LogDBFields(query string, args any, err error) map[string]any {
+	return map[string]any{
+		"query": query,
+		"args":  args,
+		"error": err.Error(),
+	}
+}
+
 func (l *Logger) Warning(message string, data any) {
 	l.validate()
 	l.emit(message, "WARNING", data)
@@ -213,12 +225,12 @@ func (l *Logger) Warning(message string, data any) {
 
 func (l *Logger) Close() error {
 	if l.file == nil {
-		fmt.Println("failed to close the file")
+		log.Println("failed to close the file")
 		return nil
 	}
 	_, err := l.file.WriteString("]")
 	if err != nil {
-		fmt.Println("something went wrong during writing  data to the file")
+		log.Println("something went wrong during writing  data to the file")
 		return err
 	}
 	err = l.file.Close()

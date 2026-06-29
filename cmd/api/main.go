@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 
-	"github.com/slodkiadrianek/MINI-BUCKET/common/log"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/logger"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	authHandler "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/handler"
@@ -30,10 +31,10 @@ import (
 )
 
 func main() {
-	loggerService := log.NewLogger("./logs", "2006-01-02", "15:04:05")
+	loggerService := logger.NewLogger("./logs", "2006-01-02", "15:04:05")
 	defer func() {
 		if closeErr := loggerService.Close(); closeErr != nil {
-			fmt.Printf("failed to properly close file with logs:%s", closeErr.Error())
+			log.Printf("failed to properly close file with logs:%s", closeErr.Error())
 		}
 	}()
 	err := config.SetupEnvVariables("./.env")

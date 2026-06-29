@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/slodkiadrianek/MINI-BUCKET/common/log"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/logger"
 )
 
 func TestMain(m *testing.M) {
@@ -13,6 +13,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func setupBucketHandlerDependencies() *log.Logger {
-	return log.NewLogger("./logs", "2006-01-02", "15:04:05")
+func setupBucketHandlerDependencies() *logger.Logger {
+	return logger.NewLogger("./logs", "2006-01-02", "15:04:05")
 }

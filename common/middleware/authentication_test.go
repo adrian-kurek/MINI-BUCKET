@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	"github.com/slodkiadrianek/MINI-BUCKET/common/log"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/logger"
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupAuthControllerDependencies() (*log.Logger, string, string) {
-	loggerService := log.NewLogger("./logs", "2006-01-02", "15:04:05")
+func setupAuthControllerDependencies() (*logger.Logger, string, string) {
+	loggerService := logger.NewLogger("./logs", "2006-01-02", "15:04:05")
 	defer func() {
 		if closeErr := loggerService.Close(); closeErr != nil {
 			panic(fmt.Sprintf("failed to properly close file with logs:%s", closeErr.Error()))

@@ -1,8 +1,8 @@
-package log
+package logger
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -19,7 +19,7 @@ var (
 func removeDirectoryAfterTest() {
 	err := os.RemoveAll(pathToLogDirectory)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
 
@@ -30,7 +30,7 @@ func removeFile(t *testing.T, actualDate string) {
 	}
 }
 
-type log struct {
+type logInfo struct {
 	Date      string
 	TypeOfLog string
 	Message   string
@@ -66,7 +66,7 @@ func TestLoggerInfo(t *testing.T) {
 			actualDate := time.Now().Format(dateFormat)
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
-			var logs []log
+			var logs []logInfo
 			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)
@@ -111,7 +111,7 @@ func TestLoggerWarning(t *testing.T) {
 			actualDate := time.Now().Format(dateFormat)
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
-			var logs []log
+			var logs []logInfo
 			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)
@@ -156,7 +156,7 @@ func TestLoggerError(t *testing.T) {
 			actualDate := time.Now().Format(dateFormat)
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
-			var logs []log
+			var logs []logInfo
 			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)
@@ -205,7 +205,7 @@ func TestLoggerValidate(t *testing.T) {
 
 			content, _ := os.ReadFile(pathToLogDirectory + actualDate + ".json")
 
-			var logs []log
+			var logs []logInfo
 			err = json.Unmarshal(content, &logs)
 			if err != nil {
 				t.Fatal(err)

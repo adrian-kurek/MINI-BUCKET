@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,14 +30,14 @@ func Make(f HTTPFunc) http.HandlerFunc {
 			if apiErr, ok := err.(*commonErrors.APIError); ok {
 				response.Send(w, apiErr.StatusCode, map[string]string{"message": apiErr.Message})
 			} else {
-				fmt.Println(err.Error())
+				log.Printf(err.Error())
 				response.Send(w, http.StatusInternalServerError, map[string]string{"message": "Internal server error"})
 			}
 		}
 		durationOfTheRoute := time.Since(start) / time.Millisecond
 		formattedDurationOfTheRoute := strconv.FormatInt(int64(durationOfTheRoute), 10) + "ms"
 
-		fmt.Println(green + "[INFO: " + logTime + "] " + r.Method + "-" + r.URL.Path + "-" + r.
+		log.Println(green + "[INFO: " + logTime + "] " + r.Method + "-" + r.URL.Path + "-" + r.
 			RemoteAddr + "-" + formattedDurationOfTheRoute + reset)
 	}
 }

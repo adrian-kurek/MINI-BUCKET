@@ -90,12 +90,12 @@ func NewDB(databaseLink, dbDriver string) (*DB, error) {
 			if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 				return nil, fmt.Errorf("migration up failed for %s: %w", dirName, err)
 			}
-			fmt.Printf("Migration up completed for %s\n", dirName)
+			log.Printf("Migration up completed for %s\n", dirName)
 		case "down":
 			if err = m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 				return nil, fmt.Errorf("migration down failed for %s: %w", dirName, err)
 			}
-			fmt.Printf("Migration down completed for %s\n", dirName)
+			log.Printf("Migration down completed for %s\n", dirName)
 		}
 	}
 
