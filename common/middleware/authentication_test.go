@@ -11,7 +11,6 @@ import (
 	"github.com/slodkiadrianek/MINI-BUCKET/common/logger"
 	authenticationMiddleware "github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	"github.com/slodkiadrianek/MINI-BUCKET/test/mocks"
 	"github.com/stretchr/testify/mock"
@@ -149,7 +148,7 @@ func TestGenerateAccessToken(t *testing.T) {
 			)
 
 			_, err := authenticationMiddl.GenerateAccessToken(
-				model.User{ID: 1, Email: "jode@gmail.com", Username: "jode1"},
+				userModel.User{ID: 1, Email: "jode@gmail.com", Username: "jode1"},
 			)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GenerateAccessToken() err = %v, wantErr = %v", err, testScenario.wantErr)

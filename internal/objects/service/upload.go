@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	DTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 	objectsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 	versionsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
@@ -42,7 +41,7 @@ type (
 		SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error
 		HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error
 		HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error
-		Update(ctx context.Context, tx *sql.Tx, file DTO.Update) error
+		Update(ctx context.Context, tx *sql.Tx, file objectsDTO.Update) error
 	}
 	PermissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
@@ -163,7 +162,7 @@ func (obs *ObjectService) upsertObjectMetadata(
 	ctx context.Context,
 	tx *sql.Tx,
 	bucketID int,
-	fileInfo DTO.IncomingFile,
+	fileInfo objectsDTO.IncomingFile,
 	fileUUID,
 	etag string,
 	versioningEnabled bool,
@@ -185,12 +184,12 @@ func (obs *ObjectService) upsertNonVersionedObject(
 	exists bool,
 	objectID int,
 	bucketID int,
-	fileInfo DTO.IncomingFile,
+	fileInfo objectsDTO.IncomingFile,
 	fileUUID string,
 	etag string,
 ) error {
 	if !exists {
-		object := DTO.Create{
+		object := objectsDTO.Create{
 			BucketID:     bucketID,
 			ObjectKey:    fileInfo.FileName,
 			ContentType:  fileInfo.ContentType,
@@ -203,7 +202,7 @@ func (obs *ObjectService) upsertNonVersionedObject(
 		return err
 	}
 
-	object := DTO.Update{
+	object := objectsDTO.Update{
 		ObjectID:     objectID,
 		SizeBytes:    fileInfo.SizeBytes,
 		ETag:         etag,
@@ -219,12 +218,12 @@ func (obs *ObjectService) upsertVersionedObject(
 	exists bool,
 	objectID int,
 	bucketID int,
-	fileInfo DTO.IncomingFile,
+	fileInfo objectsDTO.IncomingFile,
 	fileUUID string,
 	etag string,
 ) error {
 	if !exists {
-		object := DTO.Create{
+		object := objectsDTO.Create{
 			BucketID:    bucketID,
 			ObjectKey:   fileInfo.FileName,
 			ContentType: fileInfo.ContentType,
@@ -251,7 +250,7 @@ func (obs *ObjectService) upsertVersionedObject(
 	return obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx, tx, objectID, newVersionID)
 }
 
-func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, fileInfo DTO.IncomingFile) error {
+func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, fileInfo objectsDTO.IncomingFile) error {
 	if err := obs.CheckWritePermissions(ctx, bucketID, userID); err != nil {
 		return err
 	}

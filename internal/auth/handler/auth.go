@@ -10,7 +10,6 @@ import (
 	"time"
 
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
-	commonInterfahes "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 
@@ -31,13 +30,13 @@ type AuthService interface {
 }
 
 type AuthHandler struct {
-	loggerService commonInterfahes.Logger
+	loggerService commonInterfaces.Logger
 	authService   AuthService
-	authorization commonInterfahes.AuthenticationMiddleware
+	authorization commonInterfaces.AuthenticationMiddleware
 }
 
 func New(
-	loggerService commonInterfahes.Logger,
+	loggerService commonInterfaces.Logger,
 	authService AuthService,
 	authorization commonInterfaces.AuthenticationMiddleware,
 ) *AuthHandler {
