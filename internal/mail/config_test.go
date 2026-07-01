@@ -1,7 +1,6 @@
 package mail_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -15,11 +14,6 @@ func TestMain(m *testing.M) {
 }
 
 func setupAuthServiceDependencies() *logger.Logger {
-	loggerService := logger.NewLogger("./logs", "2006-01-02", "15:04:05")
-	defer func() {
-		if closeErr := loggerService.Close(); closeErr != nil {
-			fmt.Errorf("failed to properly close file with logs:%s", closeErr.Error())
-		}
-	}()
+	loggerService := logger.New("./logs", "2006-01-02", "15:04:05")
 	return loggerService
 }

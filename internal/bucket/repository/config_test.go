@@ -14,5 +14,5 @@ func TestMain(m *testing.M) {
 }
 
 func setupBucketRepositoryDependencies() *logger.Logger {
-	return logger.NewLogger("./logs", "2006-01-02", "15:04:05")
+	return logger.New("./logs", "2006-01-02", "15:04:05")
 }

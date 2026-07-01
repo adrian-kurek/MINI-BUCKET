@@ -14,6 +14,6 @@ func TestMain(m *testing.M) {
 }
 
 func setupUserRepositoryDependencies() *logger.Logger {
-	loggerService := logger.NewLogger("./logs", "2006-01-02", "15:04:05")
+	loggerService := logger.New("./logs", "2006-01-02", "15:04:05")
 	return loggerService
 }
