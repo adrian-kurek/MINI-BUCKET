@@ -1,8 +1,10 @@
-package middleware
+package middleware_test
 
 import (
 	"errors"
 	"testing"
+
+	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 )
 
 type testStructRequired struct {
@@ -104,7 +106,7 @@ func TestValidateRequestData(t *testing.T) {
 
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			err := ValidateRequestData(testScenario.schema)
+			err := middleware.ValidateRequestData(testScenario.schema)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("ValidateRequestData() error = %v, wantErr %v", err, testScenario.wantErr)
 			}
@@ -116,4 +118,3 @@ func TestValidateRequestData(t *testing.T) {
 		})
 	}
 }
-

@@ -27,7 +27,7 @@ type AuthenticationMiddleware struct {
 	cacheService       commonInterfaces.CacheService
 }
 
-func NewAuthenticationMiddleware(
+func New(
 	accessTokenSecret string,
 	refreshTokenSecret string,
 	loggerService commonInterfaces.Logger,
@@ -79,7 +79,7 @@ func (am *AuthenticationMiddleware) GenerateAccessToken(user userModel.User) (st
 	return tokenString, nil
 }
 
-func (am *AuthenticationMiddleware) parseClaimsFromToken(tokenString string) (*jwt.Token, userModel.UserClaims, error) {
+func (am *AuthenticationMiddleware) ParseClaimsFromToken(tokenString string) (*jwt.Token, userModel.UserClaims, error) {
 	var user userModel.UserClaims
 	token, err := jwt.ParseWithClaims(tokenString, &user, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -148,7 +148,7 @@ func (am *AuthenticationMiddleware) VerifyToken(r *http.Request) (*http.Request,
 		return r, err
 	}
 
-	tokenWithData, user, err := am.parseClaimsFromToken(token)
+	tokenWithData, user, err := am.ParseClaimsFromToken(token)
 	if err != nil {
 		am.loggerService.Info("failed to read data properly", err.Error())
 		return r, commonErrors.NewAPIError(http.StatusUnauthorized, "provided token is invalid")
@@ -177,7 +177,7 @@ func (am *AuthenticationMiddleware) BlacklistUser(r *http.Request) error {
 		return err
 	}
 
-	tokenWithData, user, err := am.parseClaimsFromToken(token)
+	tokenWithData, user, err := am.ParseClaimsFromToken(token)
 	if err != nil {
 		am.loggerService.Info("failed to read data properly", nil)
 		return commonErrors.NewAPIError(http.StatusUnauthorized, "failed to read token")

@@ -1,4 +1,4 @@
-package middleware
+package middleware_test
 
 import (
 	"errors"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/logger"
+	authenticationMiddleware "github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
 	userModel "github.com/slodkiadrianek/MINI-BUCKET/internal/user/model"
@@ -17,7 +18,7 @@ import (
 )
 
 func setupAuthControllerDependencies() (*logger.Logger, string, string) {
-	loggerService := logger.NewLogger("./logs", "2006-01-02", "15:04:05")
+	loggerService := logger.New("./logs", "2006-01-02", "15:04:05")
 	defer func() {
 		if closeErr := loggerService.Close(); closeErr != nil {
 			panic(fmt.Sprintf("failed to properly close file with logs:%s", closeErr.Error()))
@@ -69,14 +70,14 @@ func TestGenerateRefreshToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(
+			authenticationMiddl := authenticationMiddleware.New(
 				accessTokenSecret,
 				refreshTokenSecret,
 				loggerService,
 				cacheService,
 			)
 
-			token, err := authorizationMiddleware.GenerateRefreshToken()
+			token, err := authenticationMiddl.GenerateRefreshToken()
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GenerateRefreshToken() error = %v, wantErr %v", err, testScenario.wantErr)
@@ -109,14 +110,14 @@ func TestHashToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(
+			authenticationMiddl := authenticationMiddleware.New(
 				accessTokenSecret,
 				refreshTokenSecret,
 				loggerService,
 				cacheService,
 			)
 
-			if got := authorizationMiddleware.HashToken(testScenario.token); got != testScenario.want {
+			if got := authenticationMiddl.HashToken(testScenario.token); got != testScenario.want {
 				t.Errorf("HashToken() = %v, want %v", got, testScenario.want)
 			}
 		})
@@ -140,14 +141,14 @@ func TestGenerateAccessToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(
+			authenticationMiddl := authenticationMiddleware.New(
 				accessTokenSecret,
 				refreshTokenSecret,
 				loggerService,
 				cacheService,
 			)
 
-			_, err := authorizationMiddleware.GenerateAccessToken(
+			_, err := authenticationMiddl.GenerateAccessToken(
 				model.User{ID: 1, Email: "jode@gmail.com", Username: "jode1"},
 			)
 			if (err != nil) != testScenario.wantErr {
@@ -180,14 +181,14 @@ func TestParseClaimsToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := new(mocks.MockCacheService)
-			authorizationMiddleware := NewAuthenticationMiddleware(
+			authenticationMiddl := authenticationMiddleware.New(
 				accessTokenSecret,
 				refreshTokenSecret,
 				loggerService,
 				cacheService,
 			)
 
-			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
+			token, err := authenticationMiddl.GenerateAccessToken(userModel.User{
 				ID:       1,
 				Email:    "jode@gmail.com",
 				Username: "jode1",
@@ -196,7 +197,7 @@ func TestParseClaimsToken(t *testing.T) {
 				panic(err)
 			}
 
-			_, user, err := authorizationMiddleware.parseClaimsFromToken(token)
+			_, user, err := authenticationMiddl.ParseClaimsFromToken(token)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("parseClaimsFromToken() err = %v, wantErr = %v", err, testScenario.wantErr)
@@ -283,14 +284,14 @@ func TestVerifyToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := testScenario.setupMock()
-			authorizationMiddleware := NewAuthenticationMiddleware(
+			authenticationMiddl := authenticationMiddleware.New(
 				accessTokenSecret,
 				refreshTokenSecret,
 				loggerService,
 				cacheService,
 			)
 
-			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
+			token, err := authenticationMiddl.GenerateAccessToken(userModel.User{
 				ID:       1,
 				Email:    "jode1@gmail.com",
 				Username: "jode1",
@@ -310,7 +311,7 @@ func TestVerifyToken(t *testing.T) {
 				r.Header.Set("Authorization", "Bearer "+token)
 			}
 
-			_, err = authorizationMiddleware.VerifyToken(r)
+			_, err = authenticationMiddl.VerifyToken(r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("parseClaimsFromToken() err = %v, wantErr = %v", err, testScenario.wantErr)
@@ -409,14 +410,14 @@ func TestBlacklistUser(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService, accessTokenSecret, refreshTokenSecret := setupAuthControllerDependencies()
 			cacheService := testScenario.setupMock()
-			authorizationMiddleware := NewAuthenticationMiddleware(
+			authenticationMiddl := authenticationMiddleware.New(
 				accessTokenSecret,
 				refreshTokenSecret,
 				loggerService,
 				cacheService,
 			)
 
-			token, err := authorizationMiddleware.GenerateAccessToken(userModel.User{
+			token, err := authenticationMiddl.GenerateAccessToken(userModel.User{
 				ID:       1,
 				Email:    "jode1@gmail.com",
 				Username: "jode1",
@@ -436,7 +437,7 @@ func TestBlacklistUser(t *testing.T) {
 				r.Header.Set("Authorization", "Bearer "+token)
 			}
 
-			err = authorizationMiddleware.BlacklistUser(r)
+			err = authenticationMiddl.BlacklistUser(r)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("BlacklistUser() err = %v, wantErr = %v", err, testScenario.wantErr)
 			}
