@@ -1,10 +1,11 @@
-package mail
+package mail_test
 
 import (
 	"os"
 	"testing"
 
 	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
+	emailService "github.com/slodkiadrianek/MINI-BUCKET/internal/mail"
 	mocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/auth"
 	"github.com/stretchr/testify/mock"
 )
@@ -41,7 +42,7 @@ func TestSendEmail(t *testing.T) {
 			loggerService := setupAuthServiceDependencies()
 			hostEmail := os.Getenv("HOST_EMAIL")
 			emailPassword := os.Getenv("PASSWORD_EMAIL")
-			svc := New(hostEmail, emailPassword, loggerService)
+			svc := emailService.New(hostEmail, emailPassword, loggerService)
 			err = svc.SendEmail(testScenario.to, "subject", "body")
 
 			if (err != nil) != testScenario.wantErr {
