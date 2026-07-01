@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"regexp"
 	"testing"
 
@@ -99,7 +100,11 @@ func TestGetNewVersionNumber(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			defer tx.Rollback()
+			defer func() {
+				if closeErr := tx.Rollback(); closeErr != nil {
+					log.Println("failed to roll back changes", closeErr)
+				}
+			}()
 
 			_, err = repo.GetNewVersionNumber(ctx, tx, 1)
 			if (err != nil) != testScenario.wantErr {

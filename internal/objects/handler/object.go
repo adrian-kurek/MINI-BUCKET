@@ -79,7 +79,11 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	fileName := r.Header.Get("X-Filename")
-	defer r.Body.Close()
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			oh.loggerService.Error("failed to close stream of bytes", err)
+		}
+	}()
 
 	if fileName == "" || strings.Contains(
 		fileName,

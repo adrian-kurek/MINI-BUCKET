@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"log"
 	"os"
 	"testing"
 
@@ -9,7 +10,10 @@ import (
 
 func TestMain(m *testing.M) {
 	code := m.Run()
-	os.RemoveAll("logs")
+	err := os.RemoveAll("logs")
+	if err != nil {
+		log.Println(err.Error())
+	}
 	os.Exit(code)
 }
 

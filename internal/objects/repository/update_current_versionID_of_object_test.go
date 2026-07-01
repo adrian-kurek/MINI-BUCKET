@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"regexp"
 	"testing"
 
@@ -78,7 +79,11 @@ func TestUpdateCurrentVersionOfObject(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			defer tx.Rollback()
+			defer func() {
+				if closeErr := tx.Rollback(); closeErr != nil {
+					log.Println("failed to roll back query", closeErr)
+				}
+			}()
 
 			err = repo.UpdateCurrentVersionIDOfObject(ctx, tx, 1, 1)
 			if (err != nil) != testScenario.wantErr {

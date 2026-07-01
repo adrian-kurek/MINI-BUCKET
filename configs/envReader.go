@@ -3,6 +3,7 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -12,7 +13,12 @@ func SetupEnvVariables(pathToEnvFile string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file %s: %w", pathToEnvFile, err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			log.Println("failed to close the file", closeErr)
+		}
+	}()
+
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
 	for scanner.Scan() {

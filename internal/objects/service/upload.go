@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -103,7 +104,11 @@ func (obs *ObjectService) uploadFileAndComputeETag(destPath string, file io.Read
 	if err != nil {
 		return "", err
 	}
-	defer destFile.Close()
+	defer func() {
+		if err := destFile.Close(); err != nil {
+			obs.loggerService.Error("failed to close the file", err)
+		}
+	}()
 
 	hash := md5.New()
 	tee := io.TeeReader(file, hash)
@@ -288,7 +293,11 @@ func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, file
 		}
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if closeErr := tx.Rollback(); closeErr != nil {
+			log.Println("failed to roll back changes", closeErr)
+		}
+	}()
 
 	if err = obs.upsertObjectMetadata(ctx, tx, bucketID, fileInfo, fileUUID, etag, versioningEnabled); err != nil {
 		err = os.Remove(destPath)

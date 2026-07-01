@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -94,7 +95,11 @@ func TestCreate(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			defer tx.Rollback()
+			defer func() {
+				if closeErr := tx.Rollback(); closeErr != nil {
+					log.Println("failed to roll back changes", closeErr)
+				}
+			}()
 
 			_, err = repo.Create(ctx, tx, DTO.Create{})
 			if (err != nil) != testScenario.wantErr {
