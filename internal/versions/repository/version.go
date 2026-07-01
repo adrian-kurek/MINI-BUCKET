@@ -171,3 +171,37 @@ func (vr *VersionRepository) GetMetadata(ctx context.Context, bucketID int, obje
 
 	return metadata, nil
 }
+
+func (vr *VersionRepository) Delete(ctx context.Context, versionID int) error {
+	query := "DELETE FROM object_versions WHERE id = $1"
+	stmt, err := vr.db.PrepareContext(ctx, query)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	_, err = stmt.ExecContext(ctx, versionID)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"version_id": versionID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}
