@@ -22,7 +22,7 @@ type AuthRoutes struct {
 	authController authController
 }
 
-func NewAuthRoutes(authController authController) *AuthRoutes {
+func New(authController authController) *AuthRoutes {
 	return &AuthRoutes{
 		authController: authController,
 	}

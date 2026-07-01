@@ -244,7 +244,7 @@ func TestCreate(t *testing.T) {
 
 			permissionRepository, objectRepository, versionRepository, bucketRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
-			objectService := objectService.NewObjectService(
+			svc := objectService.New(
 				loggerService,
 				objectRepository,
 				permissionRepository,
@@ -260,7 +260,7 @@ func TestCreate(t *testing.T) {
 				FileName:    "input",
 			}
 
-			err := objectService.Upload(ctx, 11, 1, fileInfo)
+			err := svc.Upload(ctx, 11, 1, fileInfo)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Upload() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

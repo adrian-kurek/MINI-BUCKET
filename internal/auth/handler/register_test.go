@@ -151,7 +151,7 @@ func TestRegister(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
 			if err != nil {
@@ -164,7 +164,7 @@ func TestRegister(t *testing.T) {
 				panic(err)
 			}
 
-			err = authController.Register(w, r)
+			err = h.Register(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Register() err = %v, wantErr = %v", err, testScenario.wantErr)

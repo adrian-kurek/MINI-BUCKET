@@ -69,9 +69,9 @@ func TestCreate(t *testing.T) {
 
 			permissionRepository, mBucketRepository := testScenario.setupMock()
 			loggerService := setupBucketServiceDependencies()
-			bucketService := bucketService.NewBucketService(mBucketRepository, permissionRepository, loggerService)
+			svc := bucketService.New(mBucketRepository, permissionRepository, loggerService)
 
-			err := bucketService.Create(ctx, 1, DTO.BucketInput{})
+			err := svc.Create(ctx, 1, DTO.BucketInput{})
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

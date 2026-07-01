@@ -15,7 +15,7 @@ type ObjectRoutes struct {
 	objectHandler objectHandler
 }
 
-func NewObjectRoutes(objectHandler objectHandler) *ObjectRoutes {
+func New(objectHandler objectHandler) *ObjectRoutes {
 	return &ObjectRoutes{
 		objectHandler: objectHandler,
 	}

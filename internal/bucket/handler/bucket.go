@@ -28,7 +28,7 @@ type BucketHandler struct {
 	loggerService commonInterfaces.Logger
 }
 
-func NewBucketHandler(
+func New(
 	bucketService BucketService,
 	authorization commonInterfaces.AuthenticationMiddleware,
 	loggerService commonInterfaces.Logger,

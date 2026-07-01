@@ -77,7 +77,7 @@ func TestCheckWritePermissions(t *testing.T) {
 
 			permissionRepository, objectRepository, versionRepository, bucketRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
-			objectService := objectService.NewObjectService(
+			svc := objectService.New(
 				loggerService,
 				objectRepository,
 				permissionRepository,
@@ -86,7 +86,7 @@ func TestCheckWritePermissions(t *testing.T) {
 				versionRepository,
 			)
 
-			err := objectService.CheckWritePermissions(ctx, 1, 1)
+			err := svc.CheckWritePermissions(ctx, 1, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckPermissions() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

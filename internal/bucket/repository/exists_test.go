@@ -101,8 +101,8 @@ func TestExists(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupBucketRepositoryDependencies()
-			bucketRepository := bucketRepository.NewBucketRepository(loggerService, db)
-			_, err := bucketRepository.Exists(ctx, 1)
+			repo := bucketRepository.New(loggerService, db)
+			_, err := repo.Exists(ctx, 1)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Exists() error = %v, wantErr = %v", err, testScenario.wantErr)

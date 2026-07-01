@@ -16,7 +16,7 @@ type UserRepository struct {
 	db            *sql.DB
 }
 
-func NewUserRepository(loggerService commonInterfaces.Logger, db *sql.DB) *UserRepository {
+func New(loggerService commonInterfaces.Logger, db *sql.DB) *UserRepository {
 	return &UserRepository{
 		loggerService: loggerService,
 		db:            db,

@@ -129,9 +129,9 @@ func TestCreate(t *testing.T) {
 
 			loggerService := setupBucketHandlerDependencies()
 			bucketService, authorizationMiddleware, w := testScenario.setupMock(r)
-			permissionHandler := bucketHandler.NewBucketHandler(bucketService, authorizationMiddleware, loggerService)
+			h := bucketHandler.New(bucketService, authorizationMiddleware, loggerService)
 
-			err = permissionHandler.Create(w, r)
+			err = h.Create(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Create() err = %v, wantErr = %v", err, testScenario.wantErr)

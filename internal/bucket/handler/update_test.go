@@ -157,9 +157,9 @@ func TestUpdate(t *testing.T) {
 			}
 			loggerService := setupBucketHandlerDependencies()
 			bucketService, authorizationMiddleware, w := testScenario.setupMock(r)
-			permissionHandler := bucketHandler.NewBucketHandler(bucketService, authorizationMiddleware, loggerService)
+			h := bucketHandler.New(bucketService, authorizationMiddleware, loggerService)
 
-			err = permissionHandler.Update(w, r)
+			err = h.Update(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Update() err = %v, wantErr = %v", err, testScenario.wantErr)

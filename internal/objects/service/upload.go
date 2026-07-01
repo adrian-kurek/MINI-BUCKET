@@ -58,7 +58,7 @@ type ObjectService struct {
 	db                   *sql.DB
 }
 
-func NewObjectService(
+func New(
 	loggerService commonInterfaces.Logger,
 	objectRepository ObjectRepository,
 	permissionRepository PermissionRepository,

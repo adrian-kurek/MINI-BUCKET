@@ -132,37 +132,37 @@ func main() {
 		loggerService,
 		cacheService,
 	)
-	mailService := mailService.NewEmailService(hostEmail, passwordEmail, loggerService)
-	userRepository := userRepository.NewUserRepository(loggerService, db.DBConnection)
-	authRepository := authRepository.NewAuthRepository(loggerService, db.DBConnection)
-	authService := authService.NewAuthService(loggerService, userRepository, authRepository, authorization, mailService)
-	authHandler := authHandler.NewAuthHandler(loggerService, authService, authorization)
+	mailSvc := mailService.New(hostEmail, passwordEmail, loggerService)
+	userRepo := userRepository.New(loggerService, db.DBConnection)
+	authRepo := authRepository.New(loggerService, db.DBConnection)
+	authSvc := authService.NewAuthService(loggerService, userRepo, authRepo, authorization, mailSvc)
+	authH := authHandler.New(loggerService, authSvc, authorization)
 
-	permissionRepository := permissionRepository.NewPermissionRepository(loggerService, db.DBConnection)
-	permissionService := permissionService.NewPermissionRepository(permissionRepository, loggerService)
-	permissionHandler := permissionHandler.NewPermissionHandler(permissionService, authorization, loggerService)
-	bucketRepository := bucketRepository.NewBucketRepository(loggerService, db.DBConnection)
-	bucketService := bucketService.NewBucketService(bucketRepository, permissionRepository, loggerService)
-	bucketHandler := bucketHandler.NewBucketHandler(bucketService, authorization, loggerService)
-	objectRepository := objectRepository.NewObjectRepository(db.DBConnection, loggerService)
-	versionRepository := versionRepository.NewVersionRepository(db.DBConnection, loggerService)
-	objectService := objectService.NewObjectService(
+	permissionRepo := permissionRepository.NewPermissionRepository(loggerService, db.DBConnection)
+	permissionSvc := permissionService.NewPermissionRepository(permissionRepo, loggerService)
+	permissionH := permissionHandler.NewPermissionHandler(permissionSvc, authorization, loggerService)
+	bucketRepo := bucketRepository.New(loggerService, db.DBConnection)
+	bucketSvc := bucketService.New(bucketRepo, permissionRepo, loggerService)
+	bucketH := bucketHandler.New(bucketSvc, authorization, loggerService)
+	objectRepo := objectRepository.New(db.DBConnection, loggerService)
+	versionRepo := versionRepository.New(db.DBConnection, loggerService)
+	objectSvc := objectService.New(
 		loggerService,
-		objectRepository,
-		permissionRepository,
-		bucketRepository,
+		objectRepo,
+		permissionRepo,
+		bucketRepo,
 		db.DBConnection,
-		versionRepository,
+		versionRepo,
 	)
 
-	objectHandler := objectHandler.NewObjectHandler(loggerService, authorization, objectService)
+	objectH := objectHandler.New(loggerService, authorization, objectSvc)
 
 	dependenciesConfig := server.NewDependencyConfig(
 		port,
-		*authHandler,
-		*objectHandler,
-		*permissionHandler,
-		*bucketHandler,
+		*authH,
+		*objectH,
+		*permissionH,
+		*bucketH,
 	)
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)

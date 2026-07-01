@@ -16,7 +16,7 @@ type BucketRepository struct {
 	db            *sql.DB
 }
 
-func NewBucketRepository(loggerService commonInterfaces.Logger, db *sql.DB) *BucketRepository {
+func New(loggerService commonInterfaces.Logger, db *sql.DB) *BucketRepository {
 	return &BucketRepository{
 		loggerService: loggerService,
 		db:            db,

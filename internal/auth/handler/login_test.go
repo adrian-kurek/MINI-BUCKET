@@ -96,7 +96,7 @@ func TestLogin(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
 			if err != nil {
@@ -109,7 +109,7 @@ func TestLogin(t *testing.T) {
 				panic(err)
 			}
 
-			err = authController.Login(w, r)
+			err = h.Login(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Login() err = %v, wantErr = %v", err, testScenario.wantErr)

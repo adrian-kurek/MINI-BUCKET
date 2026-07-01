@@ -9,7 +9,6 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 
-	// authDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/DTO"
 	authModel "github.com/slodkiadrianek/MINI-BUCKET/internal/auth/model"
 )
 
@@ -20,7 +19,7 @@ type AuthRepository struct {
 	db            *sql.DB
 }
 
-func NewAuthRepository(loggerService commonInterfaces.Logger, db *sql.DB) *AuthRepository {
+func New(loggerService commonInterfaces.Logger, db *sql.DB) *AuthRepository {
 	return &AuthRepository{
 		loggerService: loggerService,
 		db:            db,

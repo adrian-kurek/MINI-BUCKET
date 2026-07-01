@@ -75,14 +75,14 @@ func TestVerify(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
 			if err != nil {
 				panic(err)
 			}
 
-			err = authController.Verify(w, r)
+			err = h.Verify(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Verify() err = %v, wantErr = %v", err, testScenario.wantErr)

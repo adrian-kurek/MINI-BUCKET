@@ -94,14 +94,14 @@ func TestGetNewVersionNumber(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupVersionRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			versionRepository := versionRepository.NewVersionRepository(db, loggerService)
+			repo := versionRepository.New(db, loggerService)
 			tx, err := db.BeginTx(context.Background(), nil)
 			if err != nil {
 				panic(err)
 			}
 			defer tx.Rollback()
 
-			_, err = versionRepository.GetNewVersionNumber(ctx, tx, 1)
+			_, err = repo.GetNewVersionNumber(ctx, tx, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GetNewVersionNumber() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

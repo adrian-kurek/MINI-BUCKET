@@ -222,9 +222,9 @@ func TestUpload(t *testing.T) {
 
 			loggerService := setupObjectHandlerDependencies()
 			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
-			objectHandler := objectHandler.NewObjectHandler(loggerService, authorizationMiddleware, objectService)
+			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
 
-			err = objectHandler.Upload(w, r)
+			err = h.Upload(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Upload() err = %v, wantErr = %v", err, testScenario.wantErr)

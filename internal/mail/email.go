@@ -11,7 +11,7 @@ type EmailService struct {
 	emailPassword string
 }
 
-func NewEmailService(hostEmail, emailPassword string, loggerService commonInterfaces.Logger) *EmailService {
+func New(hostEmail, emailPassword string, loggerService commonInterfaces.Logger) *EmailService {
 	return &EmailService{
 		loggerService: loggerService,
 		hostEmail:     hostEmail,

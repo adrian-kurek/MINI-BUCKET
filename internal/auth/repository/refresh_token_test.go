@@ -71,8 +71,8 @@ func TestInsertRefreshToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
-			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			err := authRepository.InsertRefreshToken(
+			repo := authRepository.New(loggerService, db)
+			err := repo.InsertRefreshToken(
 				ctx,
 				"192.168.0.1",
 				"chrome",
@@ -228,8 +228,8 @@ func TestGetRefreshTokenByTokenHash(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
-			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			_, err := authRepository.GetRefreshTokenByTokenHash(
+			repo := authRepository.New(loggerService, db)
+			_, err := repo.GetRefreshTokenByTokenHash(
 				ctx,
 				"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68",
 			)
@@ -305,8 +305,8 @@ func TestUpdateLastTimeUsedToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
-			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			err := authRepository.UpdateLastTimeUsedToken(
+			repo := authRepository.New(loggerService, db)
+			err := repo.UpdateLastTimeUsedToken(
 				ctx,
 				"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnN0cnVjdG9yTlIiOiItIiwiZXhwIjoxNzc5MDI2ODg4fQ.EMN_WVoAKPq0ocqd9AsAKcXE3RRCpk6erPZhBuiNP68",
 			)
@@ -376,8 +376,8 @@ func TestRemoveTokenFromDB(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
-			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			err := authRepository.RemoveTokenFromDB(ctx, "fjkenfnewfehuioewoffweof")
+			repo := authRepository.New(loggerService, db)
+			err := repo.RemoveTokenFromDB(ctx, "fjkenfnewfehuioewoffweof")
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("RemoveTokenFromDB() error = %v, wantErr = %v", err, testScenario.wantErr)
@@ -444,8 +444,8 @@ func TestRemoveTokensFromDBByUserID(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
-			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			err := authRepository.RemoveTokensFromDBByUserID(ctx, 1)
+			repo := authRepository.New(loggerService, db)
+			err := repo.RemoveTokensFromDBByUserID(ctx, 1)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("RemoveTokensFromDBByUserID() error = %v, wantErr = %v", err, testScenario.wantErr)

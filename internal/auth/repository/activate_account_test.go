@@ -69,8 +69,8 @@ func TestActivateAccount(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			loggerService := setupAuthRepositoryDependencies()
-			authRepository := authRepository.NewAuthRepository(loggerService, db)
-			err := authRepository.ActivateAccount(ctx, 1)
+			repo := authRepository.New(loggerService, db)
+			err := repo.ActivateAccount(ctx, 1)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("ActivateAccount() error = %v, wantErr = %v", err, testScenario.wantErr)

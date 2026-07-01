@@ -75,7 +75,7 @@ func TestCheckDoesBucketExist(t *testing.T) {
 
 			permissionRepository, objectRepository, versionRepository, bucketRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
-			objectService := objectService.NewObjectService(
+			svc := objectService.New(
 				loggerService,
 				objectRepository,
 				permissionRepository,
@@ -84,7 +84,7 @@ func TestCheckDoesBucketExist(t *testing.T) {
 				versionRepository,
 			)
 
-			err := objectService.CheckDoesBucketExist(ctx, 1)
+			err := svc.CheckDoesBucketExist(ctx, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckDoesBucketExist() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

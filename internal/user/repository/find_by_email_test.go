@@ -132,8 +132,8 @@ func TestFindByEmail(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupUserRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			userRepository := userRepository.NewUserRepository(loggerService, db)
-			_, err := userRepository.FindByEmail(ctx, "joedoe@gmail.com")
+			repo := userRepository.New(loggerService, db)
+			_, err := repo.FindByEmail(ctx, "joedoe@gmail.com")
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("FindByEmail() error = %v, wantErr = %v", err, testScenario.wantErr)

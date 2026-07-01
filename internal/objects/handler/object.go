@@ -32,7 +32,7 @@ type ObjectHandler struct {
 	objectService        ObjectService
 }
 
-func NewObjectHandler(
+func New(
 	loggerService commonInterfaces.Logger,
 	authorizationService commonInterfaces.AuthenticationMiddleware,
 	objectService ObjectService,

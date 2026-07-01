@@ -16,7 +16,7 @@ type ObjectRepository struct {
 	loggerService commonInterfaces.Logger
 }
 
-func NewObjectRepository(db *sql.DB, loggerService commonInterfaces.Logger) *ObjectRepository {
+func New(db *sql.DB, loggerService commonInterfaces.Logger) *ObjectRepository {
 	return &ObjectRepository{
 		db:            db,
 		loggerService: loggerService,

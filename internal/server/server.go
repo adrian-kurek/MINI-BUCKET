@@ -72,14 +72,14 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) SetupRoutes() {
-	authRoutes := authRoutes.NewAuthRoutes(&s.config.authHandler)
-	authRoutes.SetupAuthRoutes(s.router)
-	objectRoutes := objectRoutes.NewObjectRoutes(&s.config.objectHandler)
-	objectRoutes.SetupObjectRoutes(s.router)
+	authRout := authRoutes.New(&s.config.authHandler)
+	authRout.SetupAuthRoutes(s.router)
+	objectRout := objectRoutes.New(&s.config.objectHandler)
+	objectRout.SetupObjectRoutes(s.router)
 	permissionRoutes := permissionRoutes.NewPermissionRoutes(&s.config.permissionHandler)
 	permissionRoutes.SetupPermissionRoutes(s.router)
-	bucketRoutes := bucketRoutes.NewBucketRoutes(&s.config.bucketHandler)
-	bucketRoutes.SetupBucketRoutes(s.router)
+	bucketRout := bucketRoutes.New(&s.config.bucketHandler)
+	bucketRout.SetupBucketRoutes(s.router)
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {

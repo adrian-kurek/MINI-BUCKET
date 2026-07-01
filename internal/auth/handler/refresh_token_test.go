@@ -80,7 +80,7 @@ func TestRefreshToken(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodPost, "/auth/login", nil)
 			if err != nil {
@@ -94,7 +94,7 @@ func TestRefreshToken(t *testing.T) {
 				r.AddCookie(&cookie)
 			}
 
-			err = authController.RefreshToken(w, r)
+			err = h.RefreshToken(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Login() err = %v, wantErr = %v", err, testScenario.wantErr)

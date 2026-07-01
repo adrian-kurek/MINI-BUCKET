@@ -73,14 +73,14 @@ func TestUpdateCurrentVersionOfObject(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupObjectRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			objectRepository := objectRepository.NewObjectRepository(db, loggerService)
+			repo := objectRepository.New(db, loggerService)
 			tx, err := db.BeginTx(context.Background(), nil)
 			if err != nil {
 				panic(err)
 			}
 			defer tx.Rollback()
 
-			err = objectRepository.UpdateCurrentVersionIDOfObject(ctx, tx, 1, 1)
+			err = repo.UpdateCurrentVersionIDOfObject(ctx, tx, 1, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("UpdateCurrentVersionOfObject() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

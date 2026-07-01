@@ -89,14 +89,14 @@ func TestCreate(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupObjectRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			objectRepository := objectRepository.NewObjectRepository(db, loggerService)
+			repo := objectRepository.New(db, loggerService)
 			tx, err := db.BeginTx(context.Background(), nil)
 			if err != nil {
 				panic(err)
 			}
 			defer tx.Rollback()
 
-			_, err = objectRepository.Create(ctx, tx, DTO.Create{})
+			_, err = repo.Create(ctx, tx, DTO.Create{})
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

@@ -41,8 +41,8 @@ func TestSendEmail(t *testing.T) {
 			loggerService := setupAuthServiceDependencies()
 			hostEmail := os.Getenv("HOST_EMAIL")
 			emailPassword := os.Getenv("PASSWORD_EMAIL")
-			emailService := NewEmailService(hostEmail, emailPassword, loggerService)
-			err = emailService.SendEmail(testScenario.to, "subject", "body")
+			svc := New(hostEmail, emailPassword, loggerService)
+			err = svc.SendEmail(testScenario.to, "subject", "body")
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("SendEmail() error = %v, wantErr %v", err, testScenario.wantErr)

@@ -46,9 +46,9 @@ func TestHandleTimeout(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupObjectHandlerDependencies()
 			objectService, authorizationMiddleware := testScenario.setupMock()
-			objectHandler := objectHandler.NewObjectHandler(loggerService, authorizationMiddleware, objectService)
+			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
 
-			err := objectHandler.HandleTimeout(testScenario.inputErr, "/")
+			err := h.HandleTimeout(testScenario.inputErr, "/")
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {

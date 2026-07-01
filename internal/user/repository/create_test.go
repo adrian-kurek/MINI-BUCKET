@@ -86,8 +86,8 @@ func TestCreate(t *testing.T) {
 				ConfirmPassword: "zaq1@#$rfvbgt5",
 			}
 			db, ctx := testScenario.setupMock()
-			userRepository := userRepository.NewUserRepository(loggerService, db)
-			err := userRepository.Create(ctx, user, []byte("test"))
+			repo := userRepository.New(loggerService, db)
+			err := repo.Create(ctx, user, []byte("test"))
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Create() error = %v, wantErr = %v", err, testScenario.wantErr)

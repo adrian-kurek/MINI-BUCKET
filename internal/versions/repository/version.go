@@ -15,7 +15,7 @@ type VersionRepository struct {
 	loggerService commonInterfaces.Logger
 }
 
-func NewVersionRepository(db *sql.DB, loggerService commonInterfaces.Logger) *VersionRepository {
+func New(db *sql.DB, loggerService commonInterfaces.Logger) *VersionRepository {
 	return &VersionRepository{
 		db:            db,
 		loggerService: loggerService,

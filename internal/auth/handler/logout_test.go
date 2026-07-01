@@ -108,7 +108,7 @@ func TestLogoutUser(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
-			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodDelete, "/auth/logout", nil)
 			if err != nil {
@@ -123,7 +123,7 @@ func TestLogoutUser(t *testing.T) {
 				r.AddCookie(&cookie)
 			}
 
-			err = authController.LogoutUser(w, r)
+			err = h.LogoutUser(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("LogoutUser() err = %v, wantErr = %v", err, testScenario.wantErr)
@@ -287,14 +287,14 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
 			authorizationMiddleware, authService, w := testScenario.setupMocks(testScenario.setIDInContext)
-			authController := authHandler.NewAuthHandler(loggerService, authService, authorizationMiddleware)
+			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 			if err != nil {
 				panic(err)
 			}
 
-			err = authController.LogoutUserFromAllDevices(w, r)
+			err = h.LogoutUserFromAllDevices(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("LogoutUserFromAllDevices() err = %v, wantErr = %v", err, testScenario.wantErr)

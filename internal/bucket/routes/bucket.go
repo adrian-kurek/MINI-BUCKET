@@ -16,7 +16,7 @@ type BucketRoutes struct {
 	bucketHandler bucketHandler
 }
 
-func NewBucketRoutes(bucketHandler bucketHandler) *BucketRoutes {
+func New(bucketHandler bucketHandler) *BucketRoutes {
 	return &BucketRoutes{
 		bucketHandler: bucketHandler,
 	}

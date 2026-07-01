@@ -72,9 +72,9 @@ func TestUpdate(t *testing.T) {
 
 			permissionRepository, mBucketRepository := testScenario.setupMock()
 			loggerService := setupBucketServiceDependencies()
-			bucketService := bucketService.NewBucketService(mBucketRepository, permissionRepository, loggerService)
+			svc := bucketService.New(mBucketRepository, permissionRepository, loggerService)
 
-			err := bucketService.Update(ctx, 1, 1, DTO.BucketInput{})
+			err := svc.Update(ctx, 1, 1, DTO.BucketInput{})
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Update() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

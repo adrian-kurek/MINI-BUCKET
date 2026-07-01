@@ -46,9 +46,9 @@ func TestHandleTimeout(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupBucketHandlerDependencies()
 			bucketService, authorizationMiddleware := testScenario.setupMock()
-			bucketHandler := bucketHandler.NewBucketHandler(bucketService, authorizationMiddleware, loggerService)
+			h := bucketHandler.New(bucketService, authorizationMiddleware, loggerService)
 
-			err := bucketHandler.HandleTimeout(testScenario.inputErr, "/")
+			err := h.HandleTimeout(testScenario.inputErr, "/")
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {

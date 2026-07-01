@@ -81,9 +81,9 @@ func TestGetObjectID(t *testing.T) {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupObjectRepositoryDependencies()
 			db, ctx := testScenario.setupMock()
-			objectRepository := objectRepository.NewObjectRepository(db, loggerService)
+			repo := objectRepository.New(db, loggerService)
 
-			_, _, err := objectRepository.GetObjectID(ctx, "", 1)
+			_, _, err := repo.GetObjectID(ctx, "", 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GetObjectID() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

@@ -71,9 +71,9 @@ func TestUpdate(t *testing.T) {
 		t.Run(testscenario.title, func(t *testing.T) {
 			db, ctx := testscenario.setupMock()
 			loggerservice := setupBucketRepositoryDependencies()
-			bucketRepository := bucketRepository.NewBucketRepository(loggerservice, db)
+			repo := bucketRepository.New(loggerservice, db)
 			bucketInput := DTO.BucketInput{}
-			err := bucketRepository.Update(ctx, 1, 1, bucketInput)
+			err := repo.Update(ctx, 1, 1, bucketInput)
 
 			if (err != nil) != testscenario.wantErr {
 				t.Errorf("Update() error = %v, wantErr = %v", err, testscenario.wantErr)

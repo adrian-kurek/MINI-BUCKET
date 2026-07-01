@@ -66,9 +66,9 @@ func TestCheckPermissions(t *testing.T) {
 
 			permissionRepository, mBucketRepository := testScenario.setupMock()
 			loggerService := setupBucketServiceDependencies()
-			bucketService := bucketService.NewBucketService(mBucketRepository, permissionRepository, loggerService)
+			svc := bucketService.New(mBucketRepository, permissionRepository, loggerService)
 
-			err := bucketService.CheckPermissions(ctx, 1, 1)
+			err := svc.CheckPermissions(ctx, 1, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckPermissions() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
