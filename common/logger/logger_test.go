@@ -1,4 +1,4 @@
-package logger
+package logger_test
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	logger "github.com/slodkiadrianek/MINI-BUCKET/common/logger"
 	"gotest.tools/v3/assert"
 )
 
@@ -56,9 +57,9 @@ func TestLoggerInfo(t *testing.T) {
 
 	for _, testCase := range testsCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			logger := NewLogger(pathToLogDirectory, dateFormat, timeFormat)
-			logger.Info(testCase.message, "")
-			err := logger.Close()
+			loggerSvc := logger.New(pathToLogDirectory, dateFormat, timeFormat)
+			loggerSvc.Info(testCase.message, "")
+			err := loggerSvc.Close()
 			if err != nil {
 				panic(err)
 			}
@@ -101,9 +102,9 @@ func TestLoggerWarning(t *testing.T) {
 
 	for _, testCase := range testsCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			logger := NewLogger(pathToLogDirectory, dateFormat, timeFormat)
-			logger.Warning(testCase.message, "")
-			err := logger.Close()
+			loggerSvc := logger.New(pathToLogDirectory, dateFormat, timeFormat)
+			loggerSvc.Warning(testCase.message, "")
+			err := loggerSvc.Close()
 			if err != nil {
 				panic(err)
 			}
@@ -146,9 +147,9 @@ func TestLoggerError(t *testing.T) {
 
 	for _, testCase := range testsCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			logger := NewLogger(pathToLogDirectory, dateFormat, timeFormat)
-			logger.Error(testCase.message, "")
-			err := logger.Close()
+			loggerSvc := logger.New(pathToLogDirectory, dateFormat, timeFormat)
+			loggerSvc.Error(testCase.message, "")
+			err := loggerSvc.Close()
 			if err != nil {
 				panic(err)
 			}
@@ -192,13 +193,13 @@ func TestLoggerValidate(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			actualDate := time.Now().Format(dateFormat)
 
-			logger := NewLogger(pathToLogDirectory, dateFormat, timeFormat)
+			loggerSvc := logger.New(pathToLogDirectory, dateFormat, timeFormat)
 
 			removeFile(t, actualDate)
 
-			logger.startTime = time.Now().Add(time.Hour * time.Duration(-24)).Format(dateFormat)
-			logger.validate()
-			err := logger.Close()
+			loggerSvc.StartTime = time.Now().Add(time.Hour * time.Duration(-24)).Format(dateFormat)
+			loggerSvc.Validate()
+			err := loggerSvc.Close()
 			if err != nil {
 				panic(err)
 			}

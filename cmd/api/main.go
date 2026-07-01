@@ -31,9 +31,9 @@ import (
 )
 
 func main() {
-	loggerService := logger.NewLogger("./logs", "2006-01-02", "15:04:05")
+	loggerSvc := logger.New("./logs", "2006-01-02", "15:04:05")
 	defer func() {
-		if closeErr := loggerService.Close(); closeErr != nil {
+		if closeErr := loggerSvc.Close(); closeErr != nil {
 			log.Printf("failed to properly close file with logs:%s", closeErr.Error())
 		}
 	}()
@@ -45,7 +45,7 @@ func main() {
 	_, ok := os.LookupEnv("HOST_LINK")
 	if !ok {
 		err = errors.New("HOST_LINK variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "HOST_LINK",
 		})
 		panic(err)
@@ -54,7 +54,7 @@ func main() {
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		err = errors.New("PORT variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "PORT",
 		})
 		panic(err)
@@ -63,7 +63,7 @@ func main() {
 	dbLink, ok := os.LookupEnv("DB_LINK")
 	if !ok {
 		err = errors.New("DB_LINK variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "DB_LINK",
 		})
 		panic(err)
@@ -71,14 +71,14 @@ func main() {
 
 	db, err := config.NewDB(dbLink, "postgres")
 	if err != nil {
-		loggerService.Error("Failed to connect to database", err)
+		loggerSvc.Error("Failed to connect to database", err)
 		panic(err)
 	}
 
 	cacheConnectionLink, ok := os.LookupEnv("CACHE_LINK")
 	if !ok {
 		err = errors.New("CACHE_LINK variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "CACHE_LINK",
 		})
 		panic(err)
@@ -86,14 +86,14 @@ func main() {
 
 	cacheService, err := config.NewCacheService(cacheConnectionLink)
 	if err != nil {
-		loggerService.Error("failed to connect to cache service", err.Error())
+		loggerSvc.Error("failed to connect to cache service", err.Error())
 		panic(err)
 	}
 
 	accessTokenSecret, ok := os.LookupEnv("ACCESS_TOKEN_SECRET")
 	if !ok {
 		err = errors.New("ACCESS_TOKEN_SECRET variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "ACCESS_TOKEN_SECRET",
 		})
 		panic(err)
@@ -102,7 +102,7 @@ func main() {
 	refreshTokenSecret, ok := os.LookupEnv("REFRESH_TOKEN_SECRET")
 	if !ok {
 		err = errors.New("REFRESH_TOKEN_SECRET variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "REFRESH_TOKEN_SECRET",
 		})
 		panic(err)
@@ -111,7 +111,7 @@ func main() {
 	hostEmail, ok := os.LookupEnv("HOST_EMAIL")
 	if !ok {
 		err = errors.New("HOST_EMAIL variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "HOST_EMAIL",
 		})
 		panic(err)
@@ -120,34 +120,34 @@ func main() {
 	passwordEmail, ok := os.LookupEnv("PASSWORD_EMAIL")
 	if !ok {
 		err = errors.New("PASSWORD_EMAIL variable has not been initialized")
-		loggerService.Error(err.Error(), map[string]string{
+		loggerSvc.Error(err.Error(), map[string]string{
 			"variable": "PASSWORD_EMAIL",
 		})
 		panic(err)
 	}
 
-	authorization := middleware.NewAuthenticationMiddleware(
+	authentication := middleware.New(
 		accessTokenSecret,
 		refreshTokenSecret,
-		loggerService,
+		loggerSvc,
 		cacheService,
 	)
-	mailSvc := mailService.New(hostEmail, passwordEmail, loggerService)
-	userRepo := userRepository.New(loggerService, db.DBConnection)
-	authRepo := authRepository.New(loggerService, db.DBConnection)
-	authSvc := authService.NewAuthService(loggerService, userRepo, authRepo, authorization, mailSvc)
-	authH := authHandler.New(loggerService, authSvc, authorization)
+	mailSvc := mailService.New(hostEmail, passwordEmail, loggerSvc)
+	userRepo := userRepository.New(loggerSvc, db.DBConnection)
+	authRepo := authRepository.New(loggerSvc, db.DBConnection)
+	authSvc := authService.NewAuthService(loggerSvc, userRepo, authRepo, authentication, mailSvc)
+	authH := authHandler.New(loggerSvc, authSvc, authentication)
 
-	permissionRepo := permissionRepository.NewPermissionRepository(loggerService, db.DBConnection)
-	permissionSvc := permissionService.NewPermissionRepository(permissionRepo, loggerService)
-	permissionH := permissionHandler.NewPermissionHandler(permissionSvc, authorization, loggerService)
-	bucketRepo := bucketRepository.New(loggerService, db.DBConnection)
-	bucketSvc := bucketService.New(bucketRepo, permissionRepo, loggerService)
-	bucketH := bucketHandler.New(bucketSvc, authorization, loggerService)
-	objectRepo := objectRepository.New(db.DBConnection, loggerService)
-	versionRepo := versionRepository.New(db.DBConnection, loggerService)
+	permissionRepo := permissionRepository.NewPermissionRepository(loggerSvc, db.DBConnection)
+	permissionSvc := permissionService.NewPermissionRepository(permissionRepo, loggerSvc)
+	permissionH := permissionHandler.NewPermissionHandler(permissionSvc, authentication, loggerSvc)
+	bucketRepo := bucketRepository.New(loggerSvc, db.DBConnection)
+	bucketSvc := bucketService.New(bucketRepo, permissionRepo, loggerSvc)
+	bucketH := bucketHandler.New(bucketSvc, authentication, loggerSvc)
+	objectRepo := objectRepository.New(db.DBConnection, loggerSvc)
+	versionRepo := versionRepository.New(db.DBConnection, loggerSvc)
 	objectSvc := objectService.New(
-		loggerService,
+		loggerSvc,
 		objectRepo,
 		permissionRepo,
 		bucketRepo,
@@ -155,7 +155,7 @@ func main() {
 		versionRepo,
 	)
 
-	objectH := objectHandler.New(loggerService, authorization, objectSvc)
+	objectH := objectHandler.New(loggerSvc, authentication, objectSvc)
 
 	dependenciesConfig := server.NewDependencyConfig(
 		port,
@@ -167,9 +167,9 @@ func main() {
 	apiCtx, apiCtxCancel := context.WithCancel(context.Background())
 	httpServer := server.NewServer(dependenciesConfig)
 	go func() {
-		loggerService.Info(fmt.Sprintf("server started at port:%s", port), nil)
+		loggerSvc.Info(fmt.Sprintf("server started at port:%s", port), nil)
 		if err = httpServer.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			loggerService.Error("Failed to start server", err)
+			loggerSvc.Error("Failed to start server", err)
 		}
 	}()
 
@@ -179,8 +179,8 @@ func main() {
 	defer apiCtxCancel()
 
 	if err = httpServer.Shutdown(apiCtx); err != nil {
-		loggerService.Error("Server forced to shutdown:", err)
-		err = loggerService.Close()
+		loggerSvc.Error("Server forced to shutdown:", err)
+		err = loggerSvc.Close()
 		if err != nil {
 			panic(err)
 		}
@@ -194,5 +194,5 @@ func main() {
 		}
 	}
 
-	loggerService.Info("server exited", nil)
+	loggerSvc.Info("server exited", nil)
 }

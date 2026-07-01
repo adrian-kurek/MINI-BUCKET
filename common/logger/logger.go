@@ -22,10 +22,10 @@ type Logger struct {
 	dateFormat string
 	timeFormat string
 	file       *os.File
-	startTime  string
+	StartTime  string
 }
 
-func NewLogger(logDir string, dateFormat string, timeFormat string) *Logger {
+func New(logDir string, dateFormat string, timeFormat string) *Logger {
 	logger := &Logger{
 		logDir:     logDir,
 		dateFormat: dateFormat,
@@ -106,7 +106,7 @@ func (l *Logger) initializeLogger() {
 	}
 	actualDate := time.Now()
 	filename := actualDate.Format(l.dateFormat)
-	l.startTime = filename
+	l.StartTime = filename
 
 	file, err := os.OpenFile(l.logDir+"/"+filename+".json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o666)
 	if err != nil {
@@ -158,10 +158,10 @@ func (l *Logger) initializeLogger() {
 	}
 }
 
-func (l *Logger) validate() {
+func (l *Logger) Validate() {
 	actualDate := time.Now().Format(l.dateFormat)
 
-	if actualDate != l.startTime {
+	if actualDate != l.StartTime {
 
 		log.Println("closing old file and creating the new one for new date")
 
@@ -175,7 +175,7 @@ func (l *Logger) validate() {
 			log.Println("something went wrong during writing  data to the file")
 		}
 
-		l.startTime = actualDate
+		l.StartTime = actualDate
 		fileName := actualDate
 
 		file, err := os.OpenFile(l.logDir+"/"+fileName+".json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o666)
@@ -201,12 +201,12 @@ func (l *Logger) validate() {
 }
 
 func (l *Logger) Info(message string, data any) {
-	l.validate()
+	l.Validate()
 	l.emit(message, "INFO", data)
 }
 
 func (l *Logger) Error(message string, data any) {
-	l.validate()
+	l.Validate()
 	l.emit(message, "ERROR", data)
 }
 
@@ -219,7 +219,7 @@ func (l *Logger) LogDBFields(query string, args any, err error) map[string]any {
 }
 
 func (l *Logger) Warning(message string, data any) {
-	l.validate()
+	l.Validate()
 	l.emit(message, "WARNING", data)
 }
 
