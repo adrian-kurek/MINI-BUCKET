@@ -43,6 +43,7 @@ type (
 		HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error
 		HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error
 		Update(ctx context.Context, tx *sql.Tx, file objectsDTO.Update) error
+		Delete(ctx context.Context, objectKey string) error
 	}
 	PermissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
