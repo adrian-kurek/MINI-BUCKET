@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strconv"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 )
@@ -23,9 +24,9 @@ func (obs *ObjectService) checkExecutePermissions(ctx context.Context, bucketID,
 
 func (obs *ObjectService) createDeleteMarker(ctx context.Context, objectKey string, bucketID int) error {
 
-			doesObjectIDExist,objectID,err := obs.objectRepository.GetObjectID(ctx, objectKey, bucketID)	
-			if !doesObjectIDExist {
-				return commonErrors.NewAPIError(http.StatusNotFound, "bucket with provided id does not exist")
+			doesObjectExist,	objectID,err := obs.objectRepository.GetObjectID(ctx, objectKey, bucketID)	
+			if !doesObjectExist {
+				return commonErrors.NewAPIError(http.StatusNotFound,"failed to find object with provided id")
 			}
 			if err != nil {
 					return err
@@ -71,12 +72,17 @@ func (obs *ObjectService) deleteObjectVersionByID(ctx context.Context, objectKey
 }
 
 func (obs *ObjectService) deleteObject(ctx context.Context, objectKey string, bucketID int) error {
-	err := obs.objectRepository.Delete(ctx, objectKey)
+	objectUUID,err := obs.objectRepository.GetUUIDByID(ctx,objectKey,bucketID)
 	if err != nil {
 		return err
 	}
 
-  desthPath := "./uploads/" + string(bucketID)  + "/" + objectKey
+	err = obs.objectRepository.Delete(ctx, objectKey)
+	if err != nil {
+		return err
+	}
+
+  desthPath := "./uploads/" + strconv.Itoa(bucketID)  + "/" + objectKey + "-" + objectUUID
 	err = os.Remove(desthPath)
 	if err != nil {
 		return err

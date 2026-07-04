@@ -83,7 +83,7 @@ func TestGetObjectID(t *testing.T) {
 			db, ctx := testScenario.setupMock()
 			repo := objectRepository.New(db, loggerService)
 
-			_, _, err := repo.GetObjectID(ctx, "", 1)
+			 _,_, err := repo.GetObjectID(ctx, "", 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GetObjectID() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

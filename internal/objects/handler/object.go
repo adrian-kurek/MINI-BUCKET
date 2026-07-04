@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -208,10 +209,12 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	var versionID int
 	if versionIDStr == "" {
 		versionID = 0
-	}
-	versionID ,err= strconv.Atoi(versionIDStr)
-	if err != nil {
-		return err
+	}else{
+		versionID ,err= strconv.Atoi(versionIDStr)
+		if err != nil {
+			log.Println(versionIDStr)
+			return err
+		}
 	}
 
 	objectKey := r.PathValue("objectKey")
