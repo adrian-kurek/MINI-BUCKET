@@ -32,6 +32,9 @@ type (
 		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
 		Create(ctx context.Context, tx *sql.Tx, file versionsDTO.Create) (int, error)
 		GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error)
+ 		CreateDeleteMarker(ctx context.Context,tx *sql.Tx, objectID int) (int,error) 
+ 		Delete(ctx context.Context, versionID int) error 
+		GetUUIDByID(ctx context.Context,  versionID int) (string, error) 
 	}
 	ObjectRepository interface {
 		Create(ctx context.Context, tx *sql.Tx, file objectsDTO.Create) (int, error)
