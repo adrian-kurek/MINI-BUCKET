@@ -37,34 +37,8 @@ func (m *MockObjectService) CheckReadPermissions(ctx context.Context, bucketID i
 	return args.Error(0)
 }
 
-func (m *MockObjectService) Delete(
-	ctx context.Context,
-	bucketID,
-	userID int,
-	objectKey string,
-	versionNumber int,
-	isHardDelete bool,
-) error {
-	args := m.Called(ctx, bucketID, userID, objectKey, versionNumber, isHardDelete)
+func (m *MockObjectService) Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error {
+	args := m.Called(ctx,bucketID,userID,objectKey,versionID)
 	return args.Error(0)
 }
 
-func (m *MockObjectService) HardDeleteVersion(
-	ctx context.Context,
-	bucketID int,
-	objectKey string,
-	versionNumber int,
-) error {
-	args := m.Called(ctx, bucketID, objectKey, versionNumber)
-	return args.Error(0)
-}
-
-func (m *MockObjectService) HardDeleteObject(
-	ctx context.Context,
-	bucketID int,
-	objectKey string,
-	versionNumber int,
-) error {
-	args := m.Called(ctx, bucketID, objectKey, versionNumber)
-	return args.Error(0)
-}

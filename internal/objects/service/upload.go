@@ -41,10 +41,6 @@ type (
 		GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool, int, error)
 		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
 		GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error)
-		SoftDeleteVersion(ctx context.Context, objectID int, objectKey string, versionNumber int) error
-		SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error
-		HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error
-		HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error
 		Update(ctx context.Context, tx *sql.Tx, file objectsDTO.Update) error
 		Delete(ctx context.Context, objectKey string) error
 	}

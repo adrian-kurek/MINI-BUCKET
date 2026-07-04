@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"os/user"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 )
