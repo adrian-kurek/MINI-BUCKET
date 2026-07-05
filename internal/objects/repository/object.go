@@ -122,10 +122,6 @@ func (or *ObjectRepository) Update(ctx context.Context, tx *sql.Tx, file DTO.Upd
 
 	_, err = stmt.ExecContext(ctx, file.SizeBytes, file.ETag, file.StorageClass, file.UUID, file.ObjectID)
 	if err != nil {
-		if errors.Is(err,sql.ErrNoRows){
-			return commonErrors.NewAPIError(http.StatusNotFound,"failed to find object with provided id ")
-		}
-
 		or.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
@@ -198,10 +194,6 @@ func (ob *ObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, 
 	}()
 	_, err = stmt.ExecContext(ctx, versionID, objectID)
 	if err != nil {
-		if errors.Is(err,sql.ErrNoRows){
-			return commonErrors.NewAPIError(http.StatusNotFound,"failed to find object with provided id")
-		}
-
 		ob.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
@@ -223,7 +215,7 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 		o.etag,
 		o.size_bytes 
 	FROM objects o
-  	WHERE o.object_key = $1 AND o.bucket_id = $2`
+  WHERE o.object_key = $1 AND o.bucket_id = $2`
 
 	stmt, err := ob.db.PrepareContext(ctx, query)
 	if err != nil {
