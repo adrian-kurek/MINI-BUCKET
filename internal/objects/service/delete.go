@@ -9,7 +9,7 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 )
 
-func (obs *ObjectService) checkExecutePermissions(ctx context.Context, bucketID, userID int) error {
+func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID, userID int) error {
 
 	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
@@ -22,7 +22,7 @@ func (obs *ObjectService) checkExecutePermissions(ctx context.Context, bucketID,
 	return nil
 }
 
-func (obs *ObjectService) createDeleteMarker(ctx context.Context, objectKey string, bucketID int) error {
+func (obs *ObjectService) CreateDeleteMarker(ctx context.Context, objectKey string, bucketID int) error {
 
 			doesObjectExist,	objectID,err := obs.objectRepository.GetObjectID(ctx, objectKey, bucketID)	
 			if !doesObjectExist {
@@ -38,9 +38,15 @@ func (obs *ObjectService) createDeleteMarker(ctx context.Context, objectKey stri
 			}
 
 			deleteMarkerID, err := obs.versionRepository.CreateDeleteMarker(ctx,tx,objectID)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
 			err = obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx,tx,objectID,deleteMarkerID)
 			if err != nil {
-					return err
+				tx.Rollback()
+				return err
 			}
 
 			err = tx.Commit()
@@ -51,7 +57,7 @@ func (obs *ObjectService) createDeleteMarker(ctx context.Context, objectKey stri
 			return nil
 }
 
-func (obs *ObjectService) deleteObjectVersionByID(ctx context.Context, objectKey string,bucketID,versionID int) error {
+func (obs *ObjectService) DeleteObjectVersionByID(ctx context.Context, objectKey string,bucketID,versionID int) error {
 		objectUUID,err := obs.versionRepository.GetUUIDByID(ctx,versionID)
 		if err != nil {
 			return err
@@ -62,7 +68,7 @@ func (obs *ObjectService) deleteObjectVersionByID(ctx context.Context, objectKey
 			return err
 		}
 
-		destPath := "./uploads/" + string(bucketID) + "/" + objectKey + "-" + objectUUID
+		destPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKey + "-" + objectUUID
 		err = os.Remove(destPath)
 		if err != nil {
 			return err
@@ -71,7 +77,7 @@ func (obs *ObjectService) deleteObjectVersionByID(ctx context.Context, objectKey
 		return nil
 }
 
-func (obs *ObjectService) deleteObject(ctx context.Context, objectKey string, bucketID int) error {
+func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bucketID int) error {
 	objectUUID,err := obs.objectRepository.GetUUIDByID(ctx,objectKey,bucketID)
 	if err != nil {
 		return err
@@ -92,7 +98,7 @@ func (obs *ObjectService) deleteObject(ctx context.Context, objectKey string, bu
 }
 
 func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error {
-	err := obs.checkExecutePermissions(ctx,bucketID, userID)
+	err := obs.CheckExecutePermissions(ctx,bucketID, userID)
 	if err != nil {
 		return err
 	}
@@ -109,9 +115,9 @@ func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, obje
 
 	if isVersioningEnabled {
 		if versionID == 0 {
-			return obs.createDeleteMarker(ctx,objectKey,bucketID)
+			return obs.CreateDeleteMarker(ctx,objectKey,bucketID)
 		}
-			return obs.deleteObjectVersionByID(ctx,objectKey,bucketID,versionID)
+			return obs.DeleteObjectVersionByID(ctx,objectKey,bucketID,versionID)
 	}
-	return obs.deleteObject(ctx,objectKey,bucketID)
+	return obs.DeleteObject(ctx,objectKey,bucketID)
 }
