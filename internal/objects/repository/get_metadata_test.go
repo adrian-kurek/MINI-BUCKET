@@ -106,12 +106,12 @@ func TestGetMetadata(t *testing.T) {
 			_,err := repo.GetMetadata(ctx,1,"test")
 
 			if (err != nil) != testscenario.wantErr {
-				t.Errorf("Update() error = %v, wantErr = %v", err, testscenario.wantErr)
+				t.Errorf("GetMetadata() error = %v, wantErr = %v", err, testscenario.wantErr)
 			}
 
 			if err != nil && testscenario.err != nil {
 				if err.Error() != testscenario.err.Error() {
-					t.Errorf("Update() error = %v, scenarioError = %v", err, testscenario.err)
+					t.Errorf("GetMetadata() error = %v, scenarioError = %v", err, testscenario.err)
 				}
 			}
 		})

@@ -24,61 +24,61 @@ func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID,
 
 func (obs *ObjectService) CreateDeleteMarker(ctx context.Context, objectKey string, bucketID int) error {
 
-			doesObjectExist,	objectID,err := obs.objectRepository.GetObjectID(ctx, objectKey, bucketID)	
-			if !doesObjectExist {
-				return commonErrors.NewAPIError(http.StatusNotFound,"failed to find object with provided id")
-			}
-			if err != nil {
-					return err
-			}
+	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, objectKey, bucketID)
+	if !doesObjectExist {
+		return commonErrors.NewAPIError(http.StatusNotFound, "failed to find object with provided id")
+	}
+	if err != nil {
+		return err
+	}
 
-			tx, err := obs.db.BeginTx(ctx, nil)
-			if err != nil {
-					return err
-			}
+	tx, err := obs.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
 
-			deleteMarkerID, err := obs.versionRepository.CreateDeleteMarker(ctx,tx,objectID)
-			if err != nil {
-				tx.Rollback()
-				return err
-			}
+	deleteMarkerID, err := obs.versionRepository.CreateDeleteMarker(ctx, tx, objectID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-			err = obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx,tx,objectID,deleteMarkerID)
-			if err != nil {
-				tx.Rollback()
-				return err
-			}
+	err = obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx, tx, objectID, deleteMarkerID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-			err = tx.Commit()
-			if err != nil {
-				return err
-			}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 
-			return nil
+	return nil
 }
 
-func (obs *ObjectService) DeleteObjectVersionByID(ctx context.Context, objectKey string,bucketID,versionID int) error {
-		objectUUID,err := obs.versionRepository.GetUUIDByID(ctx,versionID)
-		if err != nil {
-			return err
-		}
+func (obs *ObjectService) DeleteObjectVersionByID(ctx context.Context, objectKey string, bucketID, versionID int) error {
+	objectUUID, err := obs.versionRepository.GetUUIDByID(ctx, versionID)
+	if err != nil {
+		return err
+	}
 
-		err = obs.versionRepository.Delete(ctx,versionID)
-		if err != nil {
-			return err
-		}
+	err = obs.versionRepository.Delete(ctx, versionID)
+	if err != nil {
+		return err
+	}
 
-		destPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKey + "-" + objectUUID
-		err = os.Remove(destPath)
-		if err != nil {
-			return err
-		}
+	destPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKey + "-" + objectUUID
+	err = os.Remove(destPath)
+	if err != nil {
+		return err
+	}
 
-		return nil
+	return nil
 }
 
 func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bucketID int) error {
-	objectUUID,err := obs.objectRepository.GetUUIDByID(ctx,objectKey,bucketID)
+	objectUUID, err := obs.objectRepository.GetUUIDByID(ctx, objectKey, bucketID)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bu
 		return err
 	}
 
-  desthPath := "./uploads/" + strconv.Itoa(bucketID)  + "/" + objectKey + "-" + objectUUID
+	desthPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKey + "-" + objectUUID
 	err = os.Remove(desthPath)
 	if err != nil {
 		return err
@@ -98,12 +98,12 @@ func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bu
 }
 
 func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error {
-	err := obs.CheckExecutePermissions(ctx,bucketID, userID)
+	err := obs.CheckExecutePermissions(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}
 
-	err = obs.CheckDoesBucketExist(ctx,bucketID)
+	err = obs.CheckDoesBucketExist(ctx, bucketID)
 	if err != nil {
 		return err
 	}
@@ -115,9 +115,9 @@ func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, obje
 
 	if isVersioningEnabled {
 		if versionID == 0 {
-			return obs.CreateDeleteMarker(ctx,objectKey,bucketID)
+			return obs.CreateDeleteMarker(ctx, objectKey, bucketID)
 		}
-			return obs.DeleteObjectVersionByID(ctx,objectKey,bucketID,versionID)
+		return obs.DeleteObjectVersionByID(ctx, objectKey, bucketID, versionID)
 	}
-	return obs.DeleteObject(ctx,objectKey,bucketID)
+	return obs.DeleteObject(ctx, objectKey, bucketID)
 }
