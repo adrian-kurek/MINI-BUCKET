@@ -18,10 +18,10 @@ import (
 
 func TestCheckReadPermissions(t *testing.T) {
 	type args struct {
-		title string
-		setupMock func () objectService.PermissionRepository
-		wantErr bool
-		err error
+		title     string
+		setupMock func() objectService.PermissionRepository
+		wantErr   bool
+		err       error
 	}
 
 	testScenarios := []args{
@@ -29,31 +29,31 @@ func TestCheckReadPermissions(t *testing.T) {
 			title: "with proper data",
 			setupMock: func() objectService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID",mock.Anything,mock.Anything,mock.Anything).Return(7,nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(7, nil)
 				return mPermissionRepository
 			},
 			wantErr: false,
-			err: nil,
+			err:     nil,
 		},
 		{
 			title: "GetPermissionValByUserID failed",
 			setupMock: func() objectService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID",mock.Anything,mock.Anything,mock.Anything).Return(0,errors.New("failed to perform query"))
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New("failed to perform query"))
 				return mPermissionRepository
 			},
 			wantErr: true,
-			err: errors.New("failed to perform query"),
+			err:     errors.New("failed to perform query"),
 		},
 		{
 			title: "user is not allowed to perform an action",
 			setupMock: func() objectService.PermissionRepository {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
-				mPermissionRepository.On("GetPermissionValByUserID",mock.Anything,mock.Anything,mock.Anything).Return(2,nil)
+				mPermissionRepository.On("GetPermissionValByUserID", mock.Anything, mock.Anything, mock.Anything).Return(2, nil)
 				return mPermissionRepository
 			},
 			wantErr: true,
-			err: errors.New("api error: you are not allowed to do this action"),
+			err:     errors.New("api error: you are not allowed to do this action"),
 		},
 	}
 
@@ -94,50 +94,50 @@ func TestCheckReadPermissions(t *testing.T) {
 
 func TestGetMetadata(t *testing.T) {
 	type args struct {
-		title string
-		setupMock func () (objectService.BucketRepository,objectService.VersionRepository,objectService.ObjectRepository)
-		wantErr bool
-		err error
+		title     string
+		setupMock func() (objectService.BucketRepository, objectService.VersionRepository, objectService.ObjectRepository)
+		wantErr   bool
+		err       error
 	}
 
 	testScenarios := []args{
 		{
 			title: "with proper data, with versioning enabled",
-			setupMock: func() (objectService.BucketRepository,objectService.VersionRepository,objectService.ObjectRepository) {
+			setupMock: func() (objectService.BucketRepository, objectService.VersionRepository, objectService.ObjectRepository) {
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
-				mVersionRepository.On("GetMetadata",mock.Anything,mock.Anything,mock.Anything,mock.Anything).Return(model.GetMetadata{},nil)
+				mVersionRepository.On("GetMetadata", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(model.GetMetadata{}, nil)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("IsVersioningEnabled",mock.Anything,mock.Anything).Return(true,nil)
-				return mBucketRepository,mVersionRepository,mObjectRepository
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(true, nil)
+				return mBucketRepository, mVersionRepository, mObjectRepository
 			},
 			wantErr: false,
-			err: nil,
+			err:     nil,
 		},
 		{
 			title: "with proper data, without versioning enabled",
-			setupMock: func() (objectService.BucketRepository,objectService.VersionRepository,objectService.ObjectRepository) {
+			setupMock: func() (objectService.BucketRepository, objectService.VersionRepository, objectService.ObjectRepository) {
 				mObjectRepository := new(objectMocks.MockObjectRepository)
-				mObjectRepository.On("GetMetadata",mock.Anything,mock.Anything,mock.Anything).Return(model.GetMetadata{},nil)
+				mObjectRepository.On("GetMetadata", mock.Anything, mock.Anything, mock.Anything).Return(model.GetMetadata{}, nil)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("IsVersioningEnabled",mock.Anything,mock.Anything).Return(false,nil)
-				return mBucketRepository,mVersionRepository,mObjectRepository
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(false, nil)
+				return mBucketRepository, mVersionRepository, mObjectRepository
 			},
 			wantErr: false,
-			err: nil,
+			err:     nil,
 		},
 		{
 			title: "IsVersioningEnabled failed",
-			setupMock: func() (objectService.BucketRepository,objectService.VersionRepository,objectService.ObjectRepository) {
+			setupMock: func() (objectService.BucketRepository, objectService.VersionRepository, objectService.ObjectRepository) {
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mVersionRepository := new(versionMocks.MockVersionRepository)
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("IsVersioningEnabled",mock.Anything,mock.Anything).Return(false,errors.New("failed to perform query"))
-				return mBucketRepository,mVersionRepository,mObjectRepository
+				mBucketRepository.On("IsVersioningEnabled", mock.Anything, mock.Anything).Return(false, errors.New("failed to perform query"))
+				return mBucketRepository, mVersionRepository, mObjectRepository
 			},
 			wantErr: true,
-			err: errors.New("failed to perform query"),
+			err:     errors.New("failed to perform query"),
 		},
 	}
 
@@ -148,7 +148,7 @@ func TestGetMetadata(t *testing.T) {
 			db, _, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
 
 			permissionRepository := new(permissionMocks.MockPermissionRepository)
-			bucketRepository,versionRepository,objectRepository := testScenario.setupMock()
+			bucketRepository, versionRepository, objectRepository := testScenario.setupMock()
 			loggerService := setupObjectServiceDependencies()
 
 			svc := objectService.New(
@@ -160,7 +160,7 @@ func TestGetMetadata(t *testing.T) {
 				versionRepository,
 			)
 
-			_,err := svc.GetMetadata(ctx, 1,"test", 1)
+			_, err := svc.GetMetadata(ctx, 1, "test", 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GetMetadata() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}
@@ -176,10 +176,10 @@ func TestGetMetadata(t *testing.T) {
 
 func TestHasPublicAccess(t *testing.T) {
 	type args struct {
-		title string
-		setupMock func () objectService.BucketRepository
-		wantErr bool
-		err error
+		title     string
+		setupMock func() objectService.BucketRepository
+		wantErr   bool
+		err       error
 	}
 
 	testScenarios := []args{
@@ -187,21 +187,21 @@ func TestHasPublicAccess(t *testing.T) {
 			title: "with proper data",
 			setupMock: func() objectService.BucketRepository {
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("GetPrivacyInfo",mock.Anything,mock.Anything).Return(true,nil)
-				return mBucketRepository 
+				mBucketRepository.On("GetPrivacyInfo", mock.Anything, mock.Anything).Return(true, nil)
+				return mBucketRepository
 			},
 			wantErr: false,
-			err: nil,
+			err:     nil,
 		},
 		{
 			title: "GetPrivacyInfo failed",
 			setupMock: func() objectService.BucketRepository {
 				mBucketRepository := new(bucketMocks.MockBucketRepository)
-				mBucketRepository.On("GetPrivacyInfo",mock.Anything,mock.Anything).Return(false,errors.New("failed to perform query"))
-				return mBucketRepository 
+				mBucketRepository.On("GetPrivacyInfo", mock.Anything, mock.Anything).Return(false, errors.New("failed to perform query"))
+				return mBucketRepository
 			},
 			wantErr: true,
-			err: errors.New("failed to perform query"),
+			err:     errors.New("failed to perform query"),
 		},
 	}
 
@@ -211,6 +211,7 @@ func TestHasPublicAccess(t *testing.T) {
 			defer cancel()
 			db, _, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
 
+		
 			permissionRepository := new(permissionMocks.MockPermissionRepository)
 			objectRepository := new(objectMocks.MockObjectRepository)
 			versionRepository := new(versionMocks.MockVersionRepository)
@@ -226,7 +227,7 @@ func TestHasPublicAccess(t *testing.T) {
 				versionRepository,
 			)
 
-			_,err := svc.HasPublicAccess(ctx, 1)
+			_, err := svc.HasPublicAccess(ctx, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("HasPublicAccess() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

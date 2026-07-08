@@ -19,6 +19,13 @@ import (
 	versionsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
 )
 
+func (obs *ObjectService) cleanupFailedUpload(origErr error, destPath string) error {
+	if removeErr := os.Remove(destPath); removeErr != nil {
+		obs.loggerService.Error("failed to remove file from disk", destPath)
+		return removeErr
+	}
+	return origErr
+}
 
 func (obs *ObjectService) CheckWritePermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
@@ -116,10 +123,10 @@ func (obs *ObjectService) upsertObjectMetadata(
 	etag string,
 	versioningEnabled bool,
 ) error {
-	 doesObjectExist,objectID, err := obs.objectRepository.GetObjectID(ctx, fileInfo.FileName, bucketID)
-	 // if !doesObjectExist {
-	 //  return commonErrors.NewAPIError(http.StatusNotFound, )
-	 // }
+	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, fileInfo.FileName, bucketID)
+	// if !doesObjectExist {
+	//  return commonErrors.NewAPIError(http.StatusNotFound, )
+	// }
 	if err != nil {
 		return err
 	}
@@ -223,22 +230,12 @@ func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, file
 
 	versioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
 	if err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 
 	tx, err := obs.db.BeginTx(ctx, nil)
 	if err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 	defer func() {
 		if closeErr := tx.Rollback(); closeErr != nil {
@@ -247,30 +244,15 @@ func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, file
 	}()
 
 	if err = obs.upsertObjectMetadata(ctx, tx, bucketID, fileInfo, fileUUID, etag, versioningEnabled); err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 
 	if err = obs.bucketRepository.UpdateTotalSize(ctx, bucketID, fileInfo.SizeBytes); err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 
 	if err = tx.Commit(); err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 	return nil
 }
