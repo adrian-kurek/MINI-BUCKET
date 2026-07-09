@@ -24,7 +24,7 @@ func New(loggerService commonInterfaces.Logger, db *sql.DB) *UserRepository {
 }
 
 func (ur *UserRepository) Create(ctx context.Context, user authDTO.CreateUser, hashedPassword []byte) error {
-	query := `INSERT INTO users (email,username,password,created_at,updated_at) VALUES ($1,$2,$3,$4,now(),now())`
+	query := `INSERT INTO users (email,username,password,created_at,updated_at) VALUES ($1,$2,$3,now(),now())`
 
 	stmt, err := ur.db.PrepareContext(ctx, query)
 	if err != nil {
