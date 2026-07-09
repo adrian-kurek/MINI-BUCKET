@@ -21,7 +21,7 @@ func NewPermissionRepository(logger commonInterfaces.Logger, db *sql.DB) *Permis
 }
 
 func (pr *PermissionRepository) Create(ctx context.Context, bucketID, userID, permission int) (int, error) {
-	query := `INSERT INTO bucket_permissions (bucket_id,user_id,permission,created_at,updated_at) VALUES ($1, $2, $3, NOW(), NOW())`
+	query := `INSERT INTO bucket_permissions (bucket_id,user_id,permission,created_at,updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id`
 	stmt, err := pr.db.PrepareContext(ctx, query)
 	if err != nil {
 		pr.logger.Error(commonErrors.FailedToPrepareQuery, map[string]any{

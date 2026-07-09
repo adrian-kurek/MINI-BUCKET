@@ -120,3 +120,4 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }
+

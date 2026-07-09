@@ -15,65 +15,16 @@ import (
 
 	"github.com/google/uuid"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
-	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	objectsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 	versionsDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/versions/DTO"
 )
 
-type (
-	BucketRepository interface {
-		Exists(ctx context.Context, bucketID int) (bool, error)
-		GetPrivacyInfo(ctx context.Context, bucketID int) (bool, error)
-		IsVersioningEnabled(ctx context.Context, bucketID int) (bool, error)
-		UpdateTotalSize(ctx context.Context, bucketID, sizeBytes int) error
+func (obs *ObjectService) cleanupFailedUpload(origErr error, destPath string) error {
+	if removeErr := os.Remove(destPath); removeErr != nil {
+		obs.loggerService.Error("failed to remove file from disk", destPath)
+		return removeErr
 	}
-	VersionRepository interface {
-		GetNewVersionNumber(ctx context.Context, tx *sql.Tx, objectID int) (int, error)
-		Create(ctx context.Context, tx *sql.Tx, file versionsDTO.Create) (int, error)
-		GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error)
-	}
-	ObjectRepository interface {
-		Create(ctx context.Context, tx *sql.Tx, file objectsDTO.Create) (int, error)
-		GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool, int, error)
-		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
-		GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error)
-		SoftDeleteVersion(ctx context.Context, objectID int, objectKey string, versionNumber int) error
-		SoftDeleteObject(ctx context.Context, bucketID int, objectKey string) error
-		HardDeleteObject(ctx context.Context, bucketID int, objectKey string) error
-		HardDeleteVersion(ctx context.Context, bucketID int, objectKey string, versionNumber int) error
-		Update(ctx context.Context, tx *sql.Tx, file objectsDTO.Update) error
-	}
-	PermissionRepository interface {
-		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)
-	}
-)
-
-type ObjectService struct {
-	loggerService        commonInterfaces.Logger
-	objectRepository     ObjectRepository
-	permissionRepository PermissionRepository
-	bucketRepository     BucketRepository
-	versionRepository    VersionRepository
-	db                   *sql.DB
-}
-
-func New(
-	loggerService commonInterfaces.Logger,
-	objectRepository ObjectRepository,
-	permissionRepository PermissionRepository,
-	bucketRepository BucketRepository,
-	db *sql.DB,
-	versionRepository VersionRepository,
-) *ObjectService {
-	return &ObjectService{
-		loggerService:        loggerService,
-		objectRepository:     objectRepository,
-		permissionRepository: permissionRepository,
-		bucketRepository:     bucketRepository,
-		versionRepository:    versionRepository,
-		db:                   db,
-	}
+	return origErr
 }
 
 func (obs *ObjectService) CheckWritePermissions(ctx context.Context, bucketID, userID int) error {
@@ -173,6 +124,9 @@ func (obs *ObjectService) upsertObjectMetadata(
 	versioningEnabled bool,
 ) error {
 	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, fileInfo.FileName, bucketID)
+	// if !doesObjectExist {
+	//  return commonErrors.NewAPIError(http.StatusNotFound, )
+	// }
 	if err != nil {
 		return err
 	}
@@ -276,22 +230,12 @@ func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, file
 
 	versioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
 	if err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 
 	tx, err := obs.db.BeginTx(ctx, nil)
 	if err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 	defer func() {
 		if closeErr := tx.Rollback(); closeErr != nil {
@@ -300,30 +244,15 @@ func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, file
 	}()
 
 	if err = obs.upsertObjectMetadata(ctx, tx, bucketID, fileInfo, fileUUID, etag, versioningEnabled); err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 
 	if err = obs.bucketRepository.UpdateTotalSize(ctx, bucketID, fileInfo.SizeBytes); err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 
 	if err = tx.Commit(); err != nil {
-		err = os.Remove(destPath)
-		if err != nil {
-			obs.loggerService.Error("failed to remove file from disk", destPath)
-			return err
-		}
-		return err
+		return obs.cleanupFailedUpload(err, destPath)
 	}
 	return nil
 }

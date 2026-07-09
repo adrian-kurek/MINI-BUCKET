@@ -24,7 +24,7 @@ func New(loggerService commonInterfaces.Logger, db *sql.DB) *BucketRepository {
 }
 
 func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) (int, error) {
-	query := `INSERT INTO buckets (name,user_id,region,versioning_enabled,public_access,storage_class,encryption_enabled, created_at,updated_at) VALUES ($1, $2, $3, $4, $5, $6,$7, NOW(), NOW())`
+	query := `INSERT INTO buckets (name,owner_id,region,versioning_enabled,public_access,encryption_enabled, created_at,updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id`
 
 	stmt, err := br.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -32,11 +32,10 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
-				"user_id":            userID,
+				"owner_id":            userID,
 				"region":             "",
 				"versioning_enabled": bucket.VersioningEnabled,
 				"public_access":      bucket.PublicAccess,
-				"storage_class":      bucket.StorageClass,
 				"encryption_enabled": bucket.EncryptionEnabled,
 			},
 			"error": err.Error(),
@@ -57,7 +56,6 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 		"",
 		bucket.VersioningEnabled,
 		bucket.PublicAccess,
-		bucket.StorageClass,
 		bucket.EncryptionEnabled,
 	).Scan(&bucketID)
 	if err != nil {
@@ -65,11 +63,10 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
-				"user_id":            userID,
+				"owner_id":            userID,
 				"region":             "",
 				"versioning_enabled": bucket.VersioningEnabled,
 				"public_access":      bucket.PublicAccess,
-				"storage_class":      bucket.StorageClass,
 				"encryption_enabled": bucket.EncryptionEnabled,
 			},
 			"error": err.Error(),
