@@ -10,7 +10,7 @@ import (
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 )
 
-func (or *ObjectRepository) GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool,int, error) {
+func (or *ObjectRepository) GetObjectID(ctx context.Context, objectKey string, bucketID int) (bool, int, error) {
 	query := "SELECT id FROM objects WHERE object_key = $1 AND bucket_id = $2"
 	stmt, err := or.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -22,13 +22,13 @@ func (or *ObjectRepository) GetObjectID(ctx context.Context, objectKey string, b
 			},
 			"error": err.Error(),
 		})
-		return  false,0, err
+		return false, 0, err
 	}
 	var objectID int
 	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&objectID)
 	if err != nil {
-		if errors.Is(err,sql.ErrNoRows){
-			return false,0,nil
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, 0, nil
 		}
 
 		or.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
@@ -39,9 +39,9 @@ func (or *ObjectRepository) GetObjectID(ctx context.Context, objectKey string, b
 			},
 			"error": err.Error(),
 		})
-		return  false,0, err
+		return false, 0, err
 	}
-	return  true,objectID, nil
+	return true, objectID, nil
 }
 
 func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error) {
@@ -49,7 +49,7 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 	SELECT 
 		o.content_type,
 		o.etag,
-		o.size_bytes 
+		o.size_bytes
 	FROM objects o
   WHERE o.object_key = $1 AND o.bucket_id = $2`
 
@@ -79,8 +79,8 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 		&objectMetadata.SizeBytes,
 	)
 	if err != nil {
-		if errors.Is(err,sql.ErrNoRows){
-			return model.GetMetadata{},commonErrors.NewAPIError(http.StatusNotFound,"failed to find object with provided objectKey and bucketID")
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.GetMetadata{}, commonErrors.NewAPIError(http.StatusNotFound, "failed to find object with provided objectKey and bucketID")
 		}
 
 		ob.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
@@ -96,7 +96,7 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 	return objectMetadata, nil
 }
 
-func (or *ObjectRepository) GetUUIDByID(ctx context.Context,  objectKey string, bucketID int) (string, error) {
+func (or *ObjectRepository) GetUUIDByID(ctx context.Context, objectKey string, bucketID int) (string, error) {
 	query := `SELECT object_uuid FROM objects WHERE object_key = $1 AND bucket_id = $2 `
 	stmt, err := or.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -104,7 +104,7 @@ func (or *ObjectRepository) GetUUIDByID(ctx context.Context,  objectKey string, 
 			"query": query,
 			"args": map[string]any{
 				"object_key": objectKey,
-				"bucket_id": bucketID,
+				"bucket_id":  bucketID,
 			},
 			"error": err.Error(),
 		})
@@ -116,18 +116,18 @@ func (or *ObjectRepository) GetUUIDByID(ctx context.Context,  objectKey string, 
 		}
 	}()
 
-	var uuid string 
-	err = stmt.QueryRowContext(ctx, objectKey,bucketID).Scan(&uuid)
+	var uuid string
+	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&uuid)
 	if err != nil {
-		if errors.Is(err,sql.ErrNoRows){
-			return "",commonErrors.NewAPIError(http.StatusNotFound,"failed to find object with provided objectKey and bucketID")
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", commonErrors.NewAPIError(http.StatusNotFound, "failed to find object with provided objectKey and bucketID")
 		}
 
 		or.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"object_key": objectKey,
-				"bucket_id": bucketID,
+				"bucket_id":  bucketID,
 			},
 			"error": err.Error(),
 		})

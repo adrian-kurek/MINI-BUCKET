@@ -3,8 +3,10 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -24,7 +26,8 @@ type ObjectService interface {
 	HasPublicAccess(ctx context.Context, bucketID int) (bool, error)
 	GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error)
 	CheckReadPermissions(ctx context.Context, bucketID int, userID int) error
- 	Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error 
+	Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error
+	Get(ctx context.Context, bucketID, versionID int, objectKey string) (model.GetMetadata, string, error)
 }
 
 type ObjectHandler struct {
@@ -53,8 +56,7 @@ func (oh *ObjectHandler) HandleTimeout(err error, URLPath string) error {
 	return err
 }
 
-func(oh *ObjectHandler) verifyFileName(fileName string ) error {
-
+func (oh *ObjectHandler) verifyFileName(fileName string) error {
 	if fileName == "" || strings.Contains(
 		fileName,
 		"/",
@@ -70,18 +72,17 @@ func(oh *ObjectHandler) verifyFileName(fileName string ) error {
 	return nil
 }
 
-func (oh *ObjectHandler) verifyAndGetUserID(r *http.Request) (int,error) {
-
+func (oh *ObjectHandler) verifyAndGetUserID(r *http.Request) (int, error) {
 	r, err := oh.authorizationService.VerifyToken(r)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
-	return userID,nil
+	return userID, nil
 }
 
 func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
@@ -89,7 +90,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), uploadTimeout)
 	defer cancel()
 
-	userID,err := oh.verifyAndGetUserID(r)
+	userID, err := oh.verifyAndGetUserID(r)
 	if err != nil {
 		return err
 	}
@@ -191,7 +192,7 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), deleteTimeout)
 	defer cancel()
 
-	userID,err := oh.verifyAndGetUserID(r)
+	userID, err := oh.verifyAndGetUserID(r)
 	if err != nil {
 		return err
 	}
@@ -209,8 +210,8 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	var versionID int
 	if versionIDStr == "" {
 		versionID = 0
-	}else{
-		versionID ,err= strconv.Atoi(versionIDStr)
+	} else {
+		versionID, err = strconv.Atoi(versionIDStr)
 		if err != nil {
 			log.Println(versionIDStr)
 			return err
@@ -224,12 +225,94 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err = oh.objectService.Delete(ctx, bucketID, userID, objectKey, versionID )
+	err = oh.objectService.Delete(ctx, bucketID, userID, objectKey, versionID)
 	if err != nil {
 		return oh.HandleTimeout(err, r.URL.Path)
 	}
 
 	response.Send(w, http.StatusNoContent, nil)
+
+	return nil
+}
+
+func (oh *ObjectHandler) Get(w http.ResponseWriter, r *http.Request) error {
+	uploadTimeout := time.Second * 2000
+	ctx, cancel := context.WithTimeout(r.Context(), uploadTimeout)
+	defer cancel()
+
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
+	if err != nil {
+		return commonErrors.NewAPIError(
+			http.StatusUnprocessableEntity,
+			"lack of bucketID or provided bucketID is malformed",
+		)
+	}
+
+	hasPublicAccess, err := oh.objectService.HasPublicAccess(ctx, bucketID)
+	if err != nil {
+		return oh.HandleTimeout(err, r.URL.Path)
+	}
+	userID := 0
+	if !hasPublicAccess {
+		r, err = oh.authorizationService.VerifyToken(r)
+		if err != nil {
+			return err
+		}
+		userID, err = request.ReadUserIDFromToken(r)
+		if err != nil {
+			return err
+		}
+		err = oh.objectService.CheckReadPermissions(ctx, bucketID, userID)
+		if err != nil {
+			return oh.HandleTimeout(err, r.URL.Path)
+		}
+	}
+
+	versionIDStr := request.ReadQueryParam(r, "versionID")
+
+	var versionID int
+	if versionIDStr == "" {
+		versionID = 0
+	} else {
+		versionID, err = strconv.Atoi(versionIDStr)
+		if err != nil {
+			log.Println(versionIDStr)
+			return err
+		}
+	}
+
+	objectKey := r.PathValue("objectKey")
+
+	err = oh.verifyFileName(objectKey)
+	if err != nil {
+		return err
+	}
+
+	metadata, destPath, err := oh.objectService.Get(ctx, bucketID, versionID, objectKey)
+	if err != nil {
+		return oh.HandleTimeout(err, r.URL.Path)
+	}
+	w.Header().Set("Content-Type", metadata.ContentType)
+	w.Header().Set("ETag", metadata.ETAG)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, objectKey))
+
+	f, err := os.Open(destPath)
+	if err != nil {
+		return oh.HandleTimeout(err, r.URL.Path)
+	}
+	defer f.Close()
+
+	stat, err := f.Stat()
+	if err != nil {
+		return oh.HandleTimeout(err, r.URL.Path)
+	}
+
+	http.ServeContent(w, r, objectKey, stat.ModTime(), f)
+
+
+	if err = ctx.Err(); err != nil {
+		return oh.HandleTimeout(err, r.URL.Path)
+	}
 
 	return nil
 }
