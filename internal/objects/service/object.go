@@ -24,6 +24,7 @@ type (
  		CreateDeleteMarker(ctx context.Context,tx *sql.Tx, objectID int) (int,error) 
  		Delete(ctx context.Context, versionID int) error 
 		GetUUIDByID(ctx context.Context,  versionID int) (string, error) 
+ 		GetUUIDByObjectKey(ctx context.Context,bucketID int, objectKey string) (string, error) 
 	}
 	ObjectRepository interface {
 		Create(ctx context.Context, tx *sql.Tx, file objectsDTO.Create) (int, error)

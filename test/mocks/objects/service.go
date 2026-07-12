@@ -42,3 +42,13 @@ func (m *MockObjectService) Delete(ctx context.Context, bucketID, userID int, ob
 	return args.Error(0)
 }
 
+func (m *MockObjectService) Get(
+	ctx context.Context,
+	bucketID int,
+	versionID int,
+	objectKey string, 
+) (model.GetMetadata, string, error) {
+	args := m.Called(ctx,bucketID,versionID,objectKey)
+	return args.Get(0).(model.GetMetadata), args.String(1), args.Error(2)
+}
+

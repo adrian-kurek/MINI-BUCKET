@@ -115,7 +115,7 @@ func (ov *VersionRepository) GetNewVersionNumber(ctx context.Context, tx *sql.Tx
 	return newVersionNumber, nil
 }
 
-func (vr *VersionRepository) GetUUIDByID(ctx context.Context,  versionID int) (string, error) {
+func (vr *VersionRepository) GetUUIDByID(ctx context.Context,versionID int) (string, error) {
 	query := `SELECT object_uuid FROM object_versions WHERE id = $1  `
 	stmt, err := vr.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -150,12 +150,52 @@ func (vr *VersionRepository) GetUUIDByID(ctx context.Context,  versionID int) (s
 	return uuid, nil
 }
 
+func (vr *VersionRepository) GetUUIDByObjectKey(ctx context.Context,bucketID int, objectKey string) (string, error) {
+	query := `SELECT object_uuid FROM object_versions ov 
+	INNER JOIN objects o ON o.id = ov.object_id 
+	WHERE o.object_key = $1 AND ov.bucket_id = $2  `
+	stmt, err := vr.db.PrepareContext(ctx, query)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+				"object_key": objectKey,
+			},
+			"error": err.Error(),
+		})
+		return "", err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	var uuid string 
+	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&uuid)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+				"object_key": objectKey,
+			},
+			"error": err.Error(),
+		})
+		return "", err
+	}
+
+	return uuid, nil
+}
+
 func (vr *VersionRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string, versionID int) (model.GetMetadata, error) {
 	query := `
 	SELECT 
 		ov.size_bytes,
 		ov.etag,
-		ov.content_type
+		ov.content_type,
+		ov.is_deleted
 	FROM object_versions ov
 	INNER JOIN objects o ON ov.object_id = o.id
 	WHERE o.bucket_id = $1
@@ -190,7 +230,7 @@ func (vr *VersionRepository) GetMetadata(ctx context.Context, bucketID int, obje
 		bucketID,
 		objectKey,
 		versionID,
-	).Scan(&metadata.SizeBytes, &metadata.ETAG, &metadata.ContentType)
+	).Scan(&metadata.SizeBytes, &metadata.ETAG, &metadata.ContentType,&metadata.IsDeleted)
 	if err != nil {
 		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
@@ -288,3 +328,5 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context,tx *sql.Tx, 
 
 	return newVersionID, nil
 }
+
+

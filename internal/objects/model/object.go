@@ -19,4 +19,5 @@ type GetMetadata struct {
 	ContentType string
 	ETAG        string
 	SizeBytes   int
+	IsDeleted   bool
 }
