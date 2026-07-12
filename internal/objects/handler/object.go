@@ -276,7 +276,6 @@ func (oh *ObjectHandler) Get(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		versionID, err = strconv.Atoi(versionIDStr)
 		if err != nil {
-			log.Println(versionIDStr)
 			return err
 		}
 	}
@@ -308,7 +307,6 @@ func (oh *ObjectHandler) Get(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	http.ServeContent(w, r, objectKey, stat.ModTime(), f)
-
 
 	if err = ctx.Err(); err != nil {
 		return oh.HandleTimeout(err, r.URL.Path)
