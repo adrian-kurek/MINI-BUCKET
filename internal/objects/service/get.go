@@ -53,7 +53,7 @@ func (obs *ObjectService) GetWithVersioningDisabled(
 
 	metadata, err := obs.objectRepository.GetMetadata(ctx, bucketID, objectKey)
 	if err != nil {
-		return model.GetMetadata{}, "", nil
+		return model.GetMetadata{}, "", err
 	}
 
 	destPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKey + "-" + objectUUID
