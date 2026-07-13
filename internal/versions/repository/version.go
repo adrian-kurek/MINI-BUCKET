@@ -115,7 +115,7 @@ func (ov *VersionRepository) GetNewVersionNumber(ctx context.Context, tx *sql.Tx
 	return newVersionNumber, nil
 }
 
-func (vr *VersionRepository) GetUUIDByID(ctx context.Context,versionID int) (string, error) {
+func (vr *VersionRepository) GetUUIDByID(ctx context.Context, versionID int) (string, error) {
 	query := `SELECT object_uuid FROM object_versions WHERE id = $1  `
 	stmt, err := vr.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -134,7 +134,7 @@ func (vr *VersionRepository) GetUUIDByID(ctx context.Context,versionID int) (str
 		}
 	}()
 
-	var uuid string 
+	var uuid string
 	err = stmt.QueryRowContext(ctx, versionID).Scan(&uuid)
 	if err != nil {
 		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
@@ -150,7 +150,7 @@ func (vr *VersionRepository) GetUUIDByID(ctx context.Context,versionID int) (str
 	return uuid, nil
 }
 
-func (vr *VersionRepository) GetUUIDByObjectKey(ctx context.Context,bucketID int, objectKey string) (string, error) {
+func (vr *VersionRepository) GetUUIDByObjectKey(ctx context.Context, bucketID int, objectKey string) (string, error) {
 	query := `SELECT object_uuid FROM object_versions ov 
 	INNER JOIN objects o ON o.id = ov.object_id 
 	WHERE o.object_key = $1 AND ov.bucket_id = $2  `
@@ -159,7 +159,7 @@ func (vr *VersionRepository) GetUUIDByObjectKey(ctx context.Context,bucketID int
 		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"bucket_id": bucketID,
+				"bucket_id":  bucketID,
 				"object_key": objectKey,
 			},
 			"error": err.Error(),
@@ -172,13 +172,13 @@ func (vr *VersionRepository) GetUUIDByObjectKey(ctx context.Context,bucketID int
 		}
 	}()
 
-	var uuid string 
+	var uuid string
 	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&uuid)
 	if err != nil {
 		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"bucket_id": bucketID,
+				"bucket_id":  bucketID,
 				"object_key": objectKey,
 			},
 			"error": err.Error(),
@@ -230,7 +230,7 @@ func (vr *VersionRepository) GetMetadata(ctx context.Context, bucketID int, obje
 		bucketID,
 		objectKey,
 		versionID,
-	).Scan(&metadata.SizeBytes, &metadata.ETAG, &metadata.ContentType,&metadata.IsDeleted)
+	).Scan(&metadata.SizeBytes, &metadata.ETAG, &metadata.ContentType, &metadata.IsDeleted)
 	if err != nil {
 		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
@@ -281,7 +281,7 @@ func (vr *VersionRepository) Delete(ctx context.Context, versionID int) error {
 	return nil
 }
 
-func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context,tx *sql.Tx, objectID int, ) (int,error) {
+func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context, tx *sql.Tx, objectID int) (int, error) {
 	query := `INSERT INTO object_versions(
 		object_id,
     object_uuid,
@@ -291,14 +291,14 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context,tx *sql.Tx, 
 		storage_class,
 		created_at,
 		updated_at
-	) VALUES($1,'',TRUE, 0,'','STANDARD',NOW(),NOW()) RETURNING id` 
+	) VALUES($1,'',TRUE, 0,'','STANDARD',NOW(),NOW()) RETURNING id`
 
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"object_id":     objectID,
+				"object_id": objectID,
 			},
 			"error": err.Error(),
 		})
@@ -319,7 +319,7 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context,tx *sql.Tx, 
 		vr.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
 			"query": query,
 			"args": map[string]any{
-				"object_id":     objectID,
+				"object_id": objectID,
 			},
 			"error": err.Error(),
 		})
@@ -328,5 +328,3 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context,tx *sql.Tx, 
 
 	return newVersionID, nil
 }
-
-
