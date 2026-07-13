@@ -291,7 +291,7 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context,tx *sql.Tx, 
 		storage_class,
 		created_at,
 		updated_at
-	) VALUES($1,'',TRUE, 0,'','STANDARD',NOW(),NOW())` 
+	) VALUES($1,'',TRUE, 0,'','STANDARD',NOW(),NOW()) RETURNING id` 
 
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
