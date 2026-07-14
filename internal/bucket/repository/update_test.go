@@ -87,3 +87,76 @@ func TestUpdate(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateTotalSize(t *testing.T) {
+	type args struct {
+		title     string
+		setupMock func() *sql.DB
+		wantErr   bool
+		err       error
+	}
+
+	testScenarios := []args{
+		{
+			title: "with proper data",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE buckets SET total_size = total_size + $1, updated_at = NOW() WHERE id = $2")).
+					ExpectExec().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+
+				return db
+			},
+			wantErr: false,
+			err:     nil,
+		},
+
+		{
+			title: "prepare query failed",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE buckets SET total_size = total_size + $1, updated_at = NOW() WHERE id = $2")).
+					WillReturnError(errors.New("failed to prepare sql query"))
+
+				return db
+			},
+			wantErr: true,
+			err:     errors.New("failed to prepare sql query"),
+		},
+		{
+			title: "execute query failed",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE buckets SET total_size = total_size + $1, updated_at = NOW() WHERE id = $2")).
+					ExpectExec().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnError(errors.New("failed to execute sql query"))
+
+				return db
+			},
+			wantErr: true,
+			err:     errors.New("failed to execute sql query"),
+		},
+	}
+
+	for _, testscenario := range testScenarios {
+		t.Run(testscenario.title, func(t *testing.T) {
+			ctx := context.Background()
+			db := testscenario.setupMock()
+			loggerservice := setupBucketRepositoryDependencies()
+			repo := bucketRepository.New(loggerservice, db)
+			err := repo.UpdateTotalSize(ctx, 1, 1)
+
+			if (err != nil) != testscenario.wantErr {
+				t.Errorf("UpdateTotalSize() error = %v, wantErr = %v", err, testscenario.wantErr)
+			}
+
+			if err != nil && testscenario.err != nil {
+				if err.Error() != testscenario.err.Error() {
+					t.Errorf("UpdateTotalSize() error = %v, scenarioError = %v", err, testscenario.err)
+				}
+			}
+		})
+	}
+}
