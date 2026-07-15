@@ -363,9 +363,9 @@ func TestGetMetadata(t *testing.T) {
 			err:     errors.New("failed to check read permissions"),
 		},
 		{
-			title:              "failed to read user token",
-			verifiedUser:       false,
-			withBucketID:       true,
+			title:        "failed to read user token",
+			verifiedUser: false,
+			withBucketID: true,
 			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
