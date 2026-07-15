@@ -91,7 +91,7 @@ func TestUpdate(t *testing.T) {
 func TestUpdateTotalSize(t *testing.T) {
 	type args struct {
 		title     string
-		setupMock func() (*sql.DB)
+		setupMock func() *sql.DB
 		wantErr   bool
 		err       error
 	}
@@ -99,7 +99,7 @@ func TestUpdateTotalSize(t *testing.T) {
 	testScenarios := []args{
 		{
 			title: "with proper data",
-			setupMock: func() (*sql.DB) {
+			setupMock: func() *sql.DB {
 				db, mock, _ := sqlmock.New()
 				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE buckets SET total_size = total_size + $1, updated_at = NOW() WHERE id = $2 ")).
 					ExpectExec().
@@ -114,7 +114,7 @@ func TestUpdateTotalSize(t *testing.T) {
 
 		{
 			title: "prepare query failed",
-			setupMock: func() (*sql.DB) {
+			setupMock: func() *sql.DB {
 				db, mock, _ := sqlmock.New()
 				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE buckets SET total_size = total_size + $1, updated_at = NOW() WHERE id = $2 ")).
 					WillReturnError(errors.New("failed to prepare sql query"))
@@ -126,7 +126,7 @@ func TestUpdateTotalSize(t *testing.T) {
 		},
 		{
 			title: "execute query failed",
-			setupMock: func() (*sql.DB) {
+			setupMock: func() *sql.DB {
 				db, mock, _ := sqlmock.New()
 				mock.ExpectPrepare(regexp.QuoteMeta("UPDATE buckets SET total_size = total_size + $1, updated_at = NOW() WHERE id = $2 ")).
 					ExpectExec().
