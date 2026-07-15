@@ -272,3 +272,201 @@ func TestGet(t *testing.T) {
 		})
 	}
 }
+
+func TestGetMetadata(t *testing.T) {
+	type args struct {
+		title              string
+		verifiedUser       bool
+		withProperFileName bool
+		withVersionID      bool
+		withBucketID       bool
+		setupMock          func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		wantErr            bool
+		err                error
+	}
+
+	testScenarios := []args{
+		{
+			title:              "with proper data and public access",
+			verifiedUser:       true,
+			withProperFileName: true,
+			withBucketID:       true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
+					Return(true, nil)
+				mObjectService.On("GetMetadata", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, nil)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: false,
+			err:     nil,
+		},
+		{
+			title:              "GetMetadata failed",
+			verifiedUser:       true,
+			withProperFileName: true,
+			withBucketID:       true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
+					Return(true, nil)
+				mObjectService.On("GetMetadata", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(model.GetMetadata{}, errors.New("failed to get metadata"))
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: true,
+			err:     errors.New("failed to get metadata"),
+		},
+		{
+			title:              "with proper data without  public access",
+			verifiedUser:       true,
+			withProperFileName: true,
+			withBucketID:       true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
+					Return(false, nil)
+
+				mObjectService.On("CheckReadPermissions", mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
+				mObjectService.On("GetMetadata", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, nil)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: false,
+			err:     nil,
+		},
+		{
+			title:              "CheckReadPermissions failed",
+			verifiedUser:       true,
+			withProperFileName: true,
+			withBucketID:       true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
+					Return(false, nil)
+
+				mObjectService.On("CheckReadPermissions", mock.Anything, mock.Anything, mock.Anything).
+					Return(errors.New("failed to check read permissions"))
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: true,
+			err:     errors.New("failed to check read permissions"),
+		},
+		{
+			title:              "failed to read user token",
+			verifiedUser:       false,
+			withBucketID:       true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
+					Return(false, nil)
+
+				mObjectService.On("CheckReadPermissions", mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: true,
+			err:     nil,
+		},
+		{
+			title:              "VerifyToken failed",
+			verifiedUser:       true,
+			withProperFileName: true,
+			withBucketID:       true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
+					Return(false, nil)
+
+				mObjectService.On("CheckReadPermissions", mock.Anything, mock.Anything, mock.Anything).
+					Return(nil)
+				mObjectService.On("GetMetadata", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, nil)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to verify token"))
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: true,
+			err:     errors.New("failed to verify token"),
+		},
+		{
+			title:        "HasPublicAccess failed",
+			withBucketID: true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
+					Return(false, errors.New("failed to get info about public access"))
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: true,
+			err:     errors.New("failed to get info about public access"),
+		},
+		{
+			title:        "lack of bucketID",
+			withBucketID: false,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+				mObjectService := new(objectMocks.MockObjectService)
+				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
+				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+			},
+			wantErr: true,
+			err:     errors.New("api error: lack of bucketID or provided bucketID is malformed"),
+		},
+	}
+
+	for _, testScenario := range testScenarios {
+		t.Run(testScenario.title, func(t *testing.T) {
+			r, err := http.NewRequest(http.MethodGet, "/buckets/0/objects/test.txt", nil)
+			if err != nil {
+				panic(err)
+			}
+
+			if testScenario.withBucketID {
+				r.SetPathValue("bucketID", "1")
+			}
+
+			if testScenario.verifiedUser {
+				r = request.SetContext(r, "id", 1)
+			}
+
+			if testScenario.withProperFileName {
+				r.SetPathValue("objectKey", "test.txt")
+			}
+
+			if testScenario.withVersionID {
+				q := r.URL.Query()
+				q.Set("versionID", "1")
+				r.URL.RawQuery = q.Encode()
+			}
+
+			loggerService := setupObjectHandlerDependencies()
+			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
+			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
+
+			err = h.GetMetadata(w, r)
+
+			if (err != nil) != testScenario.wantErr {
+				t.Errorf("GetMetadata() err = %v, wantErr = %v", err, testScenario.wantErr)
+			}
+
+			if err != nil && testScenario.err != nil {
+				if err.Error() != testScenario.err.Error() {
+					t.Errorf("GetMetadata() error = %v, scenarioError = %v", err, testScenario.err)
+				}
+			}
+		})
+	}
+}
