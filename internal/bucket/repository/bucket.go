@@ -32,7 +32,7 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
-				"owner_id":            userID,
+				"owner_id":           userID,
 				"region":             "",
 				"versioning_enabled": bucket.VersioningEnabled,
 				"public_access":      bucket.PublicAccess,
@@ -63,7 +63,7 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
-				"owner_id":            userID,
+				"owner_id":           userID,
 				"region":             "",
 				"versioning_enabled": bucket.VersioningEnabled,
 				"public_access":      bucket.PublicAccess,
@@ -145,6 +145,11 @@ func (br *BucketRepository) Exists(ctx context.Context, bucketID int) (bool, err
 		})
 		return false, err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			br.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
 
 	_, err = stmt.QueryContext(ctx, bucketID)
 	if err != nil {
@@ -176,6 +181,12 @@ func (br *BucketRepository) GetPrivacyInfo(ctx context.Context, bucketID int) (b
 		})
 		return false, err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			br.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
 	var hasPublicAccess bool
 	err = stmt.QueryRowContext(ctx, bucketID).Scan(&hasPublicAccess)
 	if err != nil {
@@ -207,6 +218,12 @@ func (br *BucketRepository) IsVersioningEnabled(ctx context.Context, bucketID in
 		})
 		return false, err
 	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			br.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
 	var isVersioningEnabled bool
 	err = stmt.QueryRowContext(ctx, bucketID).Scan(&isVersioningEnabled)
 	if err != nil {

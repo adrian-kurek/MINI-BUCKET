@@ -28,7 +28,7 @@ func TestCreate(t *testing.T) {
 				ctx := context.Background()
 				mock.ExpectPrepare("INSERT INTO buckets").
 					ExpectQuery().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 				return db, ctx
 			},
@@ -53,7 +53,7 @@ func TestCreate(t *testing.T) {
 				db, mock, _ := sqlmock.New()
 				ctx := context.Background()
 				mock.ExpectPrepare("INSERT INTO buckets").ExpectQuery().
-					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WithArgs( sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnError(&pq.Error{Code: "23505", Message: "failed to execute sql query"})
 				return db, ctx
 			},
