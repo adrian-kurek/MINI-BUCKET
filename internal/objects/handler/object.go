@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -213,7 +212,6 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		versionID, err = strconv.Atoi(versionIDStr)
 		if err != nil {
-			log.Println(versionIDStr)
 			return err
 		}
 	}
