@@ -32,7 +32,7 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
-				"owner_id":            userID,
+				"owner_id":           userID,
 				"region":             "",
 				"versioning_enabled": bucket.VersioningEnabled,
 				"public_access":      bucket.PublicAccess,
@@ -63,7 +63,7 @@ func (br *BucketRepository) Create(ctx context.Context, userID int, bucket bucke
 			"query": query,
 			"args": map[string]any{
 				"name":               bucket.Name,
-				"owner_id":            userID,
+				"owner_id":           userID,
 				"region":             "",
 				"versioning_enabled": bucket.VersioningEnabled,
 				"public_access":      bucket.PublicAccess,
