@@ -30,7 +30,7 @@ func Make(f HTTPFunc) http.HandlerFunc {
 			if apiErr, ok := err.(*commonErrors.APIError); ok {
 				response.Send(w, apiErr.StatusCode, map[string]string{"message": apiErr.Message})
 			} else {
-				log.Printf(err.Error())
+				log.Println(err.Error())
 				response.Send(w, http.StatusInternalServerError, map[string]string{"message": "Internal server error"})
 			}
 		}
