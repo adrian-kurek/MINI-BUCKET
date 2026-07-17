@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/google/uuid"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -25,6 +26,30 @@ func (obs *ObjectService) cleanupFailedUpload(origErr error, destPath string) er
 		return removeErr
 	}
 	return origErr
+}
+
+func (obs *ObjectService) diskUsage() (syscall.Statfs_t, error) {
+	path := os.Getenv("MOUNT_PATH")
+	fs := syscall.Statfs_t{}
+	err := syscall.Statfs(path, &fs)
+	if err != nil {
+		return fs, err
+	}
+	return fs, nil
+}
+
+func (obs *ObjectService) GetFreeDiskSpace() (uint64, error) {
+	diskSpaceMargin, err := strconv.Atoi(os.Getenv("SAFETY_DISK_MARGIN"))
+	if err != nil {
+		return 0, err
+	}
+
+	fs, err := obs.diskUsage()
+	if err != nil {
+		return 0, err
+	}
+
+	return fs.Bavail*uint64(fs.Bsize) - uint64(diskSpaceMargin), nil
 }
 
 func (obs *ObjectService) CheckWritePermissions(ctx context.Context, bucketID, userID int) error {
@@ -124,9 +149,6 @@ func (obs *ObjectService) upsertObjectMetadata(
 	versioningEnabled bool,
 ) error {
 	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, fileInfo.FileName, bucketID)
-	// if !doesObjectExist {
-	//  return commonErrors.NewAPIError(http.StatusNotFound, )
-	// }
 	if err != nil {
 		return err
 	}
@@ -209,11 +231,28 @@ func (obs *ObjectService) upsertVersionedObject(
 	return obs.objectRepository.UpdateCurrentVersionIDOfObject(ctx, tx, objectID, newVersionID)
 }
 
-func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, fileInfo objectsDTO.IncomingFile) error {
+func (obs *ObjectService) CheckPossibilityToUpload(ctx context.Context, bucketID int, userID int, fileInfo objectsDTO.IncomingFile) error {
 	if err := obs.CheckWritePermissions(ctx, bucketID, userID); err != nil {
 		return err
 	}
+
+	freeSpaceOnDisk, err := obs.GetFreeDiskSpace()
+	if err != nil {
+		return err
+	}
+	if freeSpaceOnDisk <= uint64(fileInfo.SizeBytes) {
+		return commonErrors.NewAPIError(500, "")
+	}
+
 	if err := obs.CheckDoesBucketExist(ctx, bucketID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (obs *ObjectService) Upload(ctx context.Context, bucketID, userID int, fileInfo objectsDTO.IncomingFile) error {
+	err := obs.CheckPossibilityToUpload(ctx, bucketID, userID, fileInfo)
+	if err != nil {
 		return err
 	}
 
