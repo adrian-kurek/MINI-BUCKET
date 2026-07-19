@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	config "github.com/slodkiadrianek/MINI-BUCKET/configs"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 	objectService "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/service"
 	bucketMocks "github.com/slodkiadrianek/MINI-BUCKET/test/mocks/bucket"
@@ -258,6 +259,10 @@ func TestCreate(t *testing.T) {
 				ContentType: "text/plain",
 				SizeBytes:   18,
 				FileName:    "input",
+			}
+			envErr := config.SetupEnvVariables("../../../.env")
+			if envErr != nil {
+				panic(envErr)
 			}
 
 			err := svc.Upload(ctx, 11, 1, fileInfo)
