@@ -25,5 +25,7 @@ jobs:
         echo "HOST_LINK=${{ secrets.HOST_LINK }}" >> .env
         echo "DB_LINK=${{ secrets.DB_LINK }}" >> .env
         echo "PORT=${{ secrets.PORT }}" >> .env
+        echo "SAFETY_DISK_MARGIN=${{ secrets.SAFETY_DISK_MARGIN }}" >> .env
+        echo "MOUNT_PATH=${{ secrets.MOUNT_PATH }}" >> .env
     - name: Test
       run: go test -v ./...
