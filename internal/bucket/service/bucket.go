@@ -37,7 +37,7 @@ func New(
 	}
 }
 
-func (bs *BucketService) CheckPermissions(ctx context.Context, bucketID, userID int) error {
+func (bs *BucketService) CheckExecutePermissions(ctx context.Context, bucketID, userID int) error {
 	permission, err := bs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -60,8 +60,12 @@ func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDT
 	return err
 }
 
+func(bs *BucketService) Get(ctx context.Context, bucketID , userID int) error {
+
+}
+
 func (bs *BucketService) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error {
-	err := bs.CheckPermissions(ctx, bucketID, userID)
+	err := bs.CheckExecutePermissions(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}
