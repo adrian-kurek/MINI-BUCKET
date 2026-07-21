@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCheckPermissions(t *testing.T) {
+func TestCheckExecutePermissions(t *testing.T) {
 	type args struct {
 		title     string
 		setupMock func() (bucketService.PermissionRepository, bucketService.BucketRepository)
@@ -68,7 +68,7 @@ func TestCheckPermissions(t *testing.T) {
 			loggerService := setupBucketServiceDependencies()
 			svc := bucketService.New(mBucketRepository, permissionRepository, loggerService)
 
-			err := svc.CheckPermissions(ctx, 1, 1)
+			err := svc.CheckExecutePermissions(ctx, 1, 1)
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("CheckPermissions() error = %v, wantErr = %v", err, testScenario.wantErr)
 			}

@@ -10,6 +10,7 @@ import (
 type bucketHandler interface {
 	Create(w http.ResponseWriter, r *http.Request) error
 	Update(w http.ResponseWriter, r *http.Request) error
+	Get(w http.ResponseWriter, r *http.Request) error
 }
 
 type BucketRoutes struct {
@@ -26,4 +27,5 @@ func (bh *BucketRoutes) SetupBucketRoutes(router *http.ServeMux) {
 	prefix := "/buckets"
 	router.Handle(fmt.Sprintf("POST %s", prefix), request.Make(bh.bucketHandler.Create))
 	router.Handle(fmt.Sprintf("PUT %s/{bucketID}", prefix), request.Make(bh.bucketHandler.Update))
+	router.Handle(fmt.Sprintf("GET %s/{bucketID}", prefix), request.Make(bh.bucketHandler.Get))
 }
