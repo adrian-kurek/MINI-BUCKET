@@ -9,6 +9,7 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/model"
 )
 
 type BucketRepository struct {
@@ -276,4 +277,57 @@ func (br *BucketRepository) UpdateTotalSize(ctx context.Context, bucketID, sizeB
 		return err
 	}
 	return nil
+}
+
+func (br *BucketRepository) Get(ctx context.Context, bucketID int) (model.Bucket, error) {
+	query := `
+	SELECT 
+				id,
+				name,
+				region,
+				versioning_enabled,
+				public_access,
+				encryption_enabled,
+				total_size,
+				object_count,
+				created_at,
+				updated_at
+	FROM buckets WHERE id = $1`
+
+	stmt, err := br.db.PrepareContext(ctx, query)
+	if err != nil {
+
+		br.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return model.Bucket{}, err
+	}
+	var bucket model.Bucket
+	err = stmt.QueryRowContext(ctx, bucketID).Scan(
+		&bucket.ID,
+		&bucket.Name,
+		&bucket.Region,
+		&bucket.VersioningEnabled,
+		&bucket.PublicAccess,
+		&bucket.EncryptionEnabled,
+		&bucket.TotalSize,
+		&bucket.ObjectCount,
+		&bucket.CreatedAt,
+		&bucket.Updated,
+	)
+	if err != nil {
+		br.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id": bucketID,
+			},
+			"error": err.Error(),
+		})
+		return model.Bucket{}, err
+	}
+	return bucket, nil
 }

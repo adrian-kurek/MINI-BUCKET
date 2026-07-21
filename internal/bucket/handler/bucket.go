@@ -13,6 +13,7 @@ import (
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/response"
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/model"
 )
 
 const bucketTimeout = 2 * time.Second
@@ -20,6 +21,7 @@ const bucketTimeout = 2 * time.Second
 type BucketService interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
+	Get(ctx context.Context, bucketID, userID int) (model.Bucket, error)
 }
 
 type BucketHandler struct {
@@ -80,6 +82,37 @@ func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (bh *BucketHandler) Get(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithTimeout(r.Context(), bucketTimeout)
+	defer cancel()
+
+	r, err := bh.authorization.VerifyToken(r)
+	if err != nil {
+		return err
+	}
+
+	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
+	if err != nil {
+		return commonErrors.NewAPIError(
+			http.StatusUnprocessableEntity,
+			"lack of bucketID or provided bucketID is malformed",
+		)
+	}
+
+	userID, err := request.ReadUserIDFromToken(r)
+	if err != nil {
+		return err
+	}
+
+	bucket, err := bh.bucketService.Get(ctx, bucketID, userID)
+	if err != nil {
+		return bh.HandleTimeout(err, r.URL.Path)
+	}
+
+	response.Send(w, http.StatusOK, bucket)
+	return nil
+}
+
 func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), bucketTimeout)
 	defer cancel()
@@ -120,4 +153,3 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }
-

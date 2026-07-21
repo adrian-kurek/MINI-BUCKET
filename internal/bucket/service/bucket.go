@@ -7,11 +7,13 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	bucketDTO "github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/DTO"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/bucket/model"
 )
 
 type BucketRepository interface {
 	Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) (int, error)
 	Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error
+	Get(ctx context.Context, bucketID int) (model.Bucket, error)
 }
 
 type PermissionRepository interface {
@@ -50,6 +52,19 @@ func (bs *BucketService) CheckExecutePermissions(ctx context.Context, bucketID, 
 	return nil
 }
 
+func (bs *BucketService) CheckReadPermissions(ctx context.Context, bucketID, userID int) error {
+	permission, err := bs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
+	if err != nil {
+		return err
+	}
+
+	if permission != 7 && permission != 4 && permission != 5 && permission != 6 {
+		bs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
+		return commonErrors.NewAPIError(http.StatusForbidden, "you are not allowed to do this action")
+	}
+	return nil
+}
+
 func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDTO.BucketInput) error {
 	bucketID, err := bs.bucketRepository.Create(ctx, userID, bucket)
 	if err != nil {
@@ -60,8 +75,12 @@ func (bs *BucketService) Create(ctx context.Context, userID int, bucket bucketDT
 	return err
 }
 
-func(bs *BucketService) Get(ctx context.Context, bucketID , userID int) error {
-
+func (bs *BucketService) Get(ctx context.Context, bucketID, userID int) (model.Bucket, error) {
+	err := bs.CheckExecutePermissions(ctx, bucketID, userID)
+	if err != nil {
+		return model.Bucket{}, err
+	}
+	return bs.bucketRepository.Get(ctx, bucketID)
 }
 
 func (bs *BucketService) Update(ctx context.Context, bucketID, userID int, bucket bucketDTO.BucketInput) error {
