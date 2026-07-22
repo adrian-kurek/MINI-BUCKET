@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
-	// "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 )
 
 func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID, userID int) error {
@@ -128,15 +128,15 @@ func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, obje
 	}
 	return obs.DeleteObject(ctx, objectKey, bucketID)
 }
-//
-// func (obs *ObjectService) DeleteMany(ctx context.Context, bucketID, userID int, filesToDelete DTO.DeleteManyFiles) error {
-// 	err := obs.isAvailableForDeletion(ctx, bucketID, userID)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	isVersioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
-// 	if err != nil {
-// 		return err
-// 	}
-// }
+
+func (obs *ObjectService) DeleteMany(ctx context.Context, bucketID, userID int, filesToDelete DTO.DeleteManyFiles) error {
+	err := obs.isAvailableForDeletion(ctx, bucketID, userID)
+	if err != nil {
+		return err
+	}
+
+	isVersioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
+	if err != nil {
+		return err
+	}
+}

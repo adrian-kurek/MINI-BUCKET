@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 )
 func (or *ObjectRepository) DeleteOne(ctx context.Context, objectKey string) error {
@@ -41,32 +42,10 @@ func (or *ObjectRepository) DeleteOne(ctx context.Context, objectKey string) err
 	return nil
 }
 
-func (or *ObjectRepository) createPlaceholders(amountOfItems int) string {
-	strLen := amountOfItems - 1
-	for i := 1; i <= amountOfItems; i++ {
-		s := strconv.Itoa(i)
-		strLen += len(s)
-	}
-
-	var sb strings.Builder
-	sb.Grow(strLen)
-
-	for i := 1; i <= amountOfItems; i++ {
-		s := strconv.Itoa(i)
-		sb.WriteString("$")
-		sb.WriteString(s)
-		if i != amountOfItems {
-			sb.WriteByte(',')
-		}
-
-	}
-
-	return sb.String()
-}
 
 
 func (or *ObjectRepository) DeleteMany(ctx context.Context, objectKeys []string) error {
-	placeholders := or.createPlaceholders(len(objectKeys))
+	placeholders := db.CreatePlaceholders(len(objectKeys))
 	query := fmt.Sprintf("DELETE FROM objects WHERE object_key ( %s )", placeholders)
 
 	stmt, err := or.db.PrepareContext(ctx, query)

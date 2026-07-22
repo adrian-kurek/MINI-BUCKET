@@ -29,3 +29,12 @@ type IncomingFile struct {
 	StorageClass string
 	SizeBytes    int
 }
+
+type deleteFile struct {
+	ObjectKey string `validate:"required,file"`
+	VersionID string `validate:"int"`
+}
+
+type DeleteManyFiles struct {
+	FilesToDelete []deleteFile `validate:"unique=ObjectKey"`
+}
