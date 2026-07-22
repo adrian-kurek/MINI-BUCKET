@@ -32,7 +32,7 @@ type (
 		UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID, versionID int) error
 		GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error)
 		Update(ctx context.Context, tx *sql.Tx, file objectsDTO.Update) error
-		Delete(ctx context.Context, objectKey string) error
+		DeleteOne(ctx context.Context, objectKey string) error
 		GetUUIDByID(ctx context.Context, objectKey string, bucketID int) (string, error)
 	}
 	PermissionRepository interface {

@@ -7,10 +7,10 @@ import (
 	"strconv"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	// "github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 )
 
 func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID, userID int) error {
-
 	permission, err := obs.permissionRepository.GetPermissionValByUserID(ctx, bucketID, userID)
 	if err != nil {
 		return err
@@ -23,7 +23,6 @@ func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID,
 }
 
 func (obs *ObjectService) CreateDeleteMarker(ctx context.Context, objectKey string, bucketID int) error {
-
 	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, objectKey, bucketID)
 	if !doesObjectExist {
 		return commonErrors.NewAPIError(http.StatusNotFound, "failed to find object with provided id")
@@ -83,7 +82,7 @@ func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bu
 		return err
 	}
 
-	err = obs.objectRepository.Delete(ctx, objectKey)
+	err = obs.objectRepository.DeleteOne(ctx, objectKey)
 	if err != nil {
 		return err
 	}
@@ -97,13 +96,21 @@ func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bu
 	return nil
 }
 
-func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error {
+func (obs *ObjectService) isAvailableForDeletion(ctx context.Context, bucketID, userID int) error {
 	err := obs.CheckExecutePermissions(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}
 
 	err = obs.CheckDoesBucketExist(ctx, bucketID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error {
+	err := obs.isAvailableForDeletion(ctx, bucketID, userID)
 	if err != nil {
 		return err
 	}
@@ -121,3 +128,15 @@ func (obs *ObjectService) Delete(ctx context.Context, bucketID, userID int, obje
 	}
 	return obs.DeleteObject(ctx, objectKey, bucketID)
 }
+//
+// func (obs *ObjectService) DeleteMany(ctx context.Context, bucketID, userID int, filesToDelete DTO.DeleteManyFiles) error {
+// 	err := obs.isAvailableForDeletion(ctx, bucketID, userID)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	isVersioningEnabled, err := obs.bucketRepository.IsVersioningEnabled(ctx, bucketID)
+// 	if err != nil {
+// 		return err
+// 	}
+// }

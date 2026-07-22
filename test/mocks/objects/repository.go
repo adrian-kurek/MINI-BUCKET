@@ -47,7 +47,7 @@ func (m *MockObjectRepository) GetMetadata(
 	return args.Get(0).(model.GetMetadata), args.Error(1)
 }
 
-	func (m *MockObjectRepository)	Delete(ctx context.Context, objectKey string) error {
+	func (m *MockObjectRepository)	DeleteOne(ctx context.Context, objectKey string) error {
 		args := m.Called(ctx,objectKey)
 		return args.Error(0)
 	}

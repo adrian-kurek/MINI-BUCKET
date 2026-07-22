@@ -13,7 +13,7 @@ import (
 
 
 
-func TestDelete(t *testing.T) {
+func TestDeleteOne(t *testing.T) {
 	type args struct {
 		title string
 		setupMock func () (*sql.DB)
@@ -69,15 +69,15 @@ func TestDelete(t *testing.T) {
 
 			loggerservice := setupObjectRepositoryDependencies()
 			repo := objectRepository.New( db,loggerservice)
-			err := repo.Delete(ctx,"test")
+			err := repo.DeleteOne(ctx,"test")
 
 			if (err != nil) != testscenario.wantErr {
-				t.Errorf("Delete() error = %v, wantErr = %v", err, testscenario.wantErr)
+				t.Errorf("DeleteOne() error = %v, wantErr = %v", err, testscenario.wantErr)
 			}
 
 			if err != nil && testscenario.err != nil {
 				if err.Error() != testscenario.err.Error() {
-					t.Errorf("Delete() error = %v, scenarioError = %v", err, testscenario.err)
+					t.Errorf("DeleteOne() error = %v, scenarioError = %v", err, testscenario.err)
 				}
 			}
 		})
