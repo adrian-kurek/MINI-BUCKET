@@ -21,3 +21,4 @@ const (
 	FailedToCloseStatement = "failed to close statement"
 	FailedToCloseRows      = "failed to close rows"
 )
+
