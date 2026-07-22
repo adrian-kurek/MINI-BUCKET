@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 )
 
 func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID, userID int) error {
@@ -93,6 +96,60 @@ func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bu
 		return err
 	}
 
+	return nil
+}
+
+func (obs *ObjectService) DeleteManyFiles(bucketID int, objectKeysWithUUIDs []model.ObjectKeyWithUUID) error {
+	errs := make([]error, 0, len(objectKeysWithUUIDs))
+	var mu sync.Mutex
+	wg := sync.WaitGroup{}
+	ch := make(chan model.ObjectKeyWithUUID, len(objectKeysWithUUIDs))
+
+	wg.Add(len(objectKeysWithUUIDs))
+	for i := 0; i < len(objectKeysWithUUIDs); i++ {
+		go func() {
+			defer wg.Done()
+			for objectKeyWithUUID := range ch {
+				desthPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKeyWithUUID.ObjectKey + "-" + objectKeyWithUUID.ObjectUUID
+				err := os.Remove(desthPath)
+				if err != nil {
+					mu.Lock()
+					errs = append(errs, err)
+					mu.Unlock()
+				}
+			}
+		}()
+	}
+
+	for _, item := range objectKeysWithUUIDs {
+		ch <- item
+	}
+	close(ch)
+
+	wg.Wait()
+
+	if len(errs) > 0 {
+		obs.loggerService.Error("failed to delete files", errs)
+		return errors.Join(errs...)
+	}
+
+	return nil
+}
+
+func (obs *ObjectService) DeleteManyObjects(ctx context.Context, bucketID int, objectKeys []string) error {
+	objectKeysWithUUIDs, err := obs.versionRepository.GetUUIDsAndObjectKeysByObjectKeys(ctx, bucketID, objectKeys)
+	if err != nil {
+		return err
+	}
+	objectKeysFromDB := make([]string, len(objectKeysWithUUIDs))
+	for i := 0; i < len(objectKeysWithUUIDs); i++ {
+		objectKeysFromDB[i] = objectKeysWithUUIDs[i].ObjectKey
+	}
+
+	err = obs.objectRepository.DeleteMany(ctx, objectKeysFromDB)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
