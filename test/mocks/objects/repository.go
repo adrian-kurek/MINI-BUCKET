@@ -62,7 +62,7 @@ func (m *MockObjectRepository) DeleteMany(ctx context.Context, objectKeys []stri
 	return args.Error(0)
 }
 
-func (m *MockObjectRepository) GetUUIDsAndObjectKeysByObjectKeys(
+func (m *MockObjectRepository) GetUUIDsAndKeysByKeys(
 	ctx context.Context,
 	bucketID int,
 	objectKeys []string,

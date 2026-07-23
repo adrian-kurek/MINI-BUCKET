@@ -147,7 +147,7 @@ func (obs *ObjectService) DeleteManyObjects(
 	bucketID int,
 	objectKeys []string,
 ) ([]model.ObjectKeyWithUUID, error) {
-	objectKeysWithUUIDs, err := obs.objectRepository.GetUUIDsAndObjectKeysByObjectKeys(ctx, bucketID, objectKeys)
+	objectKeysWithUUIDs, err := obs.objectRepository.GetUUIDsAndKeysByKeys(ctx, bucketID, objectKeys)
 	if err != nil {
 		return nil, err
 	}

@@ -139,7 +139,7 @@ func (or *ObjectRepository) GetUUIDByID(ctx context.Context, objectKey string, b
 	return uuid, nil
 }
 
-func (or *ObjectRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Context, bucketID int, objectKeys []string) ([]model.ObjectKeyWithUUID, error) {
+func (or *ObjectRepository) GetUUIDsAndKeysByKeys(ctx context.Context, bucketID int, objectKeys []string) ([]model.ObjectKeyWithUUID, error) {
 	placeholders := db.CreatePlaceholders(len(objectKeys))
 	query := fmt.Sprintf(`SELECT o.object_key,o.object_uuid FROM objects o 
 	WHERE o.object_key IN ( %s)  AND o.bucket_id = $%d`, placeholders, len(objectKeys)+1)
@@ -204,16 +204,16 @@ func (or *ObjectRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Contex
 		}
 		objectKeysWithUUIDs = append(objectKeysWithUUIDs, objectKeyWithUUID)
 	}
-	if rows.Err() != nil {
+	if rowsErr := rows.Err(); rowsErr != nil {
 		or.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
 			"query": query,
 			"args": map[string]any{
 				"bucket_id":   bucketID,
 				"object_keys": objectKeys,
 			},
-			"error": err.Error(),
+			"error": rowsErr.Error(),
 		})
-		return nil, err
+		return nil, rowsErr
 	}
 
 	if !found {

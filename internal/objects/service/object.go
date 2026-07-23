@@ -35,7 +35,7 @@ type (
 		DeleteOne(ctx context.Context, objectKey string) error
 		GetUUIDByID(ctx context.Context, objectKey string, bucketID int) (string, error)
 		DeleteMany(ctx context.Context, objectKeys []string) error
-		GetUUIDsAndObjectKeysByObjectKeys(
+		GetUUIDsAndKeysByKeys(
 			ctx context.Context,
 			bucketID int,
 			objectKeys []string,
