@@ -57,11 +57,3 @@ func (m *MockVersionRepository) GetUUIDByObjectKey(
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockVersionRepository) GetUUIDsAndObjectKeysByObjectKeys(
-	ctx context.Context,
-	bucketID int,
-	objectKeys []string,
-) ([]model.ObjectKeyWithUUID, error) {
-	args := m.Called(ctx, bucketID, objectKeys)
-	return args.Get(0).([]model.ObjectKeyWithUUID), args.Error(1)
-}

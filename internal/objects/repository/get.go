@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
 )
@@ -135,4 +137,82 @@ func (or *ObjectRepository) GetUUIDByID(ctx context.Context, objectKey string, b
 	}
 
 	return uuid, nil
+}
+
+func (or *ObjectRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Context, bucketID int, objectKeys []string) ([]model.ObjectKeyWithUUID, error) {
+	placeholders := db.CreatePlaceholders(len(objectKeys))
+	query := fmt.Sprintf(`SELECT o.object_key,o.object_uuid FROM objects o 
+	WHERE o.object_key IN ( %s)  AND o.bucket_id = $%d`, placeholders, len(objectKeys)+1)
+	args := make([]any, 0, len(objectKeys)+1)
+	for _, key := range objectKeys {
+		args = append(args, key)
+	}
+	args = append(args, bucketID)
+
+	stmt, err := or.db.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	rows, err := stmt.QueryContext(ctx, args...)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(objectKeys))
+	for rows.Next() {
+		var objectKeyWithUUID model.ObjectKeyWithUUID
+		err = rows.Scan(&objectKeyWithUUID.ObjectKey, &objectKeyWithUUID.ObjectUUID)
+		if err != nil {
+			or.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
+				"query": query,
+				"args": map[string]any{
+					"bucket_id":   bucketID,
+					"object_keys": objectKeys,
+				},
+				"error": err.Error(),
+			})
+			return nil, err
+		}
+		objectKeysWithUUIDs = append(objectKeysWithUUIDs, objectKeyWithUUID)
+	}
+	if rows.Err() != nil {
+		or.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+
+	return objectKeysWithUUIDs, nil
 }

@@ -333,9 +333,14 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context, tx *sql.Tx,
 
 func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Context, bucketID int, objectKeys []string) ([]model.ObjectKeyWithUUID, error) {
 	placeholders := db.CreatePlaceholders(len(objectKeys))
-	query := fmt.Sprintf(`SELECT object_uuid FROM object_versions ov 
+	query := fmt.Sprintf(`SELECT o.object_key,o.object_uuid FROM object_versions ov 
 	INNER JOIN objects o ON o.id = ov.object_id 
-	WHERE o.object_key = %s  AND ov.bucket_id = $%d`, placeholders, len(objectKeys)+1)
+	WHERE o.object_key IN ( %s)  AND o.bucket_id = $%d`, placeholders, len(objectKeys)+1)
+	args := make([]any, 0, len(objectKeys)+1)
+	for _, key := range objectKeys {
+		args = append(args, key)
+	}
+	args = append(args, bucketID)
 
 	stmt, err := vr.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -355,7 +360,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Conte
 		}
 	}()
 
-	rows, err := stmt.QueryContext(ctx, objectKeys, bucketID)
+	rows, err := stmt.QueryContext(ctx, args...)
 	if err != nil {
 		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
