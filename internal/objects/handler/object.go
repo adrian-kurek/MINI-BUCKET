@@ -27,6 +27,7 @@ type ObjectService interface {
 	CheckReadPermissions(ctx context.Context, bucketID int, userID int) error
 	Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error
 	Get(ctx context.Context, bucketID, versionID int, objectKey string) (model.GetMetadata, string, error)
+ DeleteMany(ctx context.Context, bucketID, userID int, filesToDelete DTO.DeleteManyFiles) error 
 }
 
 type ObjectHandler struct {

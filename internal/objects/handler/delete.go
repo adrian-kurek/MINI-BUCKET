@@ -9,12 +9,13 @@ import (
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/middleware"
 	"github.com/slodkiadrianek/MINI-BUCKET/common/request"
+	"github.com/slodkiadrianek/MINI-BUCKET/common/response"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 )
 
 func (oh *ObjectHandler) DeleteMany(w http.ResponseWriter, r *http.Request) error {
 	deleteTimeout := time.Second * 2000
-	ctx, cancel := context.WithTimeout(r.Context(),deleteTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), deleteTimeout)
 	defer cancel()
 
 	userID, err := oh.verifyAndGetUserID(r)
@@ -40,5 +41,10 @@ func (oh *ObjectHandler) DeleteMany(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
+	err = oh.objectService.DeleteMany(ctx, bucketID, userID, *reqData)
+	if err != nil {
+		return oh.HandleTimeout(err, r.URL.Path)
+	}
+	response.Send(w, http.StatusNoContent, nil)
 	return nil
 }
