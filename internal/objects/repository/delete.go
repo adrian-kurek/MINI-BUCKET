@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 )
+
 func (or *ObjectRepository) DeleteOne(ctx context.Context, objectKey string) error {
 	query := "DELETE FROM objects WHERE object_key = $1"
 	stmt, err := or.db.PrepareContext(ctx, query)
@@ -40,11 +42,14 @@ func (or *ObjectRepository) DeleteOne(ctx context.Context, objectKey string) err
 	return nil
 }
 
-
-
 func (or *ObjectRepository) DeleteMany(ctx context.Context, objectKeys []string) error {
+	log.Println(objectKeys)
 	placeholders := db.CreatePlaceholders(len(objectKeys))
-	query := fmt.Sprintf("DELETE FROM objects WHERE object_key ( %s )", placeholders)
+	query := fmt.Sprintf("DELETE FROM objects WHERE object_key IN ( %s )", placeholders)
+	args := make([]any, 0, len(objectKeys))
+	for _, key := range objectKeys {
+		args = append(args, key)
+	}
 
 	stmt, err := or.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -63,7 +68,7 @@ func (or *ObjectRepository) DeleteMany(ctx context.Context, objectKeys []string)
 		}
 	}()
 
-	_, err = stmt.ExecContext(ctx, objectKeys)
+	_, err = stmt.ExecContext(ctx, args...)
 	if err != nil {
 		or.loggerService.Error(commonErrors.FailedToExecuteDeleteQuery, map[string]any{
 			"query": query,
