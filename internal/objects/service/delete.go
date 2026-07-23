@@ -90,8 +90,8 @@ func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bu
 		return err
 	}
 
-	desthPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKey + "-" + objectUUID
-	err = os.Remove(desthPath)
+	destPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKey + "-" + objectUUID
+	err = os.Remove(destPath)
 	if err != nil {
 		return err
 	}
@@ -100,18 +100,24 @@ func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bu
 }
 
 func (obs *ObjectService) DeleteManyFiles(bucketID int, objectKeysWithUUIDs []model.ObjectKeyWithUUID) error {
+	const maxWorkers = 12
 	errs := make([]error, 0, len(objectKeysWithUUIDs))
 	var mu sync.Mutex
 	wg := sync.WaitGroup{}
-	ch := make(chan model.ObjectKeyWithUUID, len(objectKeysWithUUIDs))
+	ch := make(chan model.ObjectKeyWithUUID)
 
-	wg.Add(len(objectKeysWithUUIDs))
-	for i := 0; i < len(objectKeysWithUUIDs); i++ {
+	workers := maxWorkers
+	if len(objectKeysWithUUIDs) < maxWorkers {
+		workers = len(objectKeysWithUUIDs)
+	}
+
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
 		go func() {
 			defer wg.Done()
 			for objectKeyWithUUID := range ch {
-				desthPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKeyWithUUID.ObjectKey + "-" + objectKeyWithUUID.ObjectUUID
-				err := os.Remove(desthPath)
+				destPath := "./uploads/" + strconv.Itoa(bucketID) + "/" + objectKeyWithUUID.ObjectKey + "-" + objectKeyWithUUID.ObjectUUID
+				err := os.Remove(destPath)
 				if err != nil {
 					mu.Lock()
 					errs = append(errs, err)
@@ -136,10 +142,14 @@ func (obs *ObjectService) DeleteManyFiles(bucketID int, objectKeysWithUUIDs []mo
 	return nil
 }
 
-func (obs *ObjectService) DeleteManyObjects(ctx context.Context, bucketID int, objectKeys []string) error {
-	objectKeysWithUUIDs, err := obs.versionRepository.GetUUIDsAndObjectKeysByObjectKeys(ctx, bucketID, objectKeys)
+func (obs *ObjectService) DeleteManyObjects(
+	ctx context.Context,
+	bucketID int,
+	objectKeys []string,
+) ([]model.ObjectKeyWithUUID, error) {
+	objectKeysWithUUIDs, err := obs.objectRepository.GetUUIDsAndObjectKeysByObjectKeys(ctx, bucketID, objectKeys)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	objectKeysFromDB := make([]string, len(objectKeysWithUUIDs))
 	for i := 0; i < len(objectKeysWithUUIDs); i++ {
@@ -148,9 +158,9 @@ func (obs *ObjectService) DeleteManyObjects(ctx context.Context, bucketID int, o
 
 	err = obs.objectRepository.DeleteMany(ctx, objectKeysFromDB)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return objectKeysWithUUIDs, nil
 }
 
 func (obs *ObjectService) isAvailableForDeletion(ctx context.Context, bucketID, userID int) error {
@@ -196,4 +206,20 @@ func (obs *ObjectService) DeleteMany(ctx context.Context, bucketID, userID int, 
 	if err != nil {
 		return err
 	}
+
+	if isVersioningEnabled {
+		return nil
+	}
+
+	objectKeys := make([]string, len(filesToDelete.FilesToDelete))
+	for i := 0; i < len(filesToDelete.FilesToDelete); i++ {
+		objectKeys[i] = filesToDelete.FilesToDelete[i].ObjectKey
+	}
+
+	objectKeysWithUUIDs, err := obs.DeleteManyObjects(ctx, bucketID, objectKeys)
+	if err != nil {
+		return err
+	}
+
+	return obs.DeleteManyFiles(bucketID, objectKeysWithUUIDs)
 }
