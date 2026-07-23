@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -43,7 +42,6 @@ func (or *ObjectRepository) DeleteOne(ctx context.Context, objectKey string) err
 }
 
 func (or *ObjectRepository) DeleteMany(ctx context.Context, objectKeys []string) error {
-	log.Println(objectKeys)
 	placeholders := db.CreatePlaceholders(len(objectKeys))
 	query := fmt.Sprintf("DELETE FROM objects WHERE object_key IN ( %s )", placeholders)
 	args := make([]any, 0, len(objectKeys))

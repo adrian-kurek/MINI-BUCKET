@@ -185,8 +185,10 @@ func (or *ObjectRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Contex
 		}
 	}()
 
+	found := false
 	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(objectKeys))
 	for rows.Next() {
+		found = true
 		var objectKeyWithUUID model.ObjectKeyWithUUID
 		err = rows.Scan(&objectKeyWithUUID.ObjectKey, &objectKeyWithUUID.ObjectUUID)
 		if err != nil {
@@ -212,6 +214,10 @@ func (or *ObjectRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Contex
 			"error": err.Error(),
 		})
 		return nil, err
+	}
+
+	if !found {
+		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
 	}
 
 	return objectKeysWithUUIDs, nil
