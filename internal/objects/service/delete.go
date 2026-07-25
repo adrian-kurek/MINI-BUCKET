@@ -207,13 +207,35 @@ func (obs *ObjectService) DeleteMany(ctx context.Context, bucketID, userID int, 
 		return err
 	}
 
-	if isVersioningEnabled {
-		return nil
-	}
-
 	objectKeys := make([]string, len(filesToDelete.FilesToDelete))
 	for i := 0; i < len(filesToDelete.FilesToDelete); i++ {
-		objectKeys[i] = filesToDelete.FilesToDelete[i].ObjectKey
+		if filesToDelete.FilesToDelete[i].VersionID == 0 {
+			objectKeys[i] = filesToDelete.FilesToDelete[i].ObjectKey
+		}
+	}
+
+	if isVersioningEnabled {
+		if len(objectKeys) > 0 && len(objectKeys) != len(filesToDelete.FilesToDelete) {
+			// concurrency pattern
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+			}()
+
+			go func() {
+				defer wg.Done()
+			}()
+
+			wg.Wait()
+			return nil
+		} else if len(objectKeys) == len(filesToDelete.FilesToDelete) {
+			// add only markers
+		} else {
+			// remove specified versions
+		}
+
+		return nil
 	}
 
 	objectKeysWithUUIDs, err := obs.DeleteManyObjects(ctx, bucketID, objectKeys)

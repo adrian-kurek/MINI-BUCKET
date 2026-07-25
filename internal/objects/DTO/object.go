@@ -30,11 +30,11 @@ type IncomingFile struct {
 	SizeBytes    int
 }
 
-type deleteFile struct {
+type ObjectKeyWithVersionID struct {
 	ObjectKey string `json:"object_key" validate:"required,file"`
-	VersionID string `json:"version_id" validate:"int"`
+	VersionID int `json:"version_id" validate:"int"`
 }
 
 type DeleteManyFiles struct {
-	FilesToDelete []deleteFile `json:"files_to_delete" validate:"unique=ObjectKey"`
+	FilesToDelete []ObjectKeyWithVersionID `json:"files_to_delete" validate:"unique=ObjectKey"`
 }
