@@ -21,7 +21,7 @@ func TestDelete(t *testing.T) {
 		withProperFileName bool
 		withVersionID      bool
 		withBucketID       bool
-		setupMock          func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		setupMock          func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware)
 		wantErr            bool
 		err                error
 	}
@@ -32,13 +32,13 @@ func TestDelete(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -48,29 +48,29 @@ func TestDelete(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(errors.New("failed to delete object"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to delete object"),
 		},
 		{
-			title:              "failed to verify file name",
-			verifiedUser:       true,
-			withVersionID:      true,
-			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			title:         "failed to verify file name",
+			verifiedUser:  true,
+			withVersionID: true,
+			withBucketID:  true,
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Delete", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: invalid file name"),
@@ -79,11 +79,11 @@ func TestDelete(t *testing.T) {
 			title:              "without bucket id",
 			verifiedUser:       true,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: lack of bucketID or provided bucketID is malformed"),
@@ -93,11 +93,11 @@ func TestDelete(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("failed to verify token of the user"))
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to verify token of the user"),
@@ -106,7 +106,7 @@ func TestDelete(t *testing.T) {
 
 	for _, testScenario := range testScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			r:= httptest.NewRequest(http.MethodDelete, "/buckets/0/objects/test.txt", nil)
+			r := httptest.NewRequest(http.MethodDelete, "/buckets/0/objects/test.txt", nil)
 
 			if testScenario.withBucketID {
 				r.SetPathValue("bucketID", "1")
@@ -127,7 +127,8 @@ func TestDelete(t *testing.T) {
 			}
 
 			loggerService := setupObjectHandlerDependencies()
-			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
+			w := httptest.NewRecorder()
+			objectService, authorizationMiddleware := testScenario.setupMock(r)
 			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
 
 			err := h.Delete(w, r)
