@@ -20,7 +20,7 @@ func TestLogin(t *testing.T) {
 	type args struct {
 		title           string
 		bodyRequestData authDTO.LoginUser
-		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter)
+		setupMocks      func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService)
 		wantErr         bool
 		err             error
 	}
@@ -32,12 +32,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return("12312", []byte("1233445"), nil)
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: false,
 			err:     nil,
@@ -48,12 +48,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return("12312", []byte("1233445"), nil)
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("api error: the Email field must be a valid email address"),
@@ -64,12 +64,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return("", []byte(""), errors.New("failed to process the data"))
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("failed to process the data"),
@@ -80,12 +80,12 @@ func TestLogin(t *testing.T) {
 				Email:    "joeDoe1@gmail.com",
 				Password: "zaqwerfdsafsa@!44",
 			},
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthService.On("Login", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return("", []byte(""), context.DeadlineExceeded)
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),
@@ -95,7 +95,8 @@ func TestLogin(t *testing.T) {
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
-			authorizationMiddleware, authService, w := testScenario.setupMocks()
+			w := httptest.NewRecorder()
+			authorizationMiddleware, authService := testScenario.setupMocks()
 			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			bodyBytes, err := jsonutil.MarshalData(testScenario.bodyRequestData)
