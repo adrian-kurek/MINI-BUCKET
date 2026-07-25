@@ -213,10 +213,7 @@ func TestGet(t *testing.T) {
 
 	for _, testScenario := range testScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			r, err := http.NewRequest(http.MethodGet, "/buckets/0/objects/test.txt", nil)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodGet, "/buckets/0/objects/test.txt", nil)
 
 			if testScenario.withBucketID {
 				r.SetPathValue("bucketID", "1")
@@ -251,7 +248,7 @@ func TestGet(t *testing.T) {
 			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
 			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
 
-			err = h.Get(w, r)
+			err := h.Get(w, r)
 
 			if !testScenario.wantErr {
 				err = os.RemoveAll("./uploads/0/objects/test.txt")
@@ -429,10 +426,7 @@ func TestGetMetadata(t *testing.T) {
 
 	for _, testScenario := range testScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
-			r, err := http.NewRequest(http.MethodGet, "/buckets/0/objects/test.txt", nil)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodGet, "/buckets/0/objects/test.txt", nil)
 
 			if testScenario.withBucketID {
 				r.SetPathValue("bucketID", "1")
@@ -456,7 +450,7 @@ func TestGetMetadata(t *testing.T) {
 			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
 			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
 
-			err = h.GetMetadata(w, r)
+			err := h.GetMetadata(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("GetMetadata() err = %v, wantErr = %v", err, testScenario.wantErr)
