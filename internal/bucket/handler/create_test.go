@@ -22,7 +22,7 @@ func TestCreate(t *testing.T) {
 		title           string
 		bodyRequestData DTO.BucketInput
 		verifiedUser    bool
-		setupMock       func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		setupMock       func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware)
 		wantErr         bool
 		err             error
 	}
@@ -38,12 +38,12 @@ func TestCreate(t *testing.T) {
 				StorageClass:      "STANDARD",
 			},
 			verifiedUser: true,
-			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mBucketService.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mBucketService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -58,11 +58,11 @@ func TestCreate(t *testing.T) {
 				StorageClass:      "STANDARD",
 			},
 			verifiedUser: true,
-			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mBucketService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: the Name field must be at least 3 characters long"),
@@ -78,11 +78,11 @@ func TestCreate(t *testing.T) {
 				StorageClass:      "STANDARD",
 			},
 			verifiedUser: false,
-			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mBucketService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to read user from context"),
@@ -98,13 +98,13 @@ func TestCreate(t *testing.T) {
 				StorageClass:      "STANDARD",
 			},
 			verifiedUser: true,
-			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (bucketHandler.BucketService, commonInterfaces.AuthenticationMiddleware) {
 				mBucketService := new(bucketMocks.MockBucketService)
 				mBucketService.On("Create", mock.Anything, mock.Anything, mock.Anything).
 					Return(errors.New("failed to create the new bucket"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mBucketService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mBucketService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to create the new bucket"),
@@ -125,7 +125,8 @@ func TestCreate(t *testing.T) {
 			}
 
 			loggerService := setupBucketHandlerDependencies()
-			bucketService, authorizationMiddleware, w := testScenario.setupMock(r)
+			w := httptest.NewRecorder()
+			bucketService, authorizationMiddleware := testScenario.setupMock(r)
 			h := bucketHandler.New(bucketService, authorizationMiddleware, loggerService)
 
 			err = h.Create(w, r)
