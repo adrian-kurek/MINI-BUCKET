@@ -77,12 +77,9 @@ func TestVerify(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
 			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest(http.MethodGet, "/auth/verify", nil)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodGet, "/auth/verify", nil)
 
-			err = h.Verify(w, r)
+			err := h.Verify(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("Verify() err = %v, wantErr = %v", err, testScenario.wantErr)

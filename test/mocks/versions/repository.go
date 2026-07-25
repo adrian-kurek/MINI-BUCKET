@@ -56,3 +56,4 @@ func (m *MockVersionRepository) GetUUIDByObjectKey(
 	args := m.Called(ctx, bucketID, objectKey)
 	return args.String(0), args.Error(1)
 }
+

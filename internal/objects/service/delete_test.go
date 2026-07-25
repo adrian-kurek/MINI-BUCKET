@@ -345,7 +345,7 @@ func TestDeleteObject(t *testing.T) {
 			setupMock: func() ( objectService.ObjectRepository,*sql.DB) {
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mObjectRepository.On("GetUUIDByID",mock.Anything,mock.Anything,mock.Anything).Return("test",nil)
-				mObjectRepository.On("Delete",mock.Anything,mock.Anything).Return(nil)
+				mObjectRepository.On("DeleteOne",mock.Anything,mock.Anything).Return(nil)
 				db,_,_ := sqlmock.New()
 				return  mObjectRepository,db
 			},
@@ -370,7 +370,7 @@ func TestDeleteObject(t *testing.T) {
 			setupMock: func() ( objectService.ObjectRepository,*sql.DB) {
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mObjectRepository.On("GetUUIDByID",mock.Anything,mock.Anything,mock.Anything).Return("test",nil)
-				mObjectRepository.On("Delete",mock.Anything,mock.Anything).Return(errors.New("failed to perform query"))
+				mObjectRepository.On("DeleteOne",mock.Anything,mock.Anything).Return(errors.New("failed to perform query"))
 				db,_,_ := sqlmock.New()
 				return  mObjectRepository,db
 			},
@@ -383,7 +383,7 @@ func TestDeleteObject(t *testing.T) {
 			setupMock: func() ( objectService.ObjectRepository,*sql.DB) {
 				mObjectRepository := new(objectMocks.MockObjectRepository)
 				mObjectRepository.On("GetUUIDByID",mock.Anything,mock.Anything,mock.Anything).Return("test",nil)
-				mObjectRepository.On("Delete",mock.Anything,mock.Anything).Return(nil)
+				mObjectRepository.On("DeleteOne",mock.Anything,mock.Anything).Return(nil)
 				db,_,_ := sqlmock.New()
 				return  mObjectRepository,db
 			},
@@ -461,7 +461,7 @@ func TestDelete(t *testing.T) {
 				mPermissionRepository := new(permissionMocks.MockPermissionRepository)
 				mPermissionRepository.On("GetPermissionValByUserID",mock.Anything,mock.Anything,mock.Anything).Return(7,nil)
 				mObjectRepository.On("GetUUIDByID",mock.Anything,mock.Anything,mock.Anything).Return("test",nil)
-				mObjectRepository.On("Delete",mock.Anything,mock.Anything).Return(nil)
+				mObjectRepository.On("DeleteOne",mock.Anything,mock.Anything).Return(nil)
 				db,_,_ := sqlmock.New()
 				return  mObjectRepository,mBucketRepository,mVersionRepository,mPermissionRepository,db
 			},

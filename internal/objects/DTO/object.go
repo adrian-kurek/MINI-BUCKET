@@ -29,3 +29,12 @@ type IncomingFile struct {
 	StorageClass string
 	SizeBytes    int
 }
+
+type ObjectKeyWithVersionID struct {
+	ObjectKey string `json:"object_key" validate:"required,file"`
+	VersionID int `json:"version_id" validate:"int"`
+}
+
+type DeleteManyFiles struct {
+	FilesToDelete []ObjectKeyWithVersionID `json:"files_to_delete" validate:"unique=ObjectKey"`
+}

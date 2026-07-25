@@ -21,3 +21,8 @@ type GetMetadata struct {
 	SizeBytes   int
 	IsDeleted   bool
 }
+
+type ObjectKeyWithUUID struct {
+	ObjectKey  string
+	ObjectUUID string
+}

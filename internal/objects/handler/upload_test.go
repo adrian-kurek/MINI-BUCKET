@@ -61,7 +61,8 @@ func TestUpload(t *testing.T) {
 			withProperFileName: false,
 			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
 				mObjectService := new(objectMocks.MockObjectService)
-				mObjectService.On("Upload",
+				mObjectService.On(
+					"Upload",
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
@@ -203,10 +204,7 @@ func TestUpload(t *testing.T) {
 			}
 
 			bodyReader := bytes.NewReader(bodyBytes)
-			r, err := http.NewRequest(http.MethodPut, "/buckets/1/permissions", bodyReader)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodPut, "/buckets/1/permissions", bodyReader)
 
 			if testScenario.withBucketID {
 				r.SetPathValue("bucketID", "1")

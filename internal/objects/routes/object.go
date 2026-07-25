@@ -11,6 +11,7 @@ type objectHandler interface {
 	Upload(w http.ResponseWriter, r *http.Request) error
 	GetMetadata(w http.ResponseWriter, r *http.Request) error
 	Delete(w http.ResponseWriter, r *http.Request) error
+	DeleteMany(w http.ResponseWriter, r *http.Request) error
 	Get(w http.ResponseWriter, r *http.Request) error
 }
 type ObjectRoutes struct {
@@ -29,4 +30,5 @@ func (oh *ObjectRoutes) SetupObjectRoutes(router *http.ServeMux) {
 	router.Handle(fmt.Sprintf("GET %s/objects/{objectKey}/meta", prefix), request.Make(oh.objectHandler.GetMetadata))
 	router.Handle(fmt.Sprintf("GET %s/objects/{objectKey}", prefix), request.Make(oh.objectHandler.Get))
 	router.Handle(fmt.Sprintf("DELETE %s/objects/{objectKey}", prefix), request.Make(oh.objectHandler.Delete))
+	router.Handle(fmt.Sprintf("DELETE %s/objects", prefix), request.Make(oh.objectHandler.DeleteMany))
 }

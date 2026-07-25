@@ -129,12 +129,9 @@ func TestActivateAccount(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
 			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest(http.MethodGet, "/auth/activate?token="+testScenario.token, nil)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodGet, "/auth/activate?token="+testScenario.token, nil)
 
-			err = h.ActivateAccount(w, r)
+			err := h.ActivateAccount(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("ActivateAccount() err = %v, wantErr = %v", err, testScenario.wantErr)

@@ -104,10 +104,7 @@ func TestLogin(t *testing.T) {
 			}
 
 			bodyReader := bytes.NewReader(bodyBytes)
-			r, err := http.NewRequest(http.MethodPost, "/auth/login", bodyReader)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodPost, "/auth/login", bodyReader)
 
 			err = h.Login(w, r)
 

@@ -52,3 +52,13 @@ func (m *MockObjectService) Get(
 	return args.Get(0).(model.GetMetadata), args.String(1), args.Error(2)
 }
 
+func (m *MockObjectService) DeleteMany(
+	ctx context.Context,
+	bucketID int,
+	userID int,
+	filesToDelete DTO.DeleteManyFiles,
+) error  {
+ args := m.Called(ctx,bucketID,userID,filesToDelete)
+ return args.Error(0)
+}
+

@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
+	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/model"
@@ -327,4 +329,83 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context, tx *sql.Tx,
 	}
 
 	return newVersionID, nil
+}
+
+func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Context, bucketID int, objectKeys []string) ([]model.ObjectKeyWithUUID, error) {
+	placeholders := db.CreatePlaceholders(len(objectKeys))
+	query := fmt.Sprintf(`SELECT o.object_key,o.object_uuid FROM object_versions ov 
+	INNER JOIN objects o ON o.id = ov.object_id 
+	WHERE o.object_key IN ( %s)  AND o.bucket_id = $%d`, placeholders, len(objectKeys)+1)
+	args := make([]any, 0, len(objectKeys)+1)
+	for _, key := range objectKeys {
+		args = append(args, key)
+	}
+	args = append(args, bucketID)
+
+	stmt, err := vr.db.PrepareContext(ctx, query)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	rows, err := stmt.QueryContext(ctx, args...)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(objectKeys))
+	for rows.Next() {
+		var objectKeyWithUUID model.ObjectKeyWithUUID
+		err = rows.Scan(&objectKeyWithUUID)
+		if err != nil {
+			vr.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
+				"query": query,
+				"args": map[string]any{
+					"bucket_id":   bucketID,
+					"object_keys": objectKeys,
+				},
+				"error": err.Error(),
+			})
+			return nil, err
+		}
+		objectKeysWithUUIDs = append(objectKeysWithUUIDs, objectKeyWithUUID)
+	}
+	if rows.Err() != nil {
+		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+
+	return objectKeysWithUUIDs, nil
 }

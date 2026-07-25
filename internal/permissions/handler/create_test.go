@@ -131,10 +131,8 @@ func TestCreate(t *testing.T) {
 			}
 
 			bodyReader := bytes.NewReader(bodyBytes)
-			r, err := http.NewRequest(http.MethodPost, "/buckets/1/permissions", bodyReader)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodPost, "/buckets/1/permissions", bodyReader)
+
 			if testScenario.withBucketID {
 				r.SetPathValue("bucketID", "1")
 			}
