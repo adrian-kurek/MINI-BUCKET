@@ -289,12 +289,9 @@ func TestLogoutUserFromAllDevices(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks(testScenario.setIDInContext)
 			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodDelete, "/auth/logoutAll", nil)
 
-			err = h.LogoutUserFromAllDevices(w, r)
+			err := h.LogoutUserFromAllDevices(w, r)
 
 			if (err != nil) != testScenario.wantErr {
 				t.Errorf("LogoutUserFromAllDevices() err = %v, wantErr = %v", err, testScenario.wantErr)

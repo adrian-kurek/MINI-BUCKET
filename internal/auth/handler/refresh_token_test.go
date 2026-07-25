@@ -82,10 +82,7 @@ func TestRefreshToken(t *testing.T) {
 			authorizationMiddleware, authService, w := testScenario.setupMocks()
 			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
-			r, err := http.NewRequest(http.MethodPost, "/auth/login", nil)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodPost, "/auth/login", nil)
 			if testScenario.setCookie {
 				cookie := http.Cookie{
 					Name:  "refreshToken",
@@ -94,15 +91,15 @@ func TestRefreshToken(t *testing.T) {
 				r.AddCookie(&cookie)
 			}
 
-			err = h.RefreshToken(w, r)
+			err := h.RefreshToken(w, r)
 
 			if (err != nil) != testScenario.wantErr {
-				t.Errorf("Login() err = %v, wantErr = %v", err, testScenario.wantErr)
+				t.Errorf("RefreshToken() err = %v, wantErr = %v", err, testScenario.wantErr)
 			}
 
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {
-					t.Errorf("Login() error = %v, scenarioError = %v", err, testScenario.err)
+					t.Errorf("RefreshToken() error = %v, scenarioError = %v", err, testScenario.err)
 				}
 			}
 		})
