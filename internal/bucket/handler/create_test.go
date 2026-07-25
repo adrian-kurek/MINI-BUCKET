@@ -119,10 +119,7 @@ func TestCreate(t *testing.T) {
 			}
 
 			bodyReader := bytes.NewReader(bodyBytes)
-			r, err := http.NewRequest(http.MethodPost, "/buckets", bodyReader)
-			if err != nil {
-				panic(err)
-			}
+			r := httptest.NewRequest(http.MethodPost, "/buckets", bodyReader)
 			if testScenario.verifiedUser {
 				r = request.SetContext(r, "id", 1)
 			}
