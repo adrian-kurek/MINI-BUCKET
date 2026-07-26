@@ -19,7 +19,7 @@ func TestLogoutUser(t *testing.T) {
 	type args struct {
 		title      string
 		setCookie  bool
-		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter)
+		setupMocks func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService)
 		wantErr    bool
 		err        error
 	}
@@ -28,12 +28,12 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title:     "with proper data",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).Return(nil)
 				mAuthService.On("LogoutUser", mock.Anything, mock.Anything).Return(nil)
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: false,
 			err:     nil,
@@ -41,12 +41,12 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title:     "authorization.BlacklistUser failed",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).
 					Return(errors.New("failed to process data"))
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("failed to process data"),
@@ -54,12 +54,12 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title:     "authorization.BlacklistUser context.DeadlineExceeded",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).
 					Return(context.DeadlineExceeded)
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),
@@ -67,11 +67,11 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title:     "failed to read cookie",
 			setCookie: false,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).Return(nil)
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("http: named cookie not present"),
@@ -79,12 +79,12 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title:     "authHandler.AuthService.LogoutUser failed",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).Return(nil)
 				mAuthService.On("LogoutUser", mock.Anything, mock.Anything).Return(errors.New("failed to process data"))
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("failed to process data"),
@@ -92,12 +92,12 @@ func TestLogoutUser(t *testing.T) {
 		{
 			title:     "authHandler.AuthService.LogoutUser context.DeadlineExceeded",
 			setCookie: true,
-			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService, http.ResponseWriter) {
+			setupMocks: func() (commonInterfaces.AuthenticationMiddleware, authHandler.AuthService) {
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthService := new(authMocks.MockAuthService)
 				mAuthenticationMiddleware.On("BlacklistUser", mock.Anything, mock.Anything).Return(nil)
 				mAuthService.On("LogoutUser", mock.Anything, mock.Anything).Return(context.DeadlineExceeded)
-				return mAuthenticationMiddleware, mAuthService, httptest.NewRecorder()
+				return mAuthenticationMiddleware, mAuthService
 			},
 			wantErr: true,
 			err:     errors.New("api error: "),
@@ -107,7 +107,9 @@ func TestLogoutUser(t *testing.T) {
 	for _, testScenario := range testsScenarios {
 		t.Run(testScenario.title, func(t *testing.T) {
 			loggerService := setupAuthHandlerDependencies()
-			authorizationMiddleware, authService, w := testScenario.setupMocks()
+
+			w := httptest.NewRecorder()
+			authorizationMiddleware, authService := testScenario.setupMocks()
 			h := authHandler.New(loggerService, authService, authorizationMiddleware)
 
 			r, err := http.NewRequest(http.MethodDelete, "/auth/logout", nil)

@@ -23,7 +23,7 @@ func TestGet(t *testing.T) {
 		withProperFileName bool
 		withVersionID      bool
 		withBucketID       bool
-		setupMock          func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		setupMock          func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware)
 		wantErr            bool
 		err                error
 	}
@@ -34,7 +34,7 @@ func TestGet(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(true, nil)
@@ -42,7 +42,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, "./uploads/0/test.txt", nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -52,7 +52,7 @@ func TestGet(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, nil)
@@ -62,7 +62,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, "./uploads/0/test.txt", nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -73,7 +73,7 @@ func TestGet(t *testing.T) {
 			withProperFileName: true,
 			withVersionID:      true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, nil)
@@ -83,7 +83,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, "./uploads/0/test.txt", nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -93,7 +93,7 @@ func TestGet(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, nil)
@@ -103,7 +103,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{}, "", errors.New("failed to get an object"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to get an object"),
@@ -113,7 +113,7 @@ func TestGet(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: false,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, nil)
@@ -123,7 +123,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, "./uploads/0/test.txt", nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     nil,
@@ -133,7 +133,7 @@ func TestGet(t *testing.T) {
 			verifiedUser:       true,
 			withProperFileName: true,
 			withBucketID:       true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, nil)
@@ -143,7 +143,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, "./uploads/0/test.txt", nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to check read permissions"),
@@ -152,7 +152,7 @@ func TestGet(t *testing.T) {
 			title:        "failed to authorize the user",
 			verifiedUser: true,
 			withBucketID: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, nil)
@@ -162,7 +162,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, "./uploads/0/test.txt", nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, errors.New("provided token is invalid"))
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("provided token is invalid"),
@@ -170,7 +170,7 @@ func TestGet(t *testing.T) {
 		{
 			title:        "failed to read user from token",
 			withBucketID: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, nil)
@@ -180,7 +180,7 @@ func TestGet(t *testing.T) {
 					Return(model.GetMetadata{ContentType: "text", SizeBytes: 1, ETAG: "test"}, "./uploads/0/test.txt", nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     nil,
@@ -188,12 +188,12 @@ func TestGet(t *testing.T) {
 		{
 			title:        "hasPublicAccess failed",
 			withBucketID: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("HasPublicAccess", mock.Anything, mock.Anything).
 					Return(false, errors.New("failed to get info about public"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to get info about public"),
@@ -201,10 +201,10 @@ func TestGet(t *testing.T) {
 		{
 			title:        "lack of bucketID ",
 			withBucketID: false,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: lack of bucketID or provided bucketID is malformed"),
@@ -245,7 +245,8 @@ func TestGet(t *testing.T) {
 			}
 
 			loggerService := setupObjectHandlerDependencies()
-			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
+			w := httptest.NewRecorder()
+			objectService, authorizationMiddleware := testScenario.setupMock(r)
 			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
 
 			err := h.Get(w, r)

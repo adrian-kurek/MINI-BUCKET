@@ -23,9 +23,12 @@ func TestCreate(t *testing.T) {
 		bodyRequestData DTO.Upsert
 		verifiedUser    bool
 		withBucketID    bool
-		setupMock       func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
-		wantErr         bool
-		err             error
+		setupMock       func(r *http.Request) (
+			permissionHandler.PermissionService,
+			commonInterfaces.AuthenticationMiddleware,
+		)
+		wantErr bool
+		err     error
 	}
 
 	testScenarios := []args{
@@ -37,13 +40,16 @@ func TestCreate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: true,
-			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (
+				permissionHandler.PermissionService,
+				commonInterfaces.AuthenticationMiddleware,
+			) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mPermissionService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -56,11 +62,14 @@ func TestCreate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: false,
-			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (
+				permissionHandler.PermissionService,
+				commonInterfaces.AuthenticationMiddleware,
+			) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mPermissionService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: the UserID field is required"),
@@ -74,11 +83,14 @@ func TestCreate(t *testing.T) {
 			},
 			verifiedUser: false,
 			withBucketID: false,
-			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (
+				permissionHandler.PermissionService,
+				commonInterfaces.AuthenticationMiddleware,
+			) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mPermissionService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to read user from context"),
@@ -92,11 +104,14 @@ func TestCreate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: false,
-			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (
+				permissionHandler.PermissionService,
+				commonInterfaces.AuthenticationMiddleware,
+			) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mPermissionService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New(`api error: lack of bucketID or provided bucketID is malformed`),
@@ -110,13 +125,16 @@ func TestCreate(t *testing.T) {
 			},
 			verifiedUser: true,
 			withBucketID: true,
-			setupMock: func(r *http.Request) (permissionHandler.PermissionService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (
+				permissionHandler.PermissionService,
+				commonInterfaces.AuthenticationMiddleware,
+			) {
 				mPermissionService := new(permissionMocks.MockPermissionService)
 				mPermissionService.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(errors.New("failed to create new permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mPermissionService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mPermissionService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New(`failed to create new permission`),
@@ -140,7 +158,8 @@ func TestCreate(t *testing.T) {
 				r = request.SetContext(r, "id", 1)
 			}
 			loggerService := setupPermissionsHandlerDependencies()
-			permissionService, authorizationMiddleware, w := testScenario.setupMock(r)
+			w := httptest.NewRecorder()
+			permissionService, authorizationMiddleware := testScenario.setupMock(r)
 			permissionHandler := permissionHandler.NewPermissionHandler(
 				permissionService,
 				authorizationMiddleware,

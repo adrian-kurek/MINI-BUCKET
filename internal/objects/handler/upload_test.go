@@ -24,7 +24,7 @@ func TestUpload(t *testing.T) {
 		verifiedUser       bool
 		withProperFileName bool
 		withBucketID       bool
-		setupMock          func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter)
+		setupMock          func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware)
 		wantErr            bool
 		err                error
 	}
@@ -39,13 +39,13 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       true,
 			withBucketID:       true,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -59,7 +59,7 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       true,
 			withBucketID:       true,
 			withProperFileName: false,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On(
 					"Upload",
@@ -71,7 +71,7 @@ func TestUpload(t *testing.T) {
 				).Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("api error: invalid file name"),
@@ -85,13 +85,13 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       true,
 			withBucketID:       true,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: false,
 			err:     nil,
@@ -105,14 +105,14 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       true,
 			withBucketID:       true,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).
 					Return(r, errors.New("failed to auhthorize the user"))
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to auhthorize the user"),
@@ -126,11 +126,11 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       false,
 			withBucketID:       false,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to read user from context"),
@@ -145,11 +145,11 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       false,
 			withBucketID:       false,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New("failed to read user from context"),
@@ -164,11 +164,11 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       true,
 			withBucketID:       false,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New(`api error: lack of bucketID or provided bucketID is malformed`),
@@ -183,13 +183,13 @@ func TestUpload(t *testing.T) {
 			verifiedUser:       true,
 			withBucketID:       true,
 			withProperFileName: true,
-			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware, http.ResponseWriter) {
+			setupMock: func(r *http.Request) (objectHandler.ObjectService, commonInterfaces.AuthenticationMiddleware) {
 				mObjectService := new(objectMocks.MockObjectService)
 				mObjectService.On("Upload", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(errors.New("failed to create new permission"))
 				mAuthenticationMiddleware := new(authMocks.MockAuthenticationMiddleware)
 				mAuthenticationMiddleware.On("VerifyToken", mock.Anything).Return(r, nil)
-				return mObjectService, mAuthenticationMiddleware, httptest.NewRecorder()
+				return mObjectService, mAuthenticationMiddleware
 			},
 			wantErr: true,
 			err:     errors.New(`failed to create new permission`),
@@ -219,7 +219,8 @@ func TestUpload(t *testing.T) {
 			}
 
 			loggerService := setupObjectHandlerDependencies()
-			objectService, authorizationMiddleware, w := testScenario.setupMock(r)
+			w := httptest.NewRecorder()
+			objectService, authorizationMiddleware := testScenario.setupMock(r)
 			h := objectHandler.New(loggerService, authorizationMiddleware, objectService)
 
 			err = h.Upload(w, r)
