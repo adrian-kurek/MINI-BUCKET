@@ -59,6 +59,37 @@ func (obs *ObjectService) CreateDeleteMarker(ctx context.Context, objectKey stri
 	return nil
 }
 
+func (obs *ObjectService) CreateManyDeleteMarkers(ctx context.Context, objectKeys []string, bucketID int) error {
+	objectIDs, err := obs.objectRepository.GetIDsByKeys(ctx, objectKeys, bucketID)
+	if err != nil {
+		return err
+	}
+
+	tx, err := obs.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	deleteMarkerIDs, err := obs.versionRepository.CreateManyDeleteMarkers(ctx, tx, objectIDs)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = obs.objectRepository.UpdateCurrentVersionIDsOfObjects(ctx, tx, objectIDs, deleteMarkerIDs)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (obs *ObjectService) DeleteObjectVersionByID(ctx context.Context, objectKey string, bucketID, versionID int) error {
 	objectUUID, err := obs.versionRepository.GetUUIDByID(ctx, versionID)
 	if err != nil {
@@ -77,6 +108,23 @@ func (obs *ObjectService) DeleteObjectVersionByID(ctx context.Context, objectKey
 	}
 
 	return nil
+}
+
+func (obs *ObjectService) DeleteManyObjectVersionsByVersionIDs(
+	ctx context.Context,
+	bucketID int,
+	versionIDs []int,
+) error {
+	objectKeysWithUUIDs, err := obs.versionRepository.GetUUIDsAndObjectKeysByIDs(ctx, bucketID, versionIDs)
+	if err != nil {
+		return err
+	}
+	err = obs.versionRepository.DeleteMany(ctx, versionIDs, bucketID)
+	if err != nil {
+		return err
+	}
+
+	return obs.DeleteManyFiles(bucketID, objectKeysWithUUIDs)
 }
 
 func (obs *ObjectService) DeleteObject(ctx context.Context, objectKey string, bucketID int) error {
@@ -208,31 +256,36 @@ func (obs *ObjectService) DeleteMany(ctx context.Context, bucketID, userID int, 
 	}
 
 	objectKeys := make([]string, len(filesToDelete.FilesToDelete))
+	versionIDs := make([]int, 0, len(filesToDelete.FilesToDelete))
 	for i := 0; i < len(filesToDelete.FilesToDelete); i++ {
 		if filesToDelete.FilesToDelete[i].VersionID == 0 {
 			objectKeys[i] = filesToDelete.FilesToDelete[i].ObjectKey
+		} else {
+			versionIDs = append(versionIDs, filesToDelete.FilesToDelete[i].VersionID)
 		}
 	}
 
 	if isVersioningEnabled {
-		if len(objectKeys) > 0 && len(objectKeys) != len(filesToDelete.FilesToDelete) {
-			// concurrency pattern
+		if len(objectKeys) > 0 && len(versionIDs) > 0 {
 			var wg sync.WaitGroup
 			wg.Add(2)
 			go func() {
 				defer wg.Done()
+				obs.DeleteManyObjectVersionsByVersionIDs(ctx, bucketID, versionIDs)
 			}()
 
 			go func() {
 				defer wg.Done()
+				obs.CreateManyDeleteMarkers(ctx, objectKeys, bucketID)
 			}()
 
 			wg.Wait()
 			return nil
-		} else if len(objectKeys) == len(filesToDelete.FilesToDelete) {
-			// add only markers
 		} else {
-			// remove specified versions
+			err = obs.CreateManyDeleteMarkers(ctx, objectKeys, bucketID)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

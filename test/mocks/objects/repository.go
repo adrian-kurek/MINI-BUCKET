@@ -70,3 +70,22 @@ func (m *MockObjectRepository) GetUUIDsAndKeysByKeys(
 	args := m.Called(ctx, bucketID, objectKeys)
 	return args.Get(0).([]model.ObjectKeyWithUUID), args.Error(1)
 }
+
+func (m *MockObjectRepository) GetIDsByKeys(
+	ctx context.Context,
+	objectKeys []string,
+	bucketID int,
+) ([]int, error) {
+	args := m.Called(ctx, objectKeys, bucketID)
+	return args.Get(0).([]int), args.Error(1)
+}
+
+func (m *MockObjectRepository) UpdateCurrentVersionIDsOfObjects(
+	ctx context.Context,
+	tx *sql.Tx,
+	objectIDs []int,
+	versionIDs []int,
+) error {
+	args := m.Called(ctx, tx, objectIDs, versionIDs)
+	return args.Error(0)
+}

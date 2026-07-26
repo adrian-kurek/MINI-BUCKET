@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -331,6 +333,180 @@ func (vr *VersionRepository) CreateDeleteMarker(ctx context.Context, tx *sql.Tx,
 	return newVersionID, nil
 }
 
+func (vr *VersionRepository) CreateManyDeleteMarkers(ctx context.Context, tx *sql.Tx, objectIDs []int) ([]int, error) {
+	placeholders := make([]string, len(objectIDs))
+	args := make([]any, len(objectIDs))
+	for i := 0; i < len(objectIDs); i++ {
+		placeholders[i] = fmt.Sprintf("($%d,'',TRUE, 0,'','STANDARD',NOW(),NOW())", i+1)
+		args[i] = objectIDs[i]
+	}
+	query := fmt.Sprintf(`INSERT INTO object_versions(
+		object_id,
+    object_uuid,
+		is_deleted,
+		size_bytes,
+		etag,
+		storage_class,
+		created_at,
+		updated_at
+	) VALUES %s RETURNING id`, strings.Join(placeholders, ","))
+
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_ids": objectIDs,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	rows, err := stmt.QueryContext(
+		ctx,
+		args...,
+	)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToExecuteInsertQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_ids": objectIDs,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, map[string]any{
+				"query": query,
+				"args": map[string]any{
+					"object_ids": objectIDs,
+				},
+				"error": err.Error(),
+			})
+		}
+	}()
+
+	var versionIDs []int
+	found := false
+	for rows.Next() {
+		found = true
+		var versionID int
+		err = rows.Scan(&versionID)
+		if err != nil {
+			vr.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
+				"query": query,
+				"args": map[string]any{
+					"object_ids": objectIDs,
+				},
+				"error": err.Error(),
+			})
+			return nil, err
+		}
+		versionIDs = append(versionIDs, versionID)
+	}
+	if rows.Err() != nil {
+		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_ids": objectIDs,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	if !found {
+		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
+	}
+
+	return versionIDs, nil
+}
+
+func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(ctx context.Context, bucketID int, versionIDs []int) ([]model.ObjectKeyWithUUID, error) {
+	placeholders := db.CreatePlaceholders(len(versionIDs))
+	query := fmt.Sprintf(`SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id
+	WHERE ov.id IN ( %s ) AND o.bucket_id = $%d`, placeholders, len(versionIDs)+1)
+	args := make([]any, 0, len(versionIDs)+1)
+	for _, key := range versionIDs {
+		args = append(args, key)
+	}
+	args = append(args, bucketID)
+
+	stmt, err := vr.db.PrepareContext(ctx, query)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"version_ids": versionIDs,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	rows, err := stmt.QueryContext(ctx, args...)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"version_ids": versionIDs,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(versionIDs))
+	for rows.Next() {
+		var objectKeyWithUUID model.ObjectKeyWithUUID
+		err = rows.Scan(&objectKeyWithUUID)
+		if err != nil {
+			vr.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
+				"query": query,
+				"args": map[string]any{
+					"bucket_id":   bucketID,
+					"version_ids": versionIDs,
+				},
+				"error": err.Error(),
+			})
+			return nil, err
+		}
+		objectKeysWithUUIDs = append(objectKeysWithUUIDs, objectKeyWithUUID)
+	}
+	if rows.Err() != nil {
+		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"version_ids": versionIDs,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+
+	return objectKeysWithUUIDs, nil
+}
+
 func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Context, bucketID int, objectKeys []string) ([]model.ObjectKeyWithUUID, error) {
 	placeholders := db.CreatePlaceholders(len(objectKeys))
 	query := fmt.Sprintf(`SELECT o.object_key,o.object_uuid FROM object_versions ov 
@@ -408,4 +584,47 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Conte
 	}
 
 	return objectKeysWithUUIDs, nil
+}
+
+func (vr *VersionRepository) DeleteMany(ctx context.Context, versionIDs []int, bucketID int) error {
+	placeholders := db.CreatePlaceholders(len(versionIDs))
+	query := fmt.Sprintf("DELETE FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id  WHERE ov.id IN ( %s ) AND o.bucket_id", placeholders)
+	stmt, err := vr.db.PrepareContext(ctx, query)
+	args := make([]any, 0, len(versionIDs)+1)
+	for _, key := range versionIDs {
+		args = append(args, key)
+	}
+	args = append(args, bucketID)
+
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"version_ids": versionIDs,
+				"bucket_id":   bucketID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			vr.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	_, err = stmt.ExecContext(ctx, args...)
+	if err != nil {
+		vr.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"version_ids": versionIDs,
+				"bucket_id":   bucketID,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
 }

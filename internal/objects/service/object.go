@@ -25,6 +25,13 @@ type (
 		Delete(ctx context.Context, versionID int) error
 		GetUUIDByID(ctx context.Context, versionID int) (string, error)
 		GetUUIDByObjectKey(ctx context.Context, bucketID int, objectKey string) (string, error)
+		GetUUIDsAndObjectKeysByIDs(ctx context.Context, bucketID int, versionIDs []int) ([]model.ObjectKeyWithUUID, error)
+		DeleteMany(ctx context.Context, versionIDs []int, bucketID int) error
+		CreateManyDeleteMarkers(
+			ctx context.Context,
+			tx *sql.Tx,
+			objectIDs []int,
+		) ([]int, error)
 	}
 	ObjectRepository interface {
 		Create(ctx context.Context, tx *sql.Tx, file objectsDTO.Create) (int, error)
@@ -40,6 +47,17 @@ type (
 			bucketID int,
 			objectKeys []string,
 		) ([]model.ObjectKeyWithUUID, error)
+		GetIDsByKeys(
+			ctx context.Context,
+			objectKeys []string,
+			bucketID int,
+		) ([]int, error)
+		UpdateCurrentVersionIDsOfObjects(
+			ctx context.Context,
+			tx *sql.Tx,
+			objectIDs []int,
+			versionIDs []int,
+		) error
 	}
 	PermissionRepository interface {
 		GetPermissionValByUserID(ctx context.Context, bucketID, userID int) (int, error)

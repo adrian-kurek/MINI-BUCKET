@@ -46,6 +46,96 @@ func (or *ObjectRepository) GetObjectID(ctx context.Context, objectKey string, b
 	return true, objectID, nil
 }
 
+func (or *ObjectRepository) GetIDsByKeys(
+	ctx context.Context,
+	objectKeys []string,
+	bucketID int,
+) ([]int, error) {
+	placeholders := db.CreatePlaceholders(len(objectKeys))
+	query := fmt.Sprintf(
+		"SELECT id FROM objects WHERE object_key IN ( %s ) AND bucket_id = $%d",
+		placeholders,
+		len(placeholders)+1,
+	)
+
+	args := make([]any, 0, len(objectKeys)+1)
+	for _, key := range objectKeys {
+		args = append(args, key)
+	}
+	args = append(args, bucketID)
+
+	stmt, err := or.db.PrepareContext(ctx, query)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+
+	rows, err := stmt.QueryContext(ctx, args...)
+	if err != nil {
+		or.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+
+	}
+
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			or.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+
+	objectIDs := make([]int, 0, len(objectKeys))
+	found := false
+	for rows.Next() {
+		found = true
+		var objectID int
+
+		err = rows.Scan(&objectID)
+		if err != nil {
+			or.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
+				"query": query,
+				"args": map[string]any{
+					"bucket_id":   bucketID,
+					"object_keys": objectKeys,
+				},
+				"error": err.Error(),
+			})
+			return nil, err
+		}
+		objectIDs = append(objectIDs, objectID)
+
+	}
+
+	if rows.Err() != nil {
+		or.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"bucket_id":   bucketID,
+				"object_keys": objectKeys,
+			},
+			"error": err.Error(),
+		})
+		return nil, err
+	}
+	if !found {
+		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
+	}
+	return objectIDs, nil
+}
+
 func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objectKey string) (model.GetMetadata, error) {
 	query := `
 	SELECT 

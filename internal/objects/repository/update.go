@@ -3,9 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
-	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
+	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
 )
 
 func (or *ObjectRepository) Update(ctx context.Context, tx *sql.Tx, file DTO.Update) error {
@@ -56,7 +57,6 @@ func (or *ObjectRepository) Update(ctx context.Context, tx *sql.Tx, file DTO.Upd
 	return nil
 }
 
-
 func (ob *ObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, tx *sql.Tx, objectID int, versionID int) error {
 	query := `UPDATE objects SET current_version_id = $1 WHERE id = $2`
 	stmt, err := tx.PrepareContext(ctx, query)
@@ -92,4 +92,55 @@ func (ob *ObjectRepository) UpdateCurrentVersionIDOfObject(ctx context.Context, 
 	return nil
 }
 
+func (ob *ObjectRepository) UpdateCurrentVersionIDsOfObjects(
+	ctx context.Context,
+	tx *sql.Tx,
+	objectIDs []int,
+	versionIDs []int,
+) error {
+	placeholders := make([]string, 0, len(versionIDs))
+	args := make([]any, 0, len(versionIDs))
+	argPos := 1
+	for i, objectID := range objectIDs {
+		preparedValues := fmt.Sprintf("($%d,$%d)", argPos, argPos+1)
+		placeholders = append(placeholders, preparedValues)
+		args = append(args, objectID, versionIDs[i])
+		argPos += 2
 
+	}
+	query := `UPDATE objects o 
+	SET current_version_id = d.current_version_id 
+	from (values %s ) as d(object_id, current_version_id) 
+	WHERE o.id = d.object_id`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		ob.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_ids": objectIDs,
+				"verion_ids": versionIDs,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+	defer func() {
+		if closeErr := stmt.Close(); closeErr != nil {
+			ob.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
+		}
+	}()
+	_, err = stmt.ExecContext(ctx, args...)
+	if err != nil {
+		ob.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
+			"query": query,
+			"args": map[string]any{
+				"object_ids": objectIDs,
+				"verion_ids": versionIDs,
+			},
+			"error": err.Error(),
+		})
+		return err
+	}
+
+	return nil
+}

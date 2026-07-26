@@ -57,3 +57,25 @@ func (m *MockVersionRepository) GetUUIDByObjectKey(
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockVersionRepository) GetUUIDsAndObjectKeysByIDs(
+	ctx context.Context,
+	bucketID int,
+	versionIDs []int,
+) ([]model.ObjectKeyWithUUID, error) {
+	args := m.Called(ctx, bucketID, versionIDs)
+	return args.Get(0).([]model.ObjectKeyWithUUID), args.Error(1)
+}
+
+func (m *MockVersionRepository) DeleteMany(ctx context.Context, versionIDs []int, bucketID int) error {
+	args := m.Called(ctx, versionIDs, bucketID)
+	return args.Error(0)
+}
+
+func (m *MockVersionRepository) CreateManyDeleteMarkers(
+	ctx context.Context,
+	tx *sql.Tx,
+	objectIDs []int,
+) ([]int, error) {
+	args := m.Called(ctx, tx, objectIDs)
+	return args.Get(0).([]int), args.Error(1)
+}
