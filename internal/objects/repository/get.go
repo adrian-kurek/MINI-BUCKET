@@ -58,10 +58,7 @@ func (or *ObjectRepository) GetIDsByKeys(
 		len(placeholders)+1,
 	)
 
-	args := make([]any, 0, len(objectKeys)+1)
-	for _, key := range objectKeys {
-		args = append(args, key)
-	}
+	args := db.CreateArgs(objectKeys, len(objectKeys)+1)
 	args = append(args, bucketID)
 
 	stmt, err := or.db.PrepareContext(ctx, query)
@@ -233,10 +230,7 @@ func (or *ObjectRepository) GetUUIDsAndKeysByKeys(ctx context.Context, bucketID 
 	placeholders := db.CreatePlaceholders(len(objectKeys))
 	query := fmt.Sprintf(`SELECT o.object_key,o.object_uuid FROM objects o 
 	WHERE o.object_key IN ( %s)  AND o.bucket_id = $%d`, placeholders, len(objectKeys)+1)
-	args := make([]any, 0, len(objectKeys)+1)
-	for _, key := range objectKeys {
-		args = append(args, key)
-	}
+	args := db.CreateArgs(objectKeys, len(objectKeys)+1)
 	args = append(args, bucketID)
 
 	stmt, err := or.db.PrepareContext(ctx, query)

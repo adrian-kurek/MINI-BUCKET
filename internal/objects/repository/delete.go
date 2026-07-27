@@ -44,10 +44,7 @@ func (or *ObjectRepository) DeleteOne(ctx context.Context, objectKey string) err
 func (or *ObjectRepository) DeleteMany(ctx context.Context, objectKeys []string) error {
 	placeholders := db.CreatePlaceholders(len(objectKeys))
 	query := fmt.Sprintf("DELETE FROM objects WHERE object_key IN ( %s )", placeholders)
-	args := make([]any, 0, len(objectKeys))
-	for _, key := range objectKeys {
-		args = append(args, key)
-	}
+	args := db.CreateArgs(objectKeys, len(objectKeys))
 
 	stmt, err := or.db.PrepareContext(ctx, query)
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-
 func CreatePlaceholders(amountOfItems int) string {
 	strLen := amountOfItems - 1
 	for i := 1; i <= amountOfItems; i++ {
@@ -27,4 +26,12 @@ func CreatePlaceholders(amountOfItems int) string {
 	}
 
 	return sb.String()
+}
+
+func CreateArgs[T any](items []T, capacity int) []any {
+	args := make([]any, 0, capacity)
+	for _, item := range items {
+		args = append(args, item)
+	}
+	return args
 }

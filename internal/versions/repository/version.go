@@ -394,7 +394,7 @@ func (vr *VersionRepository) CreateManyDeleteMarkers(ctx context.Context, tx *sq
 		}
 	}()
 
-	var versionIDs []int
+	versionIDs := make([]int, 0, len(objectIDs))
 	found := false
 	for rows.Next() {
 		found = true
@@ -433,10 +433,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(ctx context.Context, buc
 	placeholders := db.CreatePlaceholders(len(versionIDs))
 	query := fmt.Sprintf(`SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id
 	WHERE ov.id IN ( %s ) AND o.bucket_id = $%d`, placeholders, len(versionIDs)+1)
-	args := make([]any, 0, len(versionIDs)+1)
-	for _, key := range versionIDs {
-		args = append(args, key)
-	}
+	args := db.CreateArgs(versionIDs, len(versionIDs)+1)
 	args = append(args, bucketID)
 
 	stmt, err := vr.db.PrepareContext(ctx, query)
@@ -512,10 +509,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Conte
 	query := fmt.Sprintf(`SELECT o.object_key,o.object_uuid FROM object_versions ov 
 	INNER JOIN objects o ON o.id = ov.object_id 
 	WHERE o.object_key IN ( %s)  AND o.bucket_id = $%d`, placeholders, len(objectKeys)+1)
-	args := make([]any, 0, len(objectKeys)+1)
-	for _, key := range objectKeys {
-		args = append(args, key)
-	}
+	args := db.CreateArgs(objectKeys, len(objectKeys)+1)
 	args = append(args, bucketID)
 
 	stmt, err := vr.db.PrepareContext(ctx, query)
@@ -590,10 +584,7 @@ func (vr *VersionRepository) DeleteMany(ctx context.Context, versionIDs []int, b
 	placeholders := db.CreatePlaceholders(len(versionIDs))
 	query := fmt.Sprintf("DELETE FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id  WHERE ov.id IN ( %s ) AND o.bucket_id", placeholders)
 	stmt, err := vr.db.PrepareContext(ctx, query)
-	args := make([]any, 0, len(versionIDs)+1)
-	for _, key := range versionIDs {
-		args = append(args, key)
-	}
+	args := db.CreateArgs(versionIDs, len(versionIDs)+1)
 	args = append(args, bucketID)
 
 	if err != nil {
