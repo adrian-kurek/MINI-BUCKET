@@ -43,6 +43,8 @@ func ReadRow[T any](rows *sql.Rows, storage *[]T) error {
 	if err != nil {
 		return err
 	}
-	storage = append(*storage, item)
+
+	*storage = append(*storage, item)
+
 	return nil
 }

@@ -98,9 +98,7 @@ func (or *ObjectRepository) GetIDsByKeys(
 	found := false
 	for rows.Next() {
 		found = true
-		var objectID int
-
-		err = rows.Scan(&objectID)
+		err = db.ReadRow(rows, &objectIDs)
 		if err != nil {
 			or.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
 				"query": query,
@@ -112,8 +110,6 @@ func (or *ObjectRepository) GetIDsByKeys(
 			})
 			return nil, err
 		}
-		objectIDs = append(objectIDs, objectID)
-
 	}
 
 	if rows.Err() != nil {
@@ -273,8 +269,7 @@ func (or *ObjectRepository) GetUUIDsAndKeysByKeys(ctx context.Context, bucketID 
 	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(objectKeys))
 	for rows.Next() {
 		found = true
-		var objectKeyWithUUID model.ObjectKeyWithUUID
-		err = rows.Scan(&objectKeyWithUUID.ObjectKey, &objectKeyWithUUID.ObjectUUID)
+		err = db.ReadRow(rows, &objectKeysWithUUIDs)
 		if err != nil {
 			or.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
 				"query": query,
@@ -286,7 +281,6 @@ func (or *ObjectRepository) GetUUIDsAndKeysByKeys(ctx context.Context, bucketID 
 			})
 			return nil, err
 		}
-		objectKeysWithUUIDs = append(objectKeysWithUUIDs, objectKeyWithUUID)
 	}
 	if rowsErr := rows.Err(); rowsErr != nil {
 		or.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{

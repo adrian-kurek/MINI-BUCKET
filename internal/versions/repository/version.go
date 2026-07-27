@@ -398,8 +398,7 @@ func (vr *VersionRepository) CreateManyDeleteMarkers(ctx context.Context, tx *sq
 	found := false
 	for rows.Next() {
 		found = true
-		var versionID int
-		err = rows.Scan(&versionID)
+		err = db.ReadRow(rows, &versionIDs)
 		if err != nil {
 			vr.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
 				"query": query,
@@ -410,7 +409,6 @@ func (vr *VersionRepository) CreateManyDeleteMarkers(ctx context.Context, tx *sq
 			})
 			return nil, err
 		}
-		versionIDs = append(versionIDs, versionID)
 	}
 	if rows.Err() != nil {
 		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
@@ -429,7 +427,11 @@ func (vr *VersionRepository) CreateManyDeleteMarkers(ctx context.Context, tx *sq
 	return versionIDs, nil
 }
 
-func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(ctx context.Context, bucketID int, versionIDs []int) ([]model.ObjectKeyWithUUID, error) {
+func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(
+	ctx context.Context,
+	bucketID int,
+	versionIDs []int,
+) ([]model.ObjectKeyWithUUID, error) {
 	placeholders := db.CreatePlaceholders(len(versionIDs))
 	query := fmt.Sprintf(`SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id
 	WHERE ov.id IN ( %s ) AND o.bucket_id = $%d`, placeholders, len(versionIDs)+1)
@@ -474,8 +476,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(ctx context.Context, buc
 
 	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(versionIDs))
 	for rows.Next() {
-		var objectKeyWithUUID model.ObjectKeyWithUUID
-		err = rows.Scan(&objectKeyWithUUID)
+		err = db.ReadRow(rows, &objectKeysWithUUIDs)
 		if err != nil {
 			vr.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
 				"query": query,
@@ -487,7 +488,6 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(ctx context.Context, buc
 			})
 			return nil, err
 		}
-		objectKeysWithUUIDs = append(objectKeysWithUUIDs, objectKeyWithUUID)
 	}
 	if rows.Err() != nil {
 		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
@@ -550,8 +550,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Conte
 
 	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(objectKeys))
 	for rows.Next() {
-		var objectKeyWithUUID model.ObjectKeyWithUUID
-		err = rows.Scan(&objectKeyWithUUID)
+		err = db.ReadRow(rows, &objectKeysWithUUIDs)
 		if err != nil {
 			vr.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
 				"query": query,
@@ -563,7 +562,6 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Conte
 			})
 			return nil, err
 		}
-		objectKeysWithUUIDs = append(objectKeysWithUUIDs, objectKeyWithUUID)
 	}
 	if rows.Err() != nil {
 		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
