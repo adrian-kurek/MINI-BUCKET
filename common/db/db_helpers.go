@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"strconv"
 	"strings"
 )
@@ -34,4 +35,14 @@ func CreateArgs[T any](items []T, capacity int) []any {
 		args = append(args, item)
 	}
 	return args
+}
+
+func ReadRow[T any](rows *sql.Rows, storage *[]T) error {
+	var item T
+	err := rows.Scan(&item)
+	if err != nil {
+		return err
+	}
+	storage = append(*storage, item)
+	return nil
 }
