@@ -410,7 +410,7 @@ func (vr *VersionRepository) CreateManyDeleteMarkers(ctx context.Context, tx *sq
 			return nil, err
 		}
 	}
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
 			"query": query,
 			"args": map[string]any{
@@ -580,7 +580,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Conte
 
 func (vr *VersionRepository) DeleteMany(ctx context.Context, versionIDs []int, bucketID int) error {
 	placeholders := db.CreatePlaceholders(len(versionIDs))
-	query := fmt.Sprintf("DELETE FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id  WHERE ov.id IN ( %s ) AND o.bucket_id", placeholders)
+	query := fmt.Sprintf("DELETE FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id  WHERE ov.id IN ( %s ) AND o.bucket_id = $%d", placeholders, len(versionIDs)+1)
 	stmt, err := vr.db.PrepareContext(ctx, query)
 	args := db.CreateArgs(versionIDs, len(versionIDs)+1)
 	args = append(args, bucketID)
