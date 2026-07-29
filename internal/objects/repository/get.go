@@ -55,7 +55,7 @@ func (or *ObjectRepository) GetIDsByKeys(
 	query := fmt.Sprintf(
 		"SELECT id FROM objects WHERE object_key IN ( %s ) AND bucket_id = $%d",
 		placeholders,
-		len(placeholders)+1,
+		len(objectKeys)+1,
 	)
 
 	args := db.CreateArgs(objectKeys, len(objectKeys)+1)
@@ -112,7 +112,7 @@ func (or *ObjectRepository) GetIDsByKeys(
 		}
 	}
 
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		or.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
 			"query": query,
 			"args": map[string]any{
