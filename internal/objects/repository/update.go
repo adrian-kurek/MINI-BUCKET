@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	"github.com/slodkiadrianek/MINI-BUCKET/internal/objects/DTO"
@@ -106,12 +107,11 @@ func (ob *ObjectRepository) UpdateCurrentVersionIDsOfObjects(
 		placeholders = append(placeholders, preparedValues)
 		args = append(args, objectID, versionIDs[i])
 		argPos += 2
-
 	}
-	query := `UPDATE objects o 
+	query := fmt.Sprintf(`UPDATE objects o 
 	SET current_version_id = d.current_version_id 
 	from (values %s ) as d(object_id, current_version_id) 
-	WHERE o.id = d.object_id`
+	WHERE o.id = d.object_id`, strings.Join(placeholders, ","))
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		ob.loggerService.Error(commonErrors.FailedToPrepareQuery, map[string]any{
@@ -129,6 +129,7 @@ func (ob *ObjectRepository) UpdateCurrentVersionIDsOfObjects(
 			ob.loggerService.Error(commonErrors.FailedToCloseStatement, closeErr)
 		}
 	}()
+
 	_, err = stmt.ExecContext(ctx, args...)
 	if err != nil {
 		ob.loggerService.Error(commonErrors.FailedToExecuteUpdateQuery, map[string]any{
