@@ -475,8 +475,11 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(
 	}()
 
 	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(versionIDs))
+	found := false
 	for rows.Next() {
-		err = db.ReadRow(rows, &objectKeysWithUUIDs)
+		found = true
+		var ObjectKeyWithUUID model.ObjectKeyWithUUID
+		err = rows.Scan(&ObjectKeyWithUUID.ObjectKey, &ObjectKeyWithUUID.ObjectUUID)
 		if err != nil {
 			vr.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
 				"query": query,
@@ -488,8 +491,9 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(
 			})
 			return nil, err
 		}
+		objectKeysWithUUIDs = append(objectKeysWithUUIDs, ObjectKeyWithUUID)
 	}
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		vr.loggerService.Error(commonErrors.FailedToScanRows, map[string]any{
 			"query": query,
 			"args": map[string]any{
@@ -499,6 +503,9 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(
 			"error": err.Error(),
 		})
 		return nil, err
+	}
+	if !found {
+		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
 	}
 
 	return objectKeysWithUUIDs, nil
