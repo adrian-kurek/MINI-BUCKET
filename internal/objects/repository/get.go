@@ -269,7 +269,8 @@ func (or *ObjectRepository) GetUUIDsAndKeysByKeys(ctx context.Context, bucketID 
 	objectKeysWithUUIDs := make([]model.ObjectKeyWithUUID, 0, len(objectKeys))
 	for rows.Next() {
 		found = true
-		err = db.ReadRow(rows, &objectKeysWithUUIDs)
+		var objectKeyWithUUID model.ObjectKeyWithUUID
+		err = rows.Scan(&objectKeyWithUUID.ObjectKey, &objectKeyWithUUID.ObjectUUID)
 		if err != nil {
 			or.loggerService.Error(commonErrors.FailedToScanRow, map[string]any{
 				"query": query,
