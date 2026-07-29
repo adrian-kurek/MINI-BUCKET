@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -266,6 +267,122 @@ func TestGetMetadata(t *testing.T) {
 			if err != nil && testScenario.err != nil {
 				if err.Error() != testScenario.err.Error() {
 					t.Errorf("GetMetadata() error = %v, scenarioError = %v", err, testScenario.err)
+				}
+			}
+		})
+	}
+}
+
+func TestGetUUIDsAndObjectKeysByIDs(t *testing.T) {
+	type args struct {
+		title     string
+		setupMock func() *sql.DB
+		wantErr   bool
+		err       error
+	}
+
+	testScenarios := []args{
+		{
+			title: "with proper data",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				placholder := "$1"
+				expectedQuery := fmt.Sprintf("SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id WHERE ov.id IN ( %s ) AND o.bucket_id = $%d", placholder, 2)
+				mock.ExpectPrepare(regexp.QuoteMeta(expectedQuery)).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows([]string{"object_key", "object_uuid"}).AddRow("test", "1234"))
+
+				return db
+			},
+			wantErr: false,
+			err:     nil,
+		},
+		{
+			title: "scan rows failed",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				placholder := "$1"
+				expectedQuery := fmt.Sprintf("SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id WHERE ov.id IN ( %s ) AND o.bucket_id = $%d", placholder, 2)
+				mock.ExpectPrepare(regexp.QuoteMeta(expectedQuery)).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnRows(
+						sqlmock.NewRows(
+							[]string{"object_key", "object_uuid"},
+						).
+							AddRow("test", "1234").
+							RowError(0, errors.New("failed to read rows")),
+					)
+
+				return db
+			},
+			wantErr: true,
+			err:     errors.New("failed to read rows"),
+		},
+		{
+			title: "failed to find ",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				placholder := "$1"
+				expectedQuery := fmt.Sprintf("SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id WHERE ov.id IN ( %s ) AND o.bucket_id = $%d", placholder, 2)
+				mock.ExpectPrepare(regexp.QuoteMeta(expectedQuery)).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows([]string{"object_key", "object_uuid"}))
+
+				return db
+			},
+			wantErr: true,
+			err:     errors.New("api error: "),
+		},
+		{
+			title: "failed to execute query",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				placholder := "$1"
+				expectedQuery := fmt.Sprintf("SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id WHERE ov.id IN ( %s ) AND o.bucket_id = $%d", placholder, 2)
+				mock.ExpectPrepare(regexp.QuoteMeta(expectedQuery)).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
+					WillReturnError(errors.New("failed to execute query"))
+
+				return db
+			},
+			wantErr: true,
+			err:     errors.New("failed to execute query"),
+		},
+		{
+			title: "failed to prepare query",
+			setupMock: func() *sql.DB {
+				db, mock, _ := sqlmock.New()
+				placholder := "$1"
+				expectedQuery := fmt.Sprintf("SELECT o.object_key, o.object_uuid FROM object_versions ov INNER JOIN objects o ON o.id = ov.object_id WHERE ov.id IN ( %s ) AND o.bucket_id = $%d", placholder, 2)
+				mock.ExpectPrepare(regexp.QuoteMeta(expectedQuery)).
+					WillReturnError(errors.New("failed to prepare query"))
+
+				return db
+			},
+			wantErr: true,
+			err:     errors.New("failed to prepare query"),
+		},
+	}
+
+	for _, testScenario := range testScenarios {
+		t.Run(testScenario.title, func(t *testing.T) {
+			loggerService := setupVersionRepositoryDependencies()
+			ctx := context.Background()
+			db := testScenario.setupMock()
+			repo := versionRepository.New(db, loggerService)
+
+			_, err := repo.GetUUIDsAndObjectKeysByIDs(ctx, 1, []int{1})
+			if (err != nil) != testScenario.wantErr {
+				t.Errorf("GetUUIDsAndObjectKeysByIDs() error = %v, wantErr = %v", err, testScenario.wantErr)
+			}
+
+			if err != nil && testScenario.err != nil {
+				if err.Error() != testScenario.err.Error() {
+					t.Errorf("GetUUIDsAndObjectKeysByIDs() error = %v, scenarioError = %v", err, testScenario.err)
 				}
 			}
 		})
