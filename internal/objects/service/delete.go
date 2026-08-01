@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"net/http"
 	"os"
 	"strconv"
 	"sync"
@@ -20,7 +19,7 @@ func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID,
 	}
 	if permission != 2 && permission != 6 && permission != 3 && permission != 7 {
 		obs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
-		return commonErrors.NewAPIError(http.StatusForbidden, "you are not allowed to do this action")
+		return commonErrors.Permissions("you are not allowed to do this action")
 	}
 	return nil
 }
@@ -28,7 +27,7 @@ func (obs *ObjectService) CheckExecutePermissions(ctx context.Context, bucketID,
 func (obs *ObjectService) CreateDeleteMarker(ctx context.Context, objectKey string, bucketID int) error {
 	doesObjectExist, objectID, err := obs.objectRepository.GetObjectID(ctx, objectKey, bucketID)
 	if !doesObjectExist {
-		return commonErrors.NewAPIError(http.StatusNotFound, "failed to find object with provided id")
+		return commonErrors.NotFound("failed to find object with provided id")
 	}
 	if err != nil {
 		return err

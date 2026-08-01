@@ -25,15 +25,14 @@ func (oh *ObjectHandler) DeleteMany(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}
 
 	reqData, err := request.ReadBody[DTO.DeleteManyFiles](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.Validation("provided invalid json format")
 	}
 
 	err = middleware.ValidateRequestData(reqData)

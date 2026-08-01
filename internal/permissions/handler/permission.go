@@ -43,7 +43,7 @@ func NewPermissionHandler(
 func (ph *PermissionHandler) HandleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		ph.loggerService.Info("request timed out", URLPath)
-		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		return commonErrors.RequestTimeout()
 	}
 	return err
 }
@@ -59,7 +59,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 
 	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.Validation("provided invalid json format")
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -74,8 +74,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}
@@ -101,7 +100,7 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 
 	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.Validation("provided invalid json format")
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -116,16 +115,14 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}
 
 	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of permissionID or provided permissionID is malformed",
 		)
 	}
@@ -150,7 +147,7 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 
 	reqData, err := request.ReadBody[DTO.Delete](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.Validation("provided invalid json format")
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -165,16 +162,14 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}
 
 	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of permissionID or provided permissionID is malformed",
 		)
 	}

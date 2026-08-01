@@ -27,7 +27,7 @@ type ObjectService interface {
 	CheckReadPermissions(ctx context.Context, bucketID int, userID int) error
 	Delete(ctx context.Context, bucketID, userID int, objectKey string, versionID int) error
 	Get(ctx context.Context, bucketID, versionID int, objectKey string) (model.GetMetadata, string, error)
- DeleteMany(ctx context.Context, bucketID, userID int, filesToDelete DTO.DeleteManyFiles) error 
+	DeleteMany(ctx context.Context, bucketID, userID int, filesToDelete DTO.DeleteManyFiles) error
 }
 
 type ObjectHandler struct {
@@ -51,7 +51,7 @@ func New(
 func (oh *ObjectHandler) HandleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		oh.loggerService.Info("request timed out", URLPath)
-		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		return commonErrors.RequestTimeout()
 	}
 	return err
 }
@@ -67,7 +67,7 @@ func (oh *ObjectHandler) verifyFileName(fileName string) error {
 		fileName,
 		"..",
 	) {
-		return commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
+		return commonErrors.Validation("invalid file name")
 	}
 	return nil
 }
@@ -97,8 +97,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}
@@ -142,8 +141,7 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}
@@ -199,8 +197,7 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}
@@ -241,8 +238,7 @@ func (oh *ObjectHandler) Get(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
+		return commonErrors.Validation(
 			"lack of bucketID or provided bucketID is malformed",
 		)
 	}

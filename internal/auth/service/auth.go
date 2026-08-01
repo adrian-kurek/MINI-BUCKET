@@ -68,7 +68,7 @@ func (as *AuthService) Register(ctx context.Context, user authDTO.CreateUser) er
 	if userFromDB.ID != 0 {
 		err = errors.New("user with provided email already exists")
 		as.loggerService.Info(err.Error(), user.Email)
-		return commonErrors.NewAPIError(http.StatusBadRequest, err.Error())
+		return commonErrors.NewAPIError(http.StatusBadRequest, commonErrors.CategoryDuplicate, err.Error(), true)
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -108,7 +108,7 @@ func (as *AuthService) sendActivationLink(userID int, email, username string) er
 
 	err = errors.New("user with provided email is not verified, we sent to you mail with activation link")
 	as.loggerService.Info(err.Error(), email)
-	return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+	return commonErrors.Unauthorized(err.Error())
 }
 
 func (as *AuthService) Login(
@@ -125,7 +125,7 @@ func (as *AuthService) Login(
 	if userFromDB.ID == 0 {
 		err = errors.New("user with provided email not found")
 		as.loggerService.Info(err.Error(), loginData.Email)
-		return "", nil, commonErrors.NewAPIError(http.StatusNotFound, err.Error())
+		return "", nil, commonErrors.NotFound(err.Error())
 	}
 
 	if !userFromDB.EmailVerified {
@@ -136,7 +136,7 @@ func (as *AuthService) Login(
 	if err != nil {
 		err = errors.New("provided incorrect password")
 		as.loggerService.Info(err.Error(), loginData.Email)
-		return "", nil, commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+		return "", nil, commonErrors.Unauthorized(err.Error())
 	}
 
 	if err = ctx.Err(); err != nil {
@@ -180,13 +180,13 @@ func (as *AuthService) validateToken(userDataWithToken authModel.TokenWithUserEm
 	if userDataWithToken.ID == 0 {
 		err := errors.New("token not found")
 		as.loggerService.Info(err.Error(), nil)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+		return commonErrors.Unauthorized(err.Error())
 	}
 
 	if userDataWithToken.ExpiresAt.Before(time.Now()) {
 		err := errors.New("refresh token expired")
 		as.loggerService.Info(err.Error(), nil)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+		return commonErrors.Unauthorized(err.Error())
 	}
 	return nil
 }
