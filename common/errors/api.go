@@ -9,14 +9,14 @@ import (
 type Category string
 
 const (
-	CategoryValidation     Category = "VALIDATION"
-	CategoryNotFound       Category = "NOT_FOUND"
-	CategoryUnauthorized   Category = "UNAUTHORIZED"
-	CategoryInternal       Category = "INTERNAL"
-	CategoryRequestTimeout Category = "REQUEST_TIMEOUT"
-	CategoryDuplicate      Category = "DUPLICATE"
-	CategoryPermissions    Category = "PERMISSIONS"
-	CategoryMethodNotAllowed    Category = "METHOD_NOT_ALLOWED"
+	CategoryValidation       Category = "VALIDATION"
+	CategoryNotFound         Category = "NOT_FOUND"
+	CategoryUnauthorized     Category = "UNAUTHORIZED"
+	CategoryInternal         Category = "INTERNAL"
+	CategoryRequestTimeout   Category = "REQUEST_TIMEOUT"
+	CategoryDuplicate        Category = "DUPLICATE"
+	CategoryPermissions      Category = "PERMISSIONS"
+	CategoryMethodNotAllowed Category = "METHOD_NOT_ALLOWED"
 )
 
 func NewAPIError(statusCode int, category Category, message string, isOperational bool) *APIError {
