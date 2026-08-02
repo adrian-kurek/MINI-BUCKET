@@ -25,9 +25,7 @@ func (oh *ObjectHandler) DeleteMany(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	reqData, err := request.ReadBody[DTO.DeleteManyFiles](r)

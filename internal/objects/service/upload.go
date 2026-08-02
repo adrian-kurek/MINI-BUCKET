@@ -59,7 +59,7 @@ func (obs *ObjectService) CheckWritePermissions(ctx context.Context, bucketID, u
 	}
 	if permission != 2 && permission != 6 && permission != 3 && permission != 7 {
 		obs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
-		return commonErrors.Permissions("you are not allowed to do this action")
+		return commonErrors.Permissions()
 	}
 	return nil
 }

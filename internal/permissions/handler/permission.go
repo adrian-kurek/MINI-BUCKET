@@ -59,7 +59,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 
 	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
-		return commonErrors.Validation("provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -74,9 +74,7 @@ func (ph *PermissionHandler) Create(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	err = ph.permissionService.Create(ctx, bucketID, reqData.UserID, authorizedUserID, reqData.Permission)
@@ -100,7 +98,7 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 
 	reqData, err := request.ReadBody[DTO.Upsert](r)
 	if err != nil {
-		return commonErrors.Validation("provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -115,9 +113,7 @@ func (ph *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))
@@ -147,7 +143,7 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 
 	reqData, err := request.ReadBody[DTO.Delete](r)
 	if err != nil {
-		return commonErrors.Validation("provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -162,9 +158,7 @@ func (ph *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) erro
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	permissionID, err := strconv.Atoi(r.PathValue("permissionID"))

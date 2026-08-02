@@ -61,7 +61,7 @@ func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 
 	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
 	if err != nil {
-		return commonErrors.Validation("provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -93,9 +93,7 @@ func (bh *BucketHandler) Get(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
@@ -123,7 +121,7 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 
 	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
 	if err != nil {
-		return commonErrors.Validation("provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -133,9 +131,7 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)

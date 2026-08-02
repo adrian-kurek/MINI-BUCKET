@@ -67,7 +67,7 @@ func (oh *ObjectHandler) verifyFileName(fileName string) error {
 		fileName,
 		"..",
 	) {
-		return commonErrors.Validation("invalid file name")
+		return commonErrors.InvalidFileName()
 	}
 	return nil
 }
@@ -97,9 +97,7 @@ func (oh *ObjectHandler) Upload(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	const maxUploadSize int64 = 256 << 30 // 256 GB
@@ -141,9 +139,7 @@ func (oh *ObjectHandler) GetMetadata(w http.ResponseWriter, r *http.Request) err
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	hasPublicAccess, err := oh.objectService.HasPublicAccess(ctx, bucketID)
@@ -197,9 +193,7 @@ func (oh *ObjectHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	versionIDStr := request.ReadQueryParam(r, "versionID")
@@ -238,9 +232,7 @@ func (oh *ObjectHandler) Get(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.Validation(
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	hasPublicAccess, err := oh.objectService.HasPublicAccess(ctx, bucketID)
