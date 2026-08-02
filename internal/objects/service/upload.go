@@ -59,7 +59,7 @@ func (obs *ObjectService) CheckWritePermissions(ctx context.Context, bucketID, u
 	}
 	if permission != 2 && permission != 6 && permission != 3 && permission != 7 {
 		obs.loggerService.Info("user tried to perform operation which is not allowed for him", userID)
-		return commonErrors.NewAPIError(http.StatusForbidden, "you are not allowed to do this action")
+		return commonErrors.Permissions()
 	}
 	return nil
 }
@@ -70,7 +70,7 @@ func (obs *ObjectService) CheckDoesBucketExist(ctx context.Context, bucketID int
 		return err
 	}
 	if !doesBucketExist {
-		return commonErrors.NewAPIError(http.StatusNotFound, "bucket with provided id does not exist")
+		return commonErrors.NotFound("bucket with provided id does not exist")
 	}
 	return nil
 }
@@ -112,7 +112,7 @@ func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (
 		objectKey,
 		"..",
 	) {
-		return "", commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
+		return "", commonErrors.Validation("invalid file name")
 	}
 
 	uploadDir := "./uploads/" + strconv.Itoa(bucketID)
@@ -133,7 +133,7 @@ func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (
 
 	uploadDirWithSep := absUploadDir + string(os.PathSeparator)
 	if absCandidatePath != absUploadDir && !strings.HasPrefix(absCandidatePath, uploadDirWithSep) {
-		return "", commonErrors.NewAPIError(http.StatusBadRequest, "invalid file name")
+		return "", commonErrors.InvalidFileName()
 	}
 
 	return candidatePath, nil
@@ -241,7 +241,7 @@ func (obs *ObjectService) CheckPossibilityToUpload(ctx context.Context, bucketID
 		return err
 	}
 	if freeSpaceOnDisk <= uint64(fileInfo.SizeBytes) {
-		return commonErrors.NewAPIError(500, "")
+		return commonErrors.NewAPIError(http.StatusInternalServerError, commonErrors.CategoryInternal, "", true)
 	}
 
 	if err := obs.CheckDoesBucketExist(ctx, bucketID); err != nil {

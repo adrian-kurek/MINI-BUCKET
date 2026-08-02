@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
@@ -82,7 +81,7 @@ func (ob *ObjectRepository) GetMetadata(ctx context.Context, bucketID int, objec
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.GetMetadata{}, commonErrors.NewAPIError(http.StatusNotFound, "failed to find object with provided objectKey and bucketID")
+			return model.GetMetadata{}, commonErrors.NotFound("failed to find object with provided objectKey and bucketID")
 		}
 
 		ob.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
@@ -122,7 +121,7 @@ func (or *ObjectRepository) GetUUIDByID(ctx context.Context, objectKey string, b
 	err = stmt.QueryRowContext(ctx, objectKey, bucketID).Scan(&uuid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", commonErrors.NewAPIError(http.StatusNotFound, "failed to find object with provided objectKey and bucketID")
+			return "", commonErrors.NotFound("failed to find object with provided objectKey and bucketID")
 		}
 
 		or.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
@@ -217,7 +216,7 @@ func (or *ObjectRepository) GetUUIDsAndKeysByKeys(ctx context.Context, bucketID 
 	}
 
 	if !found {
-		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
+		return nil, commonErrors.NotFound("")
 	}
 
 	return objectKeysWithUUIDs, nil

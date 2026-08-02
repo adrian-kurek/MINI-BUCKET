@@ -12,10 +12,10 @@ import (
 func (obs *ObjectService) CheckIsVersionDeleted(isDeleted bool, versionID int) error {
 	if isDeleted {
 		if versionID > 0 {
-			return commonErrors.NewAPIError(http.StatusMethodNotAllowed, "")
+			return commonErrors.NewAPIError(http.StatusMethodNotAllowed, commonErrors.CategoryMethodNotAllowed, "", true)
 		}
 
-		return commonErrors.NewAPIError(http.StatusNotFound, "")
+		return commonErrors.NotFound("")
 	}
 	return nil
 }

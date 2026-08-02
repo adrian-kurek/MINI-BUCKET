@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"net/http"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
@@ -38,7 +37,7 @@ func (ps *PermissionService) CheckPermissions(ctx context.Context, bucketID, use
 
 	if permission != 7 && permission != 3 && permission != 5 {
 		ps.logger.Info("user tried to perform operation which is not allowed for him", userID)
-		return commonErrors.NewAPIError(http.StatusForbidden, "you are not allowed to do this action")
+		return commonErrors.Validation("you are not allowed to do this action")
 	}
 	return nil
 }
