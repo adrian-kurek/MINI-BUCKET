@@ -133,7 +133,7 @@ func (obs *ObjectService) createDestPath(bucketID int, uuid, objectKey string) (
 
 	uploadDirWithSep := absUploadDir + string(os.PathSeparator)
 	if absCandidatePath != absUploadDir && !strings.HasPrefix(absCandidatePath, uploadDirWithSep) {
-		return "", commonErrors.Validation("invalid file name")
+		return "", commonErrors.InvalidFileName()
 	}
 
 	return candidatePath, nil

@@ -30,7 +30,7 @@ func (oh *ObjectHandler) DeleteMany(w http.ResponseWriter, r *http.Request) erro
 
 	reqData, err := request.ReadBody[DTO.DeleteManyFiles](r)
 	if err != nil {
-		return commonErrors.Validation("provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
