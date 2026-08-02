@@ -49,6 +49,33 @@ func Validation(msg string) *APIError {
 	}
 }
 
+func InvalidJSONFormat() *APIError {
+	return &APIError{
+		Category:      CategoryValidation,
+		StatusCode:    http.StatusUnprocessableEntity,
+		IsOperational: true,
+		Message:       "provided invalid json format",
+	}
+}
+
+func InvalidBucketID() *APIError {
+	return &APIError{
+		Category:      CategoryValidation,
+		StatusCode:    http.StatusUnprocessableEntity,
+		IsOperational: true,
+		Message:       "lack of bucketID or provided bucketID is malformed",
+	}
+}
+
+func InvalidFileName() *APIError {
+	return &APIError{
+		Category:      CategoryValidation,
+		StatusCode:    http.StatusUnprocessableEntity,
+		IsOperational: true,
+		Message:       "provided invalid file name",
+	}
+}
+
 func Unauthorized(msg string) *APIError {
 	return &APIError{
 		Category: CategoryUnauthorized, StatusCode: http.StatusUnauthorized, IsOperational: true, Message: msg,
@@ -61,8 +88,11 @@ func RequestTimeout() *APIError {
 	}
 }
 
-func Permissions(msg string) *APIError {
+func Permissions() *APIError {
 	return &APIError{
-		Category: CategoryPermissions, StatusCode: http.StatusForbidden, IsOperational: true, Message: msg,
+		Category:      CategoryPermissions,
+		StatusCode:    http.StatusForbidden,
+		IsOperational: true,
+		Message:       "you are not allowed to perform this action",
 	}
 }
