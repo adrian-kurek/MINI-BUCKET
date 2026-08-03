@@ -45,7 +45,7 @@ func New(
 func (bh *BucketHandler) HandleTimeout(err error, URLPath string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		bh.loggerService.Info("request timed out", URLPath)
-		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		return commonErrors.RequestTimeout()
 	}
 	return err
 }
@@ -61,7 +61,7 @@ func (bh *BucketHandler) Create(w http.ResponseWriter, r *http.Request) error {
 
 	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -93,10 +93,7 @@ func (bh *BucketHandler) Get(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)
@@ -124,7 +121,7 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 
 	reqData, err := request.ReadBody[bucketDTO.BucketInput](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.InvalidJSONFormat()
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -134,10 +131,7 @@ func (bh *BucketHandler) Update(w http.ResponseWriter, r *http.Request) error {
 
 	bucketID, err := strconv.Atoi(r.PathValue("bucketID"))
 	if err != nil {
-		return commonErrors.NewAPIError(
-			http.StatusUnprocessableEntity,
-			"lack of bucketID or provided bucketID is malformed",
-		)
+		return commonErrors.InvalidBucketID()
 	}
 
 	userID, err := request.ReadUserIDFromToken(r)

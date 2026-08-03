@@ -72,7 +72,7 @@ func (am *AuthenticationMiddleware) GenerateAccessToken(user userModel.User) (st
 	if err != nil {
 		errMsg := errors.New("failed to sign access token properly")
 		am.loggerService.Error(errMsg.Error(), err.Error())
-		return "", commonErrors.NewAPIError(http.StatusUnauthorized, errMsg.Error())
+		return "", commonErrors.Unauthorized(errMsg.Error())
 	}
 
 	am.loggerService.Info("Successfully signed a new access token", nil)
@@ -97,7 +97,7 @@ func (am *AuthenticationMiddleware) readTokenFromRequest(r *http.Request) (strin
 	authHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		am.loggerService.Info("token is missing", nil)
-		return "", commonErrors.NewAPIError(http.StatusUnauthorized, "failed to authorize a user")
+		return "", commonErrors.Unauthorized("failed to authorize a user")
 	}
 
 	return strings.Split(authHeader, " ")[1], nil
@@ -114,7 +114,7 @@ func (am *AuthenticationMiddleware) isTokenBlackListed(ctx context.Context, toke
 	if result > 0 {
 		err = errors.New("token blacklisted")
 		am.loggerService.Info(err.Error(), nil)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+		return commonErrors.Unauthorized(err.Error())
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func (am *AuthenticationMiddleware) checkIsTokenValid(token *jwt.Token) error {
 	if !token.Valid {
 		err := errors.New("provided token is invalid")
 		am.loggerService.Info(err.Error(), nil)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, err.Error())
+		return commonErrors.Unauthorized(err.Error())
 	}
 	return nil
 }
@@ -151,7 +151,7 @@ func (am *AuthenticationMiddleware) VerifyToken(r *http.Request) (*http.Request,
 	tokenWithData, user, err := am.ParseClaimsFromToken(token)
 	if err != nil {
 		am.loggerService.Info("failed to read data properly", err.Error())
-		return r, commonErrors.NewAPIError(http.StatusUnauthorized, "provided token is invalid")
+		return r, commonErrors.Unauthorized("provided token is invalid")
 	}
 
 	if err = ctx.Err(); err != nil {
@@ -180,7 +180,7 @@ func (am *AuthenticationMiddleware) BlacklistUser(r *http.Request) error {
 	tokenWithData, user, err := am.ParseClaimsFromToken(token)
 	if err != nil {
 		am.loggerService.Info("failed to read data properly", nil)
-		return commonErrors.NewAPIError(http.StatusUnauthorized, "failed to read token")
+		return commonErrors.Unauthorized("failed to read token")
 	}
 
 	err = am.checkIsTokenValid(tokenWithData)

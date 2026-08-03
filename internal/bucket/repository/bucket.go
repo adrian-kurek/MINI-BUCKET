@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"net/http"
 
 	commonErrors "github.com/slodkiadrianek/MINI-BUCKET/common/errors"
 	commonInterfaces "github.com/slodkiadrianek/MINI-BUCKET/common/interfaces"
@@ -192,7 +191,7 @@ func (br *BucketRepository) GetPrivacyInfo(ctx context.Context, bucketID int) (b
 	err = stmt.QueryRowContext(ctx, bucketID).Scan(&hasPublicAccess)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, commonErrors.NewAPIError(http.StatusNotFound, "")
+			return false, commonErrors.NotFound("")
 		}
 		br.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,
@@ -229,7 +228,7 @@ func (br *BucketRepository) IsVersioningEnabled(ctx context.Context, bucketID in
 	err = stmt.QueryRowContext(ctx, bucketID).Scan(&isVersioningEnabled)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, commonErrors.NewAPIError(http.StatusNotFound, "")
+			return false, commonErrors.NotFound("")
 		}
 		br.loggerService.Error(commonErrors.FailedToExecuteSelectQuery, map[string]any{
 			"query": query,

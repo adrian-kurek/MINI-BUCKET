@@ -50,7 +50,7 @@ func New(
 func (ah *AuthHandler) handleTimeout(err error, path string) error {
 	if errors.Is(err, context.DeadlineExceeded) {
 		ah.loggerService.Info("request timed out", path)
-		return commonErrors.NewAPIError(http.StatusRequestTimeout, "")
+		return commonErrors.RequestTimeout()
 	}
 	return err
 }
@@ -61,7 +61,7 @@ func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 
 	reqData, err := request.ReadBody[authDTO.CreateUser](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.Validation("provided invalid json format")
 	}
 
 	err = middleware.ValidateRequestData(reqData)
@@ -84,7 +84,7 @@ func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 
 	reqData, err := request.ReadBody[authDTO.LoginUser](r)
 	if err != nil {
-		return commonErrors.NewAPIError(http.StatusUnprocessableEntity, "provided invalid json format")
+		return commonErrors.Validation("provided invalid json format")
 	}
 
 	err = middleware.ValidateRequestData(reqData)
