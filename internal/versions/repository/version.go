@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/slodkiadrianek/MINI-BUCKET/common/db"
@@ -421,7 +420,7 @@ func (vr *VersionRepository) CreateManyDeleteMarkers(ctx context.Context, tx *sq
 		return nil, err
 	}
 	if !found {
-		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
+		return nil, commonErrors.NotFound("")
 	}
 
 	return versionIDs, nil
@@ -505,7 +504,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByIDs(
 		return nil, err
 	}
 	if !found {
-		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
+		return nil, commonErrors.NotFound("")
 	}
 
 	return objectKeysWithUUIDs, nil
@@ -585,7 +584,7 @@ func (vr *VersionRepository) GetUUIDsAndObjectKeysByObjectKeys(ctx context.Conte
 		return nil, err
 	}
 	if !found {
-		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
+		return nil, commonErrors.NotFound("")
 	}
 
 	return objectKeysWithUUIDs, nil

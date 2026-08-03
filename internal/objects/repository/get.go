@@ -123,7 +123,7 @@ func (or *ObjectRepository) GetIDsByKeys(
 		return nil, err
 	}
 	if !found {
-		return nil, commonErrors.NewAPIError(http.StatusNotFound, "")
+		return nil, commonErrors.NotFound("")
 	}
 	return objectIDs, nil
 }
